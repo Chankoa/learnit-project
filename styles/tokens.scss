@@ -1,0 +1,51 @@
+:root {
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: var(--font-body);
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.75rem;
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.5rem;
+  --radius-pill: 999px;
+
+  --learnit-purple-50: #f5f0ff;
+  --learnit-purple-100: #eadcff;
+  --learnit-purple-300: #b48cff;
+  --learnit-purple-500: #8854f6;
+  --learnit-purple-700: #5f2bd7;
+  --learnit-pink-400: #f25aa6;
+  --learnit-pink-500: #e93f91;
+  --learnit-cyan-400: #31c8d5;
+  --learnit-amber-400: #ffb84c;
+  --learnit-green-400: #2fd29a;
+  --learnit-ink-950: #090d17;
+  --learnit-ink-900: #111827;
+  --learnit-ink-700: #334155;
+  --learnit-ink-500: #64748b;
+  --learnit-ink-100: #e8ecf5;
+  --learnit-ink-50: #f7f8fb;
+}
