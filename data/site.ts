@@ -1,3 +1,5 @@
+import type { AudienceProfile, HeroStat, LearningModule, SiteConfig } from "@/types/site";
+
 export const siteConfig = {
   name: "Learn It",
   tagline: "by REXCODE",
@@ -23,14 +25,14 @@ export const siteConfig = {
       links: ["Confidentialite", "Conditions", "Contact"]
     }
   ]
-};
+} satisfies SiteConfig;
 
 export const heroStats = [
   { label: "10 jours", detail: "de formation", icon: "clock" },
   { label: "70+", detail: "lecons video", icon: "video" },
   { label: "1 projet", detail: "final complet", icon: "project" },
   { label: "Certificat", detail: "de reussite", icon: "certificate" }
-] as const;
+] satisfies HeroStat[];
 
 export const audienceProfiles = [
   {
@@ -53,10 +55,10 @@ export const audienceProfiles = [
     text: "Apprenez a creer des sites modernes et utiles.",
     icon: "heart"
   }
-] as const;
+] satisfies AudienceProfile[];
 
 export const learningModules = [
   { title: "Jour 1 - Introduction", status: "Termine" },
   { title: "Jour 2 - HTML & Structure", status: "Termine" },
   { title: "Jour 4 - CSS & Mise en forme", status: "En cours" }
-] as const;
+] satisfies LearningModule[];
