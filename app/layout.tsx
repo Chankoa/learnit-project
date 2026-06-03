@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { SiteShell } from "@/components/layout/SiteShell";
-import { siteConfig } from "@/data/site";
+import { getSiteConfig } from "@/lib/site";
 import "@/styles/globals.scss";
 
 const themeInitializer = `
@@ -22,6 +22,8 @@ const themeInitializer = `
   }
 })();
 `;
+
+const siteConfig = getSiteConfig();
 
 export const metadata: Metadata = {
   title: {

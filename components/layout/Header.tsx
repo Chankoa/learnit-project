@@ -8,11 +8,11 @@ import { LogoMark } from "@/components/ui/LogoMark";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const navItems = [
-  { label: "Formations", href: "#formations" },
-  { label: "Domaines", href: "#domaines" },
-  { label: "Ressources", href: "#ressources" },
-  { label: "À propos", href: "#apropos" },
-  { label: "Contact", href: "#contact" }
+  { label: "Formations", href: "/formations" },
+  { label: "Domaines", href: "/formations#domaines" },
+  { label: "Ressources", href: "/formations#ressources" },
+  { label: "À propos", href: "/#apropos" },
+  { label: "Contact", href: "/#contact" }
 ];
 
 export function Header() {
@@ -25,7 +25,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/82 backdrop-blur-xl">
       <div className="section-shell flex min-h-20 items-center justify-between gap-3">
-        <Link href="/" aria-label="Retour a l'accueil LearnIt" onClick={closeMenu}>
+        <Link href="/" aria-label="Retour à l'accueil LearnIt" onClick={closeMenu}>
           <LogoMark />
         </Link>
 
@@ -39,7 +39,7 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link className="btn btn-primary hidden sm:inline-flex" href="#demo">
+          <Link className="btn btn-primary hidden sm:inline-flex" href="/formations#demo">
             Accéder à la démo
           </Link>
           <button
@@ -67,7 +67,7 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
-            <Link className="btn btn-primary mt-3 w-full" href="#demo" onClick={closeMenu}>
+            <Link className="btn btn-primary mt-3 w-full" href="/formations#demo" onClick={closeMenu}>
               Accéder à la démo
             </Link>
           </nav>

@@ -3,7 +3,7 @@ import type { FAQItem, Instructor, Resource } from "@/types/resource";
 
 export type CourseLevel = "beginner" | "intermediate" | "advanced";
 
-export type CourseStatus = "draft" | "published" | "archived";
+export type CourseStatus = "draft" | "published" | "preview" | "coming-soon" | "archived";
 
 export type Domain = {
   id: string;
@@ -29,6 +29,7 @@ export type Course = {
   id: string;
   slug: string;
   title: string;
+  subtitle?: string;
   description: string;
   domain: Domain;
   level: CourseLevel;
@@ -37,10 +38,15 @@ export type Course = {
   instructors?: Instructor[];
   resources?: Resource[];
   faq?: FAQItem[];
+  audience?: string[];
+  objectives?: string[];
+  requirements?: string[];
+  method?: string[];
   featured?: boolean;
   featuredOrder?: number;
   coverImage?: string;
   durationMinutes?: number;
+  format?: string;
   tags?: string[];
   publishedAt?: string;
   updatedAt?: string;

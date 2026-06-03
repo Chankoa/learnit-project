@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Award, Clock, Code2, Play, Trophy, Video } from "lucide-react";
 
-import { heroStats, siteConfig } from "@/data/site";
+import { getHeroStats, getSiteConfig } from "@/lib/site";
 
 const statIcons = {
   clock: Clock,
@@ -11,17 +11,20 @@ const statIcons = {
 };
 
 export function HeroSection() {
+  const heroStats = getHeroStats();
+  const siteConfig = getSiteConfig();
+
   return (
     <section className="section-shell py-8 md:py-12" id="formations">
       <div className="hero-card grid gap-10 p-5 md:grid-cols-[1fr_0.92fr] md:p-10">
         <div className="flex flex-col justify-center">
           <span className="eyebrow w-fit">
             <Code2 size={14} aria-hidden="true" />
-            Parcours creation web
+            Parcours création web
           </span>
 
           <h1 className="mt-6 max-w-2xl text-4xl font-black leading-tight text-text-strong md:text-[3.25rem]">
-            Apprenez. Creez. Lancez{" "}
+            Apprenez. Créez. Lancez{" "}
             <span className="text-accent">vos projets web.</span>
           </h1>
 
@@ -47,7 +50,7 @@ export function HeroSection() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link className="btn btn-primary" href="#programme">
-              Decouvrir la formation
+              Découvrir la formation
             </Link>
             <Link className="btn btn-secondary" href="#programme">
               Voir le programme
@@ -55,9 +58,9 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className="hero-media" aria-label="Apercu video de la formation Learn It">
+        <div className="hero-media" aria-label="Aperçu vidéo de la formation Learn It">
           <div className="hero-media-grid" aria-hidden="true" />
-          <button className="play-button" type="button" aria-label="Lire l'apercu video">
+          <button className="play-button" type="button" aria-label="Lire l'aperçu vidéo">
             <Play fill="currentColor" size={30} aria-hidden="true" />
           </button>
           <div className="laptop-preview" aria-hidden="true">

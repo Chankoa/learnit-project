@@ -13,7 +13,7 @@ export const webResources = [
   },
   {
     id: "resource-web-html-cheatsheet",
-    title: "Memo HTML essentiel",
+    title: "Mémo HTML essentiel",
     type: "download",
     href: "/resources/memo-html-essentiel.pdf",
     description: "Les balises HTML les plus utiles pour structurer une page claire et accessible.",
@@ -46,10 +46,20 @@ export const webResources = [
     title: "Checklist mise en ligne",
     type: "download",
     href: "/resources/checklist-mise-en-ligne.pdf",
-    description: "Controle final avant publication : SEO, accessibilite, performances et formulaires.",
+    description: "Contrôle final avant publication : SEO, accessibilité, performances et formulaires.",
     fileName: "checklist-mise-en-ligne.pdf",
     access: "enrolled",
     tags: ["netlify", "seo", "publication"]
+  },
+  {
+    id: "resource-web-final-project-guide",
+    title: "Guide du projet final",
+    type: "download",
+    href: "/resources/guide-projet-final-web.pdf",
+    description: "Un guide pour assembler le brief, la structure, les composants, les tests et la publication.",
+    fileName: "guide-projet-final-web.pdf",
+    access: "premium",
+    tags: ["projet final", "portfolio", "livraison"]
   }
 ] satisfies Resource[];
 
@@ -59,17 +69,17 @@ export const aiFilmmakingResources = [
     title: "Mini shotlist IA",
     type: "template",
     href: "/resources/mini-shotlist-ia.pdf",
-    description: "Une fiche simple pour preparer une sequence courte generee avec l'IA.",
+    description: "Une fiche simple pour préparer une séquence courte générée avec l'IA.",
     fileName: "mini-shotlist-ia.pdf",
     access: "free",
     tags: ["ia", "preproduction", "shotlist"]
   },
   {
     id: "resource-ai-prompt-bank",
-    title: "Banque de prompts video",
+    title: "Banque de prompts vidéo",
     type: "download",
     href: "/resources/banque-prompts-video.pdf",
-    description: "Exemples de prompts pour decrire le style, le mouvement camera et l'ambiance.",
+    description: "Exemples de prompts pour décrire le style, le mouvement caméra et l'ambiance.",
     fileName: "banque-prompts-video.pdf",
     access: "free",
     tags: ["ia", "prompt", "video"]
@@ -79,9 +89,9 @@ export const aiFilmmakingResources = [
 export const instructors = [
   {
     id: "instructor-rexcode-web",
-    name: "Equipe REXCODE",
-    role: "Mentor creation web",
-    bio: "Accompagnement pratique pour apprendre a structurer, coder et publier des projets web.",
+    name: "Équipe REXCODE",
+    role: "Mentor création web",
+    bio: "Accompagnement pratique pour apprendre à structurer, coder et publier des projets web.",
     specialties: ["HTML", "CSS", "Next.js", "Netlify"],
     links: [{ label: "Site", href: "https://rexcode.dev" }]
   },
@@ -89,15 +99,15 @@ export const instructors = [
     id: "instructor-ai-studio",
     name: "Studio IA",
     role: "Guide AI filmmaking",
-    bio: "Initiation aux workflows courts de preproduction, generation et montage assiste par IA.",
-    specialties: ["Prompt video", "Storyboard", "Montage IA"]
+    bio: "Initiation aux workflows courts de préproduction, génération et montage assisté par IA.",
+    specialties: ["Prompt vidéo", "Storyboard", "Montage IA"]
   }
 ] satisfies Instructor[];
 
 export const webCourseFAQ = [
   {
     id: "faq-web-prerequis",
-    question: "Faut-il deja savoir coder ?",
+    question: "Faut-il déjà savoir coder ?",
     answer: "Non. La formation part des bases et avance vers un projet web complet.",
     category: "prerequis",
     order: 1
@@ -105,24 +115,45 @@ export const webCourseFAQ = [
   {
     id: "faq-web-projet-final",
     question: "Quel projet vais-je construire ?",
-    answer: "Vous construirez une page web professionnelle, responsive et deployable sur Netlify.",
+    answer: "Vous construirez une page web professionnelle, responsive et déployable sur Netlify.",
     category: "projet",
     order: 2
   },
   {
     id: "faq-web-outils",
-    question: "Quels outils sont utilises ?",
+    question: "Quels outils sont utilisés ?",
     answer: "La formation utilise HTML, CSS, TypeScript, Next.js, Tailwind, Git et Netlify.",
     category: "outils",
     order: 3
+  },
+  {
+    id: "faq-web-duree",
+    question: "Combien de temps faut-il prévoir ?",
+    answer: "Le programme représente environ 13 heures de contenu et de pratique guidée, à répartir selon votre rythme.",
+    category: "format",
+    order: 4
+  },
+  {
+    id: "faq-web-livrable",
+    question: "Est-ce que je repars avec un livrable concret ?",
+    answer: "Oui. L'objectif est de finaliser un site web responsive, structuré et prêt à être présenté ou publié.",
+    category: "projet",
+    order: 5
+  },
+  {
+    id: "faq-web-netlify",
+    question: "Le déploiement est-il inclus ?",
+    answer: "Oui. Le dernier module couvre les contrôles qualité et la publication du projet sur Netlify.",
+    category: "publication",
+    order: 6
   }
 ] satisfies FAQItem[];
 
 export const aiFilmmakingFAQ = [
   {
     id: "faq-ai-demo",
-    question: "Cette formation est-elle complete ?",
-    answer: "Cette fiche est une demonstration courte du format AI Filmmaking Foundations.",
+    question: "Cette formation est-elle complète ?",
+    answer: "Cette fiche est une démonstration courte du format AI Filmmaking Foundations.",
     category: "format",
     order: 1
   }

@@ -1,10 +1,11 @@
-import { siteConfig } from "@/data/site";
+import { getSiteConfig } from "@/lib/site";
 
 type LogoMarkProps = {
   tone?: "default" | "inverse";
 };
 
 export function LogoMark({ tone = "default" }: LogoMarkProps) {
+  const siteConfig = getSiteConfig();
   const titleClassName = tone === "inverse" ? "block text-base font-extrabold text-white" : "block text-base font-extrabold text-text-strong";
   const taglineClassName =
     tone === "inverse" ? "block text-[10px] font-bold uppercase text-slate-300" : "block text-[10px] font-bold uppercase text-text-muted";

@@ -34,5 +34,5 @@ export type AudienceProfile = {
 
 export type LearningModule = {
   title: string;
-  status: "Termine" | "En cours";
+  status: "Terminé" | "En cours";
 };

@@ -1,5 +1,5 @@
 import { courses as staticCourses } from "@/data/courses";
-import type { Course, CourseModule } from "@/types/course";
+import type { Course, CourseModule, CourseStatus } from "@/types/course";
 import type { Lesson } from "@/types/learning";
 
 type CourseSource = {
@@ -9,6 +9,8 @@ type CourseSource = {
 const staticCourseSource: CourseSource = {
   getCourses: () => staticCourses
 };
+
+const catalogCourseStatuses = new Set<CourseStatus>(["published", "preview", "coming-soon"]);
 
 function getCourseSource() {
   return staticCourseSource;
@@ -38,8 +40,24 @@ export function getPublishedCourses() {
   return getAllCourses().filter((course) => course.status === "published");
 }
 
+export function getCatalogCourses() {
+  return getAllCourses().filter((course) => catalogCourseStatuses.has(course.status));
+}
+
+export function getPublishedCourseBySlug(slug: string) {
+  const course = getCourseBySlug(slug);
+
+  return course?.status === "published" ? course : undefined;
+}
+
+export function getPublishedCourseStaticParams() {
+  return getAllCourses()
+    .filter((course) => course.status === "published")
+    .map((course) => ({ slug: course.slug }));
+}
+
 export function getFeaturedCourses() {
-  return getPublishedCourses()
+  return getCatalogCourses()
     .filter((course) => course.featured)
     .sort((first, second) => (first.featuredOrder ?? 999) - (second.featuredOrder ?? 999));
 }
@@ -50,6 +68,14 @@ export function getCourseBySlug(slug: string) {
 
 export function getCoursesByDomain(domainId: string) {
   return getAllCourses().filter((course) => course.domain.id === domainId);
+}
+
+export function getPublishedCoursesByDomain(domainId: string) {
+  return getPublishedCourses().filter((course) => course.domain.id === domainId);
+}
+
+export function getCatalogCoursesByDomain(domainId: string) {
+  return getCatalogCourses().filter((course) => course.domain.id === domainId);
 }
 
 export function getCourseModules(courseId: string) {

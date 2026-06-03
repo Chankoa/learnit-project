@@ -1,17 +1,19 @@
 import Link from "next/link";
 
 import { LogoMark } from "@/components/ui/LogoMark";
-import { siteConfig } from "@/data/site";
+import { getSiteConfig } from "@/lib/site";
 
 const footerNav = [
-  { label: "Formations", href: "#formations" },
-  { label: "Domaines", href: "#domaines" },
-  { label: "Ressources", href: "#ressources" },
-  { label: "À propos", href: "#apropos" },
-  { label: "Contact", href: "#contact" }
+  { label: "Formations", href: "/formations" },
+  { label: "Domaines", href: "/formations#domaines" },
+  { label: "Ressources", href: "/formations#ressources" },
+  { label: "À propos", href: "/#apropos" },
+  { label: "Contact", href: "/#contact" }
 ];
 
 export function Footer() {
+  const siteConfig = getSiteConfig();
+
   return (
     <footer className="border-t border-border bg-[var(--learnit-ink-950)] py-12 text-white" id="contact">
       <div className="section-shell grid gap-10 md:grid-cols-[1.15fr_1fr] lg:grid-cols-[1.25fr_1.75fr]">
@@ -38,9 +40,9 @@ export function Footer() {
           <div>
             <h2 className="text-sm font-extrabold uppercase text-white">Démo</h2>
             <p className="mt-4 text-sm text-slate-300">
-              Accedez a une experience courte pour explorer le parcours LearnIt.
+              Accédez à une expérience courte pour explorer le parcours LearnIt.
             </p>
-            <Link className="btn btn-primary mt-5 w-full sm:w-auto" href="#demo">
+            <Link className="btn btn-primary mt-5 w-full sm:w-auto" href="/formations#demo">
               Accéder à la démo
             </Link>
           </div>
@@ -48,7 +50,7 @@ export function Footer() {
       </div>
 
       <div className="section-shell mt-10 border-t border-white/10 pt-6 text-center text-sm text-slate-500">
-        &copy; 2026 LearnIt. Tous droits reserves.
+        &copy; 2026 LearnIt. Tous droits réservés.
       </div>
     </footer>
   );

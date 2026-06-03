@@ -1,8 +1,10 @@
 import { BookOpen, CheckCircle2, Clock3, PlayCircle } from "lucide-react";
 
-import { learningModules } from "@/data/site";
+import { getLearningModules } from "@/lib/site";
 
 export function LearningPreview() {
+  const learningModules = getLearningModules();
+
   return (
     <section className="section-shell py-8 pb-16" id="programme">
       <div className="dashboard-grid">
@@ -13,8 +15,8 @@ export function LearningPreview() {
               <span>40%</span>
             </div>
             <div>
-              <h2 className="text-lg font-black text-text-strong">Formation creation web</h2>
-              <p className="text-sm text-text-muted">4 / 10 jours completes</p>
+              <h2 className="text-lg font-black text-text-strong">Formation création web</h2>
+              <p className="text-sm text-text-muted">4 / 10 jours complétés</p>
               <button className="btn btn-primary mt-4 min-h-10 px-4" type="button">
                 Reprendre
               </button>
@@ -31,7 +33,7 @@ export function LearningPreview() {
             </div>
             <div className="metric-card p-5">
               <PlayCircle className="text-accent" size={22} aria-hidden="true" />
-              <p className="mt-4 text-sm text-text-muted">Lecons terminees</p>
+              <p className="mt-4 text-sm text-text-muted">Leçons terminées</p>
               <strong className="text-2xl text-text-strong">28 / 70</strong>
             </div>
             <div className="metric-card p-5">
