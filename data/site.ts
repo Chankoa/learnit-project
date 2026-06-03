@@ -1,15 +1,15 @@
 import type { AudienceProfile, HeroStat, LearningModule, SiteConfig } from "@/types/site";
 
 export const siteConfig = {
-  name: "Learn It",
+  name: "LearnIt",
   tagline: "by REXCODE",
   description: "Une formation intensive et pratique pour apprendre, creer et lancer des projets web professionnels.",
   nav: [
-    { label: "Accueil", href: "/" },
     { label: "Formations", href: "#formations" },
-    { label: "Programme", href: "#programme" },
+    { label: "Domaines", href: "#domaines" },
     { label: "Ressources", href: "#ressources" },
-    { label: "A propos", href: "#apropos" }
+    { label: "À propos", href: "#apropos" },
+    { label: "Contact", href: "#contact" }
   ],
   footer: [
     {

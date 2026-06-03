@@ -1,10 +1,27 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { Footer } from "@/components/layout/Footer";
-import { Header } from "@/components/layout/Header";
+import { SiteShell } from "@/components/layout/SiteShell";
 import { siteConfig } from "@/data/site";
 import "@/styles/globals.scss";
+
+const themeInitializer = `
+(function() {
+  try {
+    var key = "learnit-theme";
+    var storedTheme = window.localStorage.getItem(key);
+    var theme = storedTheme === "light" || storedTheme === "dark"
+      ? storedTheme
+      : window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+
+    document.documentElement.dataset.theme = theme;
+  } catch (error) {
+    document.documentElement.dataset.theme = "light";
+  }
+})();
+`;
 
 export const metadata: Metadata = {
   title: {
@@ -16,13 +33,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitializer }} />
+      </head>
       <body>
-        <div className="site-shell">
-          <Header />
-          <main className="site-main">{children}</main>
-          <Footer />
-        </div>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );
