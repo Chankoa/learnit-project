@@ -2,36 +2,45 @@
 
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { LogoMark } from "@/components/ui/LogoMark";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { getSiteConfig } from "@/lib/site";
 
-const navItems = [
-  { label: "Formations", href: "/formations" },
-  { label: "Domaines", href: "/formations#domaines" },
-  { label: "Ressources", href: "/formations#ressources" },
-  { label: "À propos", href: "/#apropos" },
-  { label: "Contact", href: "/#contact" }
-];
+const siteConfig = getSiteConfig();
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   function closeMenu() {
     setIsMenuOpen(false);
   }
 
+  function isActive(label: string) {
+    if (label === "Formations") {
+      return pathname === "/" || pathname.startsWith("/formations");
+    }
+
+    if (label === "Domaines") {
+      return pathname.startsWith("/domaines");
+    }
+
+    return false;
+  }
+
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/82 backdrop-blur-xl">
-      <div className="section-shell flex min-h-20 items-center justify-between gap-3">
+    <header className="site-header">
+      <div className="section-shell flex min-h-[72px] items-center justify-between gap-3">
         <Link href="/" aria-label="Retour à l'accueil LearnIt" onClick={closeMenu}>
           <LogoMark />
         </Link>
 
         <nav className="hidden items-center gap-7 lg:flex" aria-label="Navigation principale">
-          {navItems.map((item) => (
-            <Link className="nav-link" href={item.href} key={item.href}>
+          {siteConfig.nav.map((item) => (
+            <Link className="nav-link" data-active={isActive(item.label)} href={item.href} key={item.href}>
               {item.label}
             </Link>
           ))}
@@ -39,7 +48,7 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link className="btn btn-primary hidden sm:inline-flex" href="/formations#demo">
+          <Link className="btn btn-primary hidden sm:inline-flex" href="/formations/formation-creation-web">
             Accéder à la démo
           </Link>
           <button
@@ -55,9 +64,9 @@ export function Header() {
       </div>
 
       {isMenuOpen ? (
-        <div className="border-t border-border bg-background/96 shadow-sm backdrop-blur-xl lg:hidden">
+        <div className="site-header__mobile lg:hidden">
           <nav className="section-shell flex flex-col gap-1 py-4" aria-label="Navigation mobile">
-            {navItems.map((item) => (
+            {siteConfig.nav.map((item) => (
               <Link
                 className="rounded-md px-3 py-3 text-sm font-extrabold text-text-strong transition hover:bg-muted hover:text-accent"
                 href={item.href}
@@ -67,7 +76,11 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
-            <Link className="btn btn-primary mt-3 w-full" href="/formations#demo" onClick={closeMenu}>
+            <Link
+              className="btn btn-primary mt-3 w-full"
+              href="/formations/formation-creation-web"
+              onClick={closeMenu}
+            >
               Accéder à la démo
             </Link>
           </nav>

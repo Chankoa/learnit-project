@@ -10,16 +10,16 @@ type CourseProgramPreviewProps = {
 
 export function CourseProgramPreview({ modules }: CourseProgramPreviewProps) {
   return (
-    <section className="section-shell py-10" id="programme">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <section className="section-shell content-section course-content-section" id="programme">
+      <div className="section-heading-row">
         <div>
           <span className="eyebrow w-fit">Programme</span>
-          <h2 className="mt-4 text-2xl font-black text-text-strong md:text-3xl">Modules et leçons</h2>
-          <p className="mt-2 max-w-2xl text-sm text-text-muted">
+          <h2>Modules et leçons</h2>
+          <p>
             Le programme est structuré pour avancer du cadrage au déploiement du projet.
           </p>
         </div>
-        <Link className="btn btn-secondary w-full sm:w-fit" href="/formations">
+        <Link className="btn btn-secondary w-full sm:w-fit" href="/#catalogue">
           Toutes les formations
         </Link>
       </div>

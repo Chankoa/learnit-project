@@ -3,11 +3,12 @@ import type { AudienceProfile, HeroStat, LearningModule, SiteConfig } from "@/ty
 export const siteConfig = {
   name: "LearnIt",
   tagline: "by REKODE",
-  description: "Une formation intensive et pratique pour apprendre, créer et lancer des projets web professionnels.",
+  description:
+    "Une plateforme de formations pratiques pour apprendre, créer et concrétiser des projets web et créatifs.",
   nav: [
-    { label: "Formations", href: "/formations" },
-    { label: "Domaines", href: "/formations#domaines" },
-    { label: "Ressources", href: "/formations#ressources" },
+    { label: "Formations", href: "/#catalogue" },
+    { label: "Domaines", href: "/#domaines" },
+    { label: "Ressources", href: "/#ressources" },
     { label: "À propos", href: "/#apropos" },
     { label: "Contact", href: "/#contact" }
   ],

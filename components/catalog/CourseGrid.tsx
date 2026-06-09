@@ -12,7 +12,7 @@ export function CourseGrid({ courses }: CourseGridProps) {
   }
 
   return (
-    <div className="mt-6 grid gap-4 lg:grid-cols-2">
+    <div className="course-grid">
       {courses.map((course) => (
         <CourseCard course={course} key={course.id} />
       ))}

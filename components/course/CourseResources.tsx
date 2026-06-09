@@ -12,9 +12,9 @@ export function CourseResources({ resources = [] }: CourseResourcesProps) {
   }
 
   return (
-    <section className="section-shell py-8">
+    <section className="section-shell content-section course-content-section">
       <span className="eyebrow w-fit">Ressources</span>
-      <h2 className="mt-4 text-2xl font-black text-text-strong md:text-3xl">Ressources principales</h2>
+      <h2>Ressources principales</h2>
       <p className="mt-2 max-w-2xl text-sm text-text-muted">
         Supports inclus pour cadrer le projet, pratiquer les notions clés et préparer la publication.
       </p>

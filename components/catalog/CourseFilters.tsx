@@ -33,22 +33,20 @@ export function CourseFilters({
 }: CourseFiltersProps) {
   return (
     <>
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className="section-heading-row">
         <div>
           <span className="eyebrow w-fit">Catalogue</span>
-          <h2 className="mt-4 text-2xl font-black text-text-strong md:text-3xl">
-            Toutes les formations
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-text-muted">
-            Recherchez un parcours, filtrez par domaine ou par niveau, puis ouvrez la fiche qui vous interesse.
+          <h2>Toutes les formations</h2>
+          <p>
+            Recherchez un parcours, filtrez par domaine ou par niveau, puis ouvrez la fiche qui vous intéresse.
           </p>
         </div>
-        <p className="text-sm font-bold text-text-muted">
+        <p className="catalog-count">
           {resultCount} / {totalCount} formation{totalCount > 1 ? "s" : ""}
         </p>
       </div>
 
-      <div className="mt-6 grid gap-4 rounded-md border border-border bg-surface p-4 shadow-xs lg:grid-cols-[1fr_1.5fr]">
+      <div className="catalog-toolbar">
         <label className="relative block">
           <span className="sr-only">Rechercher une formation</span>
           <Search
@@ -57,7 +55,7 @@ export function CourseFilters({
             aria-hidden="true"
           />
           <input
-            className="min-h-12 w-full rounded-md border border-border bg-background px-10 text-sm text-text-strong outline-none transition focus:border-border-strong"
+            className="catalog-search"
             placeholder="Rechercher une formation"
             type="search"
             value={query}

@@ -10,9 +10,9 @@ export function CourseObjectives({ objectives = [] }: CourseObjectivesProps) {
   }
 
   return (
-    <section className="section-shell py-8">
+    <section className="section-shell content-section course-content-section">
       <span className="eyebrow w-fit">Objectifs</span>
-      <h2 className="mt-4 text-2xl font-black text-text-strong md:text-3xl">Ce que vous saurez faire</h2>
+      <h2>Ce que vous saurez faire</h2>
       <div className="mt-6 grid gap-3">
         {objectives.map((objective) => (
           <div className="lesson-card flex items-start gap-3 p-4" key={objective}>

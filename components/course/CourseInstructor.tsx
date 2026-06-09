@@ -10,9 +10,9 @@ export function CourseInstructor({ instructors = [] }: CourseInstructorProps) {
   }
 
   return (
-    <section className="section-shell py-8">
+    <section className="section-shell content-section course-content-section">
       <span className="eyebrow w-fit">Intervenants</span>
-      <h2 className="mt-4 text-2xl font-black text-text-strong md:text-3xl">Accompagnement</h2>
+      <h2>Accompagnement</h2>
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         {instructors.map((instructor) => (
           <article className="lesson-card p-5" key={instructor.id}>

@@ -10,8 +10,8 @@ type CourseMetaProps = {
 
 export function CourseMeta({ course, modules }: CourseMetaProps) {
   return (
-    <section className="section-shell -mt-8 pb-8">
-      <div className="lesson-card grid gap-4 p-5 md:grid-cols-4">
+    <section className="section-shell course-meta-wrap">
+      <div className="course-meta-strip">
         <div className="flex items-center gap-3">
           <span className="icon-badge">
             <Layers size={18} aria-hidden="true" />

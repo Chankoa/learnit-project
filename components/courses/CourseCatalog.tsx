@@ -43,7 +43,7 @@ export function CourseCatalog({ courses, domains }: CourseCatalogProps) {
   }, [activeDomain, activeLevel, courses, query]);
 
   return (
-    <section className="section-shell py-12" id="formations">
+    <section className="section-shell content-section catalog-section" id="catalogue">
       <CourseFilters
         activeDomain={activeDomain}
         activeLevel={activeLevel}
