@@ -60,7 +60,7 @@ export default async function FormationPage({ params }: FormationPageProps) {
       <CourseObjectives objectives={course.objectives} />
       <CourseRequirements requirements={course.requirements} />
       <CourseMethod method={course.method} />
-      <CourseProgramPreview modules={modules} />
+      <CourseProgramPreview courseSlug={course.slug} modules={modules} />
       <CourseResources resources={course.resources} />
       <CourseInstructor instructors={course.instructors} />
       <CourseFaq faq={course.faq} />

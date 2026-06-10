@@ -5,27 +5,31 @@ import { formatCourseDuration } from "@/components/catalog/CourseCard";
 import type { CourseModule } from "@/types/course";
 
 type CourseProgramPreviewProps = {
+  courseSlug: string;
   modules: CourseModule[];
 };
 
-export function CourseProgramPreview({ modules }: CourseProgramPreviewProps) {
+export function CourseProgramPreview({ courseSlug, modules }: CourseProgramPreviewProps) {
+  const previewModules = modules.slice(0, 2);
+  const remainingModuleCount = Math.max(0, modules.length - previewModules.length);
+
   return (
     <section className="section-shell content-section course-content-section" id="programme">
       <div className="section-heading-row">
         <div>
           <span className="eyebrow w-fit">Programme</span>
-          <h2>Modules et leçons</h2>
+          <h2>Aperçu du programme</h2>
           <p>
-            Le programme est structuré pour avancer du cadrage au déploiement du projet.
+            Découvrez les premières étapes du parcours, puis consultez le curriculum dédié pour voir toutes les leçons.
           </p>
         </div>
-        <Link className="btn btn-secondary w-full sm:w-fit" href="/#catalogue">
-          Toutes les formations
+        <Link className="btn btn-secondary w-full sm:w-fit" href={`/formations/${courseSlug}/curriculum`}>
+          Curriculum complet
         </Link>
       </div>
 
       <div className="mt-6 grid gap-4">
-        {modules.map((module) => (
+        {previewModules.map((module) => (
           <article className="lesson-card overflow-hidden" key={module.id}>
             <div className="border-b border-border p-5">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -63,6 +67,12 @@ export function CourseProgramPreview({ modules }: CourseProgramPreviewProps) {
           </article>
         ))}
       </div>
+
+      {remainingModuleCount > 0 ? (
+        <p className="mt-4 text-sm font-bold text-text-muted">
+          + {remainingModuleCount} module{remainingModuleCount > 1 ? "s" : ""} dans le curriculum complet.
+        </p>
+      ) : null}
     </section>
   );
 }

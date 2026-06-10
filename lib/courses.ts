@@ -44,6 +44,14 @@ export function getCatalogCourses() {
   return getAllCourses().filter((course) => catalogCourseStatuses.has(course.status));
 }
 
+export function getCatalogCourseBySlug(slug: string) {
+  return getCatalogCourses().find((course) => course.slug === slug);
+}
+
+export function getCatalogCourseStaticParams() {
+  return getCatalogCourses().map((course) => ({ slug: course.slug }));
+}
+
 export function getPublishedCourseBySlug(slug: string) {
   const course = getCourseBySlug(slug);
 
@@ -64,6 +72,10 @@ export function getFeaturedCourses() {
 
 export function getCourseBySlug(slug: string) {
   return getAllCourses().find((course) => course.slug === slug);
+}
+
+export function getCourseById(courseId: string) {
+  return getAllCourses().find((course) => course.id === courseId);
 }
 
 export function getCoursesByDomain(domainId: string) {

@@ -25,7 +25,8 @@ export const webCourseModules = [
     durationMinutes: 135,
     lessons: webStrategyLessons,
     resources: pickResources(webResources, ["resource-web-brief-checklist"]),
-    order: 1
+    order: 1,
+    status: "completed"
   },
   {
     id: "module-web-02-html",
@@ -35,7 +36,8 @@ export const webCourseModules = [
     durationMinutes: 130,
     lessons: webHtmlLessons,
     resources: pickResources(webResources, ["resource-web-html-cheatsheet"]),
-    order: 2
+    order: 2,
+    status: "in-progress"
   },
   {
     id: "module-web-03-css",
@@ -45,7 +47,8 @@ export const webCourseModules = [
     durationMinutes: 190,
     lessons: webCssLessons,
     resources: pickResources(webResources, ["resource-web-css-layout-kit"]),
-    order: 3
+    order: 3,
+    status: "available"
   },
   {
     id: "module-web-04-next",
@@ -55,7 +58,8 @@ export const webCourseModules = [
     durationMinutes: 180,
     lessons: webNextLessons,
     resources: pickResources(webResources, ["resource-web-next-starter"]),
-    order: 4
+    order: 4,
+    status: "locked"
   },
   {
     id: "module-web-05-launch",
@@ -65,7 +69,8 @@ export const webCourseModules = [
     durationMinutes: 145,
     lessons: webLaunchLessons,
     resources: pickResources(webResources, ["resource-web-launch-checklist"]),
-    order: 5
+    order: 5,
+    status: "locked"
   }
 ] satisfies CourseModule[];
 
@@ -78,7 +83,8 @@ export const aiFilmmakingModules = [
     durationMinutes: 45,
     lessons: aiFilmmakingLessons.filter((lesson) => lesson.id === "lesson-ai-film-concept"),
     resources: pickResources(aiFilmmakingResources, ["resource-ai-shotlist"]),
-    order: 1
+    order: 1,
+    status: "preview"
   },
   {
     id: "module-ai-film-02-prompts",
@@ -88,7 +94,8 @@ export const aiFilmmakingModules = [
     durationMinutes: 55,
     lessons: aiFilmmakingLessons.filter((lesson) => lesson.id === "lesson-ai-film-prompts"),
     resources: pickResources(aiFilmmakingResources, ["resource-ai-prompt-bank"]),
-    order: 2
+    order: 2,
+    status: "locked"
   },
   {
     id: "module-ai-film-03-montage-demo",
@@ -97,7 +104,8 @@ export const aiFilmmakingModules = [
     description: "Module prévisionnel pour sélectionner les plans générés et assembler une séquence courte.",
     durationMinutes: 50,
     lessons: aiFilmmakingLessons.filter((lesson) => lesson.id === "lesson-ai-film-demo-edit"),
-    order: 3
+    order: 3,
+    status: "locked"
   }
 ] satisfies CourseModule[];
 
@@ -109,7 +117,8 @@ export const wordpressModules = [
     description: "Une fiche courte pour préparer un futur parcours WordPress pour indépendants.",
     durationMinutes: 75,
     lessons: wordpressPreviewLessons,
-    order: 1
+    order: 1,
+    status: "locked"
   }
 ] satisfies CourseModule[];
 
@@ -121,7 +130,8 @@ export const promptDesignModules = [
     description: "Une introduction courte pour tester un workflow de prompt créatif.",
     durationMinutes: 60,
     lessons: promptDesignPreviewLessons,
-    order: 1
+    order: 1,
+    status: "preview"
   }
 ] satisfies CourseModule[];
 

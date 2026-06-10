@@ -5,6 +5,8 @@ export type CourseLevel = "beginner" | "intermediate" | "advanced";
 
 export type CourseStatus = "draft" | "published" | "preview" | "coming-soon" | "archived";
 
+export type CourseModuleStatus = "available" | "in-progress" | "completed" | "locked" | "preview";
+
 export type Domain = {
   id: string;
   slug: string;
@@ -23,6 +25,7 @@ export type CourseModule = {
   lessons: Lesson[];
   resources?: Resource[];
   order: number;
+  status?: CourseModuleStatus;
 };
 
 export type Course = {

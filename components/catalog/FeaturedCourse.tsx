@@ -19,8 +19,10 @@ type FeaturedCourseProps = {
 
 export function FeaturedCourse({
   course,
-  ctaHref = course.status === "published" ? `/formations/${course.slug}` : `/domaines/${course.domain.slug}`,
-  ctaLabel = course.status === "published" ? "Voir la formation" : "Explorer le domaine",
+  ctaHref = course.status === "published"
+    ? `/formations/${course.slug}`
+    : `/formations/${course.slug}/curriculum`,
+  ctaLabel = course.status === "published" ? "Voir la formation" : "Voir le curriculum",
   eyebrow = "Formation recommandée"
 }: FeaturedCourseProps) {
   return (

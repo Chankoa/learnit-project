@@ -43,8 +43,10 @@ export function getCourseLessonCount(course: Course) {
 
 export function CourseCard({ course }: CourseCardProps) {
   const isPublished = course.status === "published";
-  const courseHref = isPublished ? `/formations/${course.slug}` : `/domaines/${course.domain.slug}`;
-  const courseCtaLabel = isPublished ? "Voir la formation" : "Explorer le domaine";
+  const courseHref = isPublished
+    ? `/formations/${course.slug}`
+    : `/formations/${course.slug}/curriculum`;
+  const courseCtaLabel = isPublished ? "Voir la formation" : "Voir le curriculum";
 
   return (
     <article className="course-card" id={course.slug}>

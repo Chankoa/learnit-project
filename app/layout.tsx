@@ -10,15 +10,22 @@ const themeInitializer = `
   try {
     var key = "learnit-theme";
     var storedTheme = window.localStorage.getItem(key);
+    var isLearningRoute = window.location.pathname === "/dashboard"
+      || window.location.pathname.indexOf("/dashboard/") === 0
+      || window.location.pathname.indexOf("/learn/") === 0;
     var theme = storedTheme === "light" || storedTheme === "dark"
       ? storedTheme
-      : window.matchMedia("(prefers-color-scheme: dark)").matches
+      : isLearningRoute || window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light";
 
     document.documentElement.dataset.theme = theme;
   } catch (error) {
-    document.documentElement.dataset.theme = "light";
+    document.documentElement.dataset.theme =
+      window.location.pathname.indexOf("/dashboard") === 0
+      || window.location.pathname.indexOf("/learn/") === 0
+      ? "dark"
+      : "light";
   }
 })();
 `;
