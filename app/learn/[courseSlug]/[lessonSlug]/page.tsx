@@ -9,6 +9,7 @@ import { LessonHeader } from "@/components/learning/LessonHeader";
 import { LessonNavigation } from "@/components/learning/LessonNavigation";
 import { LessonSidebar } from "@/components/learning/LessonSidebar";
 import { ResourceList } from "@/components/learning/ResourceList";
+import { getLessonMdxComponent } from "@/content/lessons/registry";
 import {
   getLearningLessonData,
   getLearningLessonStaticParams
@@ -52,6 +53,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
     notFound();
   }
 
+  const MdxLesson = getLessonMdxComponent(courseSlug, lessonSlug);
+
   return (
     <LearningShell
       learner={getLearnerProfile()}
@@ -72,9 +75,17 @@ export default async function LessonPage({ params }: LessonPageProps) {
             lesson={data.lesson}
             module={data.module}
           />
-          <LessonContent content={data.content} />
-          <ResourceList resources={data.resources} />
-          <ExerciseBlock exercise={data.content.exercise} />
+          {MdxLesson ? (
+            <div className="lesson-content lesson-content--mdx">
+              <MdxLesson />
+            </div>
+          ) : (
+            <>
+              <LessonContent content={data.content} />
+              <ResourceList resources={data.resources} />
+              <ExerciseBlock exercise={data.content.exercise} />
+            </>
+          )}
 
           <div className="lesson-completion">
             <div>

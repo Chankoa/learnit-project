@@ -3265,3 +3265,461 @@ a.lesson-sidebar__lesson:hover {
     display: none;
   }
 }
+
+.lesson-content--mdx {
+  gap: var(--space-6);
+}
+
+.lesson-content--mdx > p:first-child {
+  color: var(--text-strong);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--leading-relaxed);
+}
+
+.lesson-content--mdx > h2 {
+  margin-top: var(--space-4);
+  color: var(--text-strong);
+  font-size: var(--text-2xl);
+}
+
+.lesson-content--mdx > p {
+  color: var(--text-default);
+  line-height: 1.8;
+}
+
+.lesson-content--mdx > ol,
+.lesson-content--mdx > ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: 1.4rem;
+}
+
+.mdx-callout {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid color-mix(in srgb, var(--status-info) 30%, var(--border-soft));
+  border-left: 4px solid var(--status-info);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--status-info) 8%, var(--surface-card));
+  color: var(--status-info);
+}
+
+.mdx-callout[data-variant="tip"] {
+  border-color: color-mix(in srgb, var(--accent-tertiary) 32%, var(--border-soft));
+  border-left-color: var(--accent-tertiary);
+  background: color-mix(in srgb, var(--accent-tertiary) 8%, var(--surface-card));
+  color: var(--accent-tertiary);
+}
+
+.mdx-callout[data-variant="warning"] {
+  border-color: color-mix(in srgb, var(--status-warning) 34%, var(--border-soft));
+  border-left-color: var(--status-warning);
+  background: color-mix(in srgb, var(--status-warning) 9%, var(--surface-card));
+  color: var(--status-warning);
+}
+
+.mdx-callout[data-variant="success"] {
+  border-color: color-mix(in srgb, var(--status-success) 32%, var(--border-soft));
+  border-left-color: var(--status-success);
+  background: color-mix(in srgb, var(--status-success) 8%, var(--surface-card));
+  color: var(--status-success);
+}
+
+.mdx-callout > svg {
+  margin-top: 0.18rem;
+}
+
+.mdx-callout > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.mdx-callout strong {
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+}
+
+.mdx-callout p {
+  color: var(--text-default);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.mdx-code-block {
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  background: #090d17;
+  box-shadow: var(--shadow-sm);
+}
+
+.mdx-code-block figcaption {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  background: #111827;
+  color: #d8deeb;
+}
+
+.mdx-code-block figcaption span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.mdx-code-block figcaption small {
+  color: #8f9aaf;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.mdx-code-block pre {
+  overflow-x: auto;
+  margin: 0;
+  padding: var(--space-5);
+}
+
+.mdx-code-block code {
+  color: #dce5f5;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  white-space: pre;
+}
+
+.mdx-file-tree {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+}
+
+.mdx-file-tree figcaption {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.lesson-content .mdx-file-tree ul {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-4);
+  border-left: 0;
+  border-radius: 0;
+  background: transparent;
+  list-style: none;
+}
+
+.mdx-file-tree li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 28px;
+  color: var(--text-muted);
+}
+
+.mdx-file-tree li svg {
+  flex: 0 0 auto;
+  color: var(--accent-primary);
+}
+
+.mdx-file-tree code {
+  overflow-wrap: anywhere;
+  color: var(--text-default);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.lesson-content .mdx-step-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mdx-step-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+
+.mdx-step-list li > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
+  color: var(--accent-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-extrabold);
+}
+
+.mdx-step-list p {
+  align-self: center;
+  color: var(--text-default);
+  line-height: var(--leading-relaxed);
+}
+
+.mdx-checklist {
+  padding: var(--space-5);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+}
+
+.mdx-checklist h3 {
+  color: var(--text-strong);
+  font-size: var(--text-base);
+}
+
+.lesson-content .mdx-checklist ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  border-left: 0;
+  border-radius: 0;
+  background: transparent;
+  list-style: none;
+}
+
+.mdx-checklist li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-2);
+  color: var(--text-default);
+  font-size: var(--text-sm);
+}
+
+.mdx-checklist li > span {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--status-success) 13%, transparent);
+  color: var(--status-success);
+}
+
+.mdx-download-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+  transition: var(--transition-interactive);
+}
+
+.mdx-download-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.mdx-download-card > span {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  color: var(--accent-primary);
+}
+
+.mdx-download-card > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.mdx-download-card small {
+  color: var(--accent-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.mdx-download-card strong {
+  color: var(--text-strong);
+}
+
+.mdx-download-card p {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.mdx-download-card > svg {
+  color: var(--text-muted);
+}
+
+.mdx-prompt-block {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-secondary) 30%, var(--border-soft));
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.mdx-prompt-block figcaption {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-soft);
+  background:
+    linear-gradient(105deg, color-mix(in srgb, var(--accent-secondary) 13%, transparent), color-mix(in srgb, var(--accent-tertiary) 7%, transparent));
+}
+
+.mdx-prompt-block figcaption span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--accent-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.mdx-prompt-block figcaption strong {
+  color: var(--text-strong);
+}
+
+.mdx-prompt-block blockquote {
+  margin: 0;
+  padding: var(--space-5);
+  color: var(--text-default);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.8;
+}
+
+.mdx-exercise {
+  padding: var(--space-6);
+  border: 1px solid color-mix(in srgb, var(--status-warning) 32%, var(--border-soft));
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--status-warning) 8%, var(--surface-card)), var(--surface-card));
+}
+
+.mdx-exercise__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.mdx-exercise__heading > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--status-warning);
+  color: #111827;
+}
+
+.mdx-exercise__heading > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.mdx-exercise__heading small {
+  color: var(--status-warning);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.mdx-exercise h2 {
+  color: var(--text-strong);
+  font-size: var(--text-xl);
+}
+
+.mdx-exercise__content {
+  display: grid;
+  gap: var(--space-3);
+  color: var(--text-default);
+}
+
+.mdx-exercise__content > ol,
+.mdx-exercise__content > ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: 1.35rem;
+}
+
+.mdx-exercise__content li::marker {
+  color: var(--status-warning);
+  font-weight: var(--font-weight-bold);
+}
+
+.mdx-exercise__deliverable {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.mdx-exercise__deliverable strong {
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+}
+
+.mdx-exercise__deliverable p {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 680px) {
+  .lesson-content--mdx > p:first-child {
+    font-size: var(--text-base);
+  }
+
+  .lesson-content .mdx-checklist ul {
+    grid-template-columns: 1fr;
+  }
+
+  .mdx-callout,
+  .mdx-exercise {
+    padding: var(--space-4);
+  }
+
+  .mdx-download-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: var(--space-4);
+  }
+
+  .mdx-download-card > svg {
+    display: none;
+  }
+
+  .mdx-code-block pre {
+    padding: var(--space-4);
+  }
+
+  .mdx-code-block code {
+    font-size: var(--text-xs);
+  }
+}

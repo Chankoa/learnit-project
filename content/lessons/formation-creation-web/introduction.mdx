@@ -1,0 +1,73 @@
+Cette introduction pose une méthode simple pour passer d'une idée à un projet web que vous pourrez réellement construire, tester et publier.
+
+## Objectifs
+
+<Checklist
+  title="À la fin de cette leçon, vous saurez"
+  items={[
+    "formuler le rôle principal de votre site",
+    "identifier la personne à laquelle il s'adresse",
+    "définir une première version réaliste",
+    "organiser les fichiers de départ"
+  ]}
+/>
+
+## Partir du besoin, pas de la technologie
+
+Un projet web commence par une décision : **quel résultat doit produire le site ?** Il peut présenter une activité, obtenir des demandes de contact ou rendre une ressource accessible. Cette intention guidera ensuite les pages, les contenus et les composants.
+
+<Callout variant="tip" title="Gardez une première version courte">
+  Une page claire, complète et publiée est plus utile qu'un site de dix pages qui reste inachevé.
+</Callout>
+
+Avant de coder, écrivez une phrase qui relie la cible, son besoin et l'action attendue. Cette phrase deviendra votre point de contrôle pendant toute la formation.
+
+## Préparer une structure minimale
+
+<FileTree
+  title="Point de départ du projet"
+  items={[
+    "app/",
+    "  page.tsx",
+    "components/",
+    "content/",
+    "public/",
+    "styles/"
+  ]}
+/>
+
+La première page peut rester très simple. Elle doit uniquement rendre visible la structure principale et permettre d'avancer par petites étapes.
+
+<CodeBlock
+  filename="app/page.tsx"
+  language="tsx"
+  code={`export default function HomePage() {
+  return (
+    <main>
+      <h1>Mon premier projet web</h1>
+      <p>Une proposition claire pour une cible précise.</p>
+    </main>
+  );
+}`}
+/>
+
+<Exercise
+  title="Définir le point de départ"
+  deliverable="Une note courte contenant l'objectif, la cible, l'action principale et les trois premières sections du site."
+>
+  Écrivez une phrase pour chacun des éléments suivants :
+
+  1. Le problème auquel répond le site.
+  2. La personne qui doit se reconnaître dans la page.
+  3. L'action principale qu'elle doit pouvoir effectuer.
+  4. Les trois sections indispensables de la première version.
+</Exercise>
+
+## Ressource
+
+<DownloadCard
+  title="Fiche de démarrage du projet web"
+  description="Une trame texte pour cadrer l'objectif, la cible et le périmètre de la première version."
+  fileType="Fichier texte"
+  href="/resources/brief-projet-demarrage.txt"
+/>
