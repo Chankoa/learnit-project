@@ -55,7 +55,7 @@ export const webCreationCourse = {
   featuredOrder: 1,
   coverImage: "/images/courses/web-creation-cover.png",
   durationMinutes: 780,
-  format: "Formation en ligne guidée, projet final, exercices pratiques et ressources téléchargeables",
+  format: "Formation guidée",
   tags: ["html", "css", "nextjs", "typescript", "netlify"],
   publishedAt: "2026-06-03",
   updatedAt: "2026-06-03"
@@ -91,7 +91,7 @@ export const aiFilmmakingCourse = {
   featured: false,
   coverImage: "/images/courses/ai-creative-media-cover.png",
   durationMinutes: 150,
-  format: "Fiche aperçu avec modules prévisionnels, exercices courts et ressources de démonstration",
+  format: "Fiche aperçu",
   tags: ["ia", "video", "prompt", "filmmaking"],
   publishedAt: "2026-06-03",
   updatedAt: "2026-06-03"
@@ -111,6 +111,7 @@ export const wordpressForIndependentsCourse = {
   featured: false,
   coverImage: "/images/courses/web-creation-cover.png",
   durationMinutes: 75,
+  format: "Parcours guidé",
   tags: ["wordpress", "independants", "site vitrine", "no-code"],
   publishedAt: "2026-06-03",
   updatedAt: "2026-06-03"
@@ -131,6 +132,7 @@ export const promptDesignForCreativesCourse = {
   featured: false,
   coverImage: "/images/courses/ai-creative-media-cover.png",
   durationMinutes: 60,
+  format: "Atelier pratique",
   tags: ["ia", "prompt", "creation", "workflow"],
   publishedAt: "2026-06-03",
   updatedAt: "2026-06-03"

@@ -90,6 +90,53 @@ export function getCatalogCoursesByDomain(domainId: string) {
   return getCatalogCourses().filter((course) => course.domain.id === domainId);
 }
 
+function scoreRelatedCourse(sourceCourse: Course, candidateCourse: Course) {
+  const sourceTags = new Set(sourceCourse.tags ?? []);
+  const sharedTagCount = (candidateCourse.tags ?? []).filter((tag) => sourceTags.has(tag)).length;
+  const domainScore = candidateCourse.domain.id === sourceCourse.domain.id ? 4 : 0;
+  const levelScore = candidateCourse.level === sourceCourse.level ? 2 : 0;
+  const statusScore = candidateCourse.status === "published" ? 1 : 0;
+
+  return domainScore + levelScore + sharedTagCount + statusScore;
+}
+
+export function getOtherCatalogCoursesInSameDomain(courseId: string, limit = 3) {
+  const course = getCourseById(courseId);
+
+  if (!course) {
+    return [];
+  }
+
+  return getCatalogCoursesByDomain(course.domain.id)
+    .filter((candidate) => candidate.id !== course.id)
+    .slice(0, limit);
+}
+
+export function getRelatedCourses(courseId: string, limit = 3) {
+  const course = getCourseById(courseId);
+
+  if (!course) {
+    return [];
+  }
+
+  return getCatalogCourses()
+    .filter((candidate) => candidate.id !== course.id)
+    .map((candidate) => ({
+      course: candidate,
+      score: scoreRelatedCourse(course, candidate)
+    }))
+    .filter(({ score }) => score > 0)
+    .sort((first, second) => {
+      if (second.score !== first.score) {
+        return second.score - first.score;
+      }
+
+      return first.course.title.localeCompare(second.course.title);
+    })
+    .slice(0, limit)
+    .map(({ course }) => course);
+}
+
 export function getCourseModules(courseId: string) {
   const course = getAllCourses().find((item) => item.id === courseId);
 

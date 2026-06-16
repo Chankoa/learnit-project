@@ -12,7 +12,7 @@ type CourseHeroProps = {
 export function CourseHero({ course }: CourseHeroProps) {
   return (
     <section className="section-shell page-hero">
-      <Link className="nav-link inline-flex items-center gap-2" href="/#catalogue">
+      <Link className="nav-link inline-flex items-center gap-2" href="/formations">
         <ArrowLeft size={16} aria-hidden="true" />
         Toutes les formations
       </Link>
@@ -33,7 +33,7 @@ export function CourseHero({ course }: CourseHeroProps) {
             <Link className="btn btn-primary" href="#programme">
               Voir le programme
             </Link>
-            <Link className="btn btn-secondary" href="/#catalogue">
+            <Link className="btn btn-secondary" href="/formations">
               Retour au catalogue
             </Link>
           </div>

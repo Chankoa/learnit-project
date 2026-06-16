@@ -6,7 +6,7 @@ export const siteConfig = {
   description:
     "Une plateforme de formations pratiques pour apprendre, créer et concrétiser des projets web et créatifs.",
   nav: [
-    { label: "Formations", href: "/#catalogue" },
+    { label: "Formations", href: "/formations" },
     { label: "Domaines", href: "/#domaines" },
     { label: "Ressources", href: "/#ressources" },
     { label: "À propos", href: "/#apropos" },

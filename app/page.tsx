@@ -182,7 +182,7 @@ export default function HomePage() {
               <span className="eyebrow w-fit">Parcours recommandé</span>
               <h2>Commencez par une formation complète.</h2>
             </div>
-            <Link className="text-link" href="#catalogue">
+              <Link className="text-link" href="/formations">
               Voir tout le catalogue
               <ArrowRight size={16} aria-hidden="true" />
             </Link>

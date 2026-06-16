@@ -400,6 +400,71 @@ section[id] {
   padding-block: 2.5rem 1.5rem;
 }
 
+.formations-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.formations-hero__content,
+.formations-hero__stats {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  background: var(--hero-gradient), var(--surface-panel);
+  box-shadow: var(--shadow-md);
+}
+
+.formations-hero__content {
+  padding: 3rem;
+}
+
+.formations-hero h1 {
+  max-width: 46rem;
+  margin-top: 1.5rem;
+  color: var(--text-strong);
+  font-size: 3rem;
+  font-weight: var(--font-weight-black);
+}
+
+.formations-hero__content > p {
+  max-width: 42rem;
+  margin-top: 1rem;
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+}
+
+.formations-hero__stats {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.formations-hero__stats > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.85rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  padding: 1rem;
+}
+
+.formations-hero__stats svg {
+  color: var(--accent-primary);
+}
+
+.formations-hero__stats strong {
+  color: var(--text-strong);
+  font-size: var(--text-2xl);
+}
+
+.formations-hero__stats span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
 .section-intro,
 .section-heading-row {
   display: flex;
@@ -816,6 +881,7 @@ section[id] {
 .catalog-toolbar {
   display: grid;
   grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr);
+  align-items: start;
   gap: 1rem;
   margin-top: 2rem;
   border: 1px solid var(--border-soft);
@@ -823,6 +889,11 @@ section[id] {
   background: var(--surface-card);
   padding: 1rem;
   box-shadow: var(--shadow-xs);
+}
+
+.catalog-toolbar__search {
+  display: grid;
+  gap: 0.75rem;
 }
 
 .catalog-search {
@@ -842,6 +913,47 @@ section[id] {
   border-color: var(--border-strong);
 }
 
+.catalog-reset {
+  display: inline-flex;
+  min-height: 38px;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-panel);
+  padding: 0.55rem 0.75rem;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-extrabold);
+  transition: var(--transition-interactive);
+}
+
+.catalog-reset:hover {
+  border-color: var(--border-strong);
+  color: var(--text-strong);
+}
+
+.catalog-filter-groups {
+  display: grid;
+  gap: 1rem;
+}
+
+.catalog-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.catalog-filter-group > p {
+  flex: 0 0 100%;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-extrabold);
+  text-transform: uppercase;
+}
+
 .filter-pill {
   min-height: 38px;
   border: 1px solid var(--border-soft);
@@ -851,6 +963,8 @@ section[id] {
   color: var(--text-strong);
   font-size: var(--text-xs);
   font-weight: var(--font-weight-bold);
+  line-height: 1.25;
+  text-align: left;
   transition: var(--transition-interactive);
 }
 
@@ -1103,6 +1217,32 @@ section[id] {
   padding: 2.5rem;
   text-align: center;
   box-shadow: var(--shadow-md);
+}
+
+.course-recommendations {
+  width: min(76rem, calc(100% - (var(--gutter-page) * 2)));
+}
+
+.recommendation-sections {
+  display: grid;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.recommendation-section {
+  min-width: 0;
+}
+
+.recommendation-section__heading h3 {
+  color: var(--text-strong);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-black);
+}
+
+.recommendation-section__heading p {
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 
 .curriculum-page {
@@ -1486,6 +1626,10 @@ section[id] {
     grid-template-columns: 1fr;
   }
 
+  .formations-hero {
+    grid-template-columns: 1fr;
+  }
+
   .hub-hero__visual {
     min-height: 390px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -1573,6 +1717,7 @@ section[id] {
   }
 
   .hub-hero__content,
+  .formations-hero__content,
   .domain-hero__content,
   .course-hero__content,
   .featured-course__content {
@@ -1584,6 +1729,7 @@ section[id] {
   }
 
   .hub-hero__lead,
+  .formations-hero__content > p,
   .domain-hero__content > p,
   .course-hero__description,
   .course-hero__subtitle {
@@ -1635,6 +1781,7 @@ section[id] {
     aspect-ratio: 16 / 8;
   }
 
+  .formations-hero h1,
   .domain-hero h1,
   .course-hero h1 {
     font-size: 2.35rem;

@@ -10,9 +10,16 @@ import { CourseMeta } from "@/components/course/CourseMeta";
 import { CourseMethod } from "@/components/course/CourseMethod";
 import { CourseObjectives } from "@/components/course/CourseObjectives";
 import { CourseProgramPreview } from "@/components/course/CourseProgramPreview";
+import { CourseRecommendations } from "@/components/course/CourseRecommendations";
 import { CourseRequirements } from "@/components/course/CourseRequirements";
 import { CourseResources } from "@/components/course/CourseResources";
-import { getCourseModules, getPublishedCourseBySlug, getPublishedCourseStaticParams } from "@/lib/courses";
+import {
+  getCourseModules,
+  getOtherCatalogCoursesInSameDomain,
+  getPublishedCourseBySlug,
+  getPublishedCourseStaticParams,
+  getRelatedCourses
+} from "@/lib/courses";
 
 type FormationPageProps = {
   params: Promise<{
@@ -51,6 +58,11 @@ export default async function FormationPage({ params }: FormationPageProps) {
   }
 
   const modules = getCourseModules(course.id);
+  const domainCourses = getOtherCatalogCoursesInSameDomain(course.id, 2);
+  const domainCourseIds = new Set(domainCourses.map((domainCourse) => domainCourse.id));
+  const relatedCourses = getRelatedCourses(course.id, 3)
+    .filter((relatedCourse) => !domainCourseIds.has(relatedCourse.id))
+    .slice(0, 2);
 
   return (
     <>
@@ -64,6 +76,11 @@ export default async function FormationPage({ params }: FormationPageProps) {
       <CourseResources resources={course.resources} />
       <CourseInstructor instructors={course.instructors} />
       <CourseFaq faq={course.faq} />
+      <CourseRecommendations
+        domainCourses={domainCourses}
+        domainName={course.domain.name}
+        relatedCourses={relatedCourses}
+      />
       <CourseCta />
     </>
   );

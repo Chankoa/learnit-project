@@ -7,6 +7,7 @@ type DomainPillProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 export function DomainPill({ active = false, children, className = "", ...props }: DomainPillProps) {
   return (
     <button
+      aria-pressed={active}
       className={`filter-pill ${className}`}
       data-active={active}
       type="button"

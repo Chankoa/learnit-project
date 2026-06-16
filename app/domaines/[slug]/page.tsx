@@ -74,7 +74,7 @@ export default async function DomainPage({ params }: DomainPageProps) {
             <p>{domain.description}</p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link className="btn btn-primary" href="/#catalogue">
+              <Link className="btn btn-primary" href="/formations">
                 Voir toutes les formations
                 <ArrowRight size={16} aria-hidden="true" />
               </Link>
@@ -118,7 +118,7 @@ export default async function DomainPage({ params }: DomainPageProps) {
               Ces formations sont rattachées au domaine {domain.name} et sont actuellement référencées dans le catalogue.
             </p>
           </div>
-          <Link className="btn btn-secondary w-full sm:w-fit" href="/#catalogue">
+          <Link className="btn btn-secondary w-full sm:w-fit" href="/formations">
             Toutes les formations
           </Link>
         </div>

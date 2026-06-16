@@ -4,11 +4,14 @@ import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { CourseCurriculum } from "@/components/course/CourseCurriculum";
+import { CourseRecommendations } from "@/components/course/CourseRecommendations";
 import {
   getCatalogCourseBySlug,
   getCatalogCourseStaticParams,
   getCourseLessons,
-  getCourseModules
+  getCourseModules,
+  getOtherCatalogCoursesInSameDomain,
+  getRelatedCourses
 } from "@/lib/courses";
 
 type CurriculumPageProps = {
@@ -50,14 +53,27 @@ export default async function CurriculumPage({ params }: CurriculumPageProps) {
   const modules = getCourseModules(course.id);
   const lessons = getCourseLessons(course.id);
   const backHref = course.status === "published" ? `/formations/${course.slug}` : `/domaines/${course.domain.slug}`;
+  const domainCourses = getOtherCatalogCoursesInSameDomain(course.id, 2);
+  const domainCourseIds = new Set(domainCourses.map((domainCourse) => domainCourse.id));
+  const relatedCourses = getRelatedCourses(course.id, 3)
+    .filter((relatedCourse) => !domainCourseIds.has(relatedCourse.id))
+    .slice(0, 2);
 
   return (
-    <div className="section-shell curriculum-page">
-      <Link className="nav-link inline-flex items-center gap-2" href={backHref}>
-        <ArrowLeft size={16} aria-hidden="true" />
-        {course.status === "published" ? "Retour à la formation" : `Retour au domaine ${course.domain.name}`}
-      </Link>
-      <CourseCurriculum course={course} lessons={lessons} modules={modules} />
-    </div>
+    <>
+      <div className="section-shell curriculum-page">
+        <Link className="nav-link inline-flex items-center gap-2" href={backHref}>
+          <ArrowLeft size={16} aria-hidden="true" />
+          {course.status === "published" ? "Retour à la formation" : `Retour au domaine ${course.domain.name}`}
+        </Link>
+        <CourseCurriculum course={course} lessons={lessons} modules={modules} />
+      </div>
+
+      <CourseRecommendations
+        domainCourses={domainCourses}
+        domainName={course.domain.name}
+        relatedCourses={relatedCourses}
+      />
+    </>
   );
 }

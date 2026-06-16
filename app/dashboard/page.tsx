@@ -207,7 +207,7 @@ export default function DashboardPage() {
               <span>Mes parcours</span>
               <h2>Formations suivies</h2>
             </div>
-            <Link className="text-link" href="/#catalogue">
+            <Link className="text-link" href="/formations">
               Explorer le catalogue
               <ArrowRight size={16} aria-hidden="true" />
             </Link>

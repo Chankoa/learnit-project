@@ -18,7 +18,7 @@ export function CourseCta({
           <Link className="btn btn-primary" href="#programme">
             Revoir le programme
           </Link>
-          <Link className="btn btn-secondary" href="/#catalogue">
+          <Link className="btn btn-secondary" href="/formations">
             Toutes les formations
           </Link>
         </div>
