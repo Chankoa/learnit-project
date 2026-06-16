@@ -13,6 +13,7 @@ import {
   getOtherCatalogCoursesInSameDomain,
   getRelatedCourses
 } from "@/lib/courses";
+import { createPageMetadata } from "@/lib/seo";
 
 type CurriculumPageProps = {
   params: Promise<{
@@ -36,10 +37,12 @@ export async function generateMetadata({ params }: CurriculumPageProps): Promise
     };
   }
 
-  return {
+  return createPageMetadata({
     title: `Curriculum - ${course.title}`,
-    description: `Consultez les modules, les leçons et la progression prévue pour ${course.title}.`
-  };
+    description: `Consultez les modules, les leçons et la progression prévue pour ${course.title}.`,
+    path: `/formations/${course.slug}/curriculum`,
+    image: course.coverImage
+  });
 }
 
 export default async function CurriculumPage({ params }: CurriculumPageProps) {

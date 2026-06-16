@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { CourseGrid } from "@/components/catalog/CourseGrid";
 import { getCatalogCoursesByDomain } from "@/lib/courses";
 import { getDomainBySlug, getDomainStaticParams } from "@/lib/domains";
+import { createPageMetadata } from "@/lib/seo";
 
 type DomainPageProps = {
   params: Promise<{
@@ -28,10 +29,14 @@ export async function generateMetadata({ params }: DomainPageProps): Promise<Met
     };
   }
 
-  return {
+  return createPageMetadata({
     title: domain.name,
-    description: domain.description
-  };
+    description: domain.description ?? `Explorez les formations LearnIt du domaine ${domain.name}.`,
+    path: `/domaines/${domain.slug}`,
+    image: domain.slug === "creation-audiovisuelle-ia"
+      ? "/images/courses/ai-creative-media-cover.png"
+      : "/images/courses/web-creation-cover.png"
+  });
 }
 
 export default async function DomainPage({ params }: DomainPageProps) {
@@ -85,7 +90,13 @@ export default async function DomainPage({ params }: DomainPageProps) {
           </div>
 
           <div className="domain-hero__media">
-            <Image alt="" fill priority sizes="(max-width: 900px) 100vw, 48vw" src={domainImage} />
+            <Image
+              alt={`Illustration du domaine ${domain.name}`}
+              fill
+              priority
+              sizes="(max-width: 900px) 100vw, 48vw"
+              src={domainImage}
+            />
           </div>
         </div>
 

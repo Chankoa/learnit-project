@@ -24,7 +24,7 @@ export function SiteShell({ children }: SiteShellProps) {
   return (
     <div className="site-shell">
       <Header />
-      <main className="site-main">{children}</main>
+      <main className="site-main" id="main-content">{children}</main>
       <Footer />
     </div>
   );

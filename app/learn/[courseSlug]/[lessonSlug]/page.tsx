@@ -15,6 +15,7 @@ import {
   getLearningLessonStaticParams
 } from "@/lib/learning";
 import { getLearnerProfile } from "@/lib/progress";
+import { createPageMetadata } from "@/lib/seo";
 
 type LessonPageProps = {
   params: Promise<{
@@ -36,10 +37,13 @@ export async function generateMetadata({
   const data = getLearningLessonData(courseSlug, lessonSlug);
 
   return data
-    ? {
+    ? createPageMetadata({
         title: `${data.lesson.title} - ${data.course.title}`,
-        description: data.lesson.description
-      }
+        description: data.lesson.description ?? data.course.description,
+        path: `/learn/${data.course.slug}/${data.lesson.slug}`,
+        image: data.course.coverImage,
+        noIndex: true
+      })
     : {
         title: "Leçon introuvable"
       };

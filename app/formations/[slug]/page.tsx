@@ -20,6 +20,7 @@ import {
   getPublishedCourseStaticParams,
   getRelatedCourses
 } from "@/lib/courses";
+import { createPageMetadata } from "@/lib/seo";
 
 type FormationPageProps = {
   params: Promise<{
@@ -43,10 +44,12 @@ export async function generateMetadata({ params }: FormationPageProps): Promise<
     };
   }
 
-  return {
+  return createPageMetadata({
     title: course.title,
-    description: course.description
-  };
+    description: course.description,
+    path: `/formations/${course.slug}`,
+    image: course.coverImage
+  });
 }
 
 export default async function FormationPage({ params }: FormationPageProps) {

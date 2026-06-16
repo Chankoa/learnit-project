@@ -18,6 +18,7 @@ import {
   getLearningCourseStaticParams
 } from "@/lib/learning";
 import { getLearnerProfile } from "@/lib/progress";
+import { createPageMetadata } from "@/lib/seo";
 import type { LessonStatus } from "@/types/learning";
 
 type LearningCoursePageProps = {
@@ -39,10 +40,13 @@ export async function generateMetadata({
   const data = getLearningCourseData(courseSlug);
 
   return data
-    ? {
+    ? createPageMetadata({
         title: `Mon parcours - ${data.course.title}`,
-        description: `Suivez les modules et les leçons de ${data.course.title}.`
-      }
+        description: `Suivez les modules et les leçons de ${data.course.title}.`,
+        path: `/learn/${data.course.slug}`,
+        image: data.course.coverImage,
+        noIndex: true
+      })
     : {
         title: "Parcours introuvable"
       };
@@ -142,6 +146,7 @@ export default async function LearningCoursePage({
           <div className="learning-module-list">
             {data.modules.map((module) => (
               <details
+                aria-label={`Module ${module.order} : ${module.title}`}
                 data-status={module.status}
                 key={module.id}
                 open={module.lessons.some(

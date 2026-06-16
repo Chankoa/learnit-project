@@ -21,7 +21,7 @@ export function Header() {
 
   function isActive(label: string) {
     if (label === "Formations") {
-      return pathname === "/" || pathname.startsWith("/formations");
+      return pathname.startsWith("/formations");
     }
 
     if (label === "Domaines") {
@@ -39,11 +39,21 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-7 lg:flex" aria-label="Navigation principale">
-          {siteConfig.nav.map((item) => (
-            <Link className="nav-link" data-active={isActive(item.label)} href={item.href} key={item.href}>
-              {item.label}
-            </Link>
-          ))}
+          {siteConfig.nav.map((item) => {
+            const active = isActive(item.label);
+
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className="nav-link"
+                data-active={active}
+                href={item.href}
+                key={item.href}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -53,6 +63,7 @@ export function Header() {
           </Link>
           <button
             aria-expanded={isMenuOpen}
+            aria-controls="site-mobile-nav"
             aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
             className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface text-text-strong transition hover:border-border-strong lg:hidden"
             type="button"
@@ -64,18 +75,24 @@ export function Header() {
       </div>
 
       {isMenuOpen ? (
-        <div className="site-header__mobile lg:hidden">
+        <div className="site-header__mobile lg:hidden" id="site-mobile-nav">
           <nav className="section-shell flex flex-col gap-1 py-4" aria-label="Navigation mobile">
-            {siteConfig.nav.map((item) => (
-              <Link
-                className="rounded-md px-3 py-3 text-sm font-extrabold text-text-strong transition hover:bg-muted hover:text-accent"
-                href={item.href}
-                key={item.href}
-                onClick={closeMenu}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {siteConfig.nav.map((item) => {
+              const active = isActive(item.label);
+
+              return (
+                <Link
+                  aria-current={active ? "page" : undefined}
+                  className="rounded-md px-3 py-3 text-sm font-extrabold text-text-strong transition hover:bg-muted hover:text-accent"
+                  data-active={active}
+                  href={item.href}
+                  key={item.href}
+                  onClick={closeMenu}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
             <Link
               className="btn btn-primary mt-3 w-full"
               href="/formations/formation-creation-web"

@@ -41,7 +41,13 @@ export function CourseHero({ course }: CourseHeroProps) {
 
         {course.coverImage ? (
           <div className="course-hero__media">
-            <Image alt="" fill priority sizes="(max-width: 900px) 100vw, 48vw" src={course.coverImage} />
+            <Image
+              alt={`Illustration de la formation ${course.title}`}
+              fill
+              priority
+              sizes="(max-width: 900px) 100vw, 48vw"
+              src={course.coverImage}
+            />
           </div>
         ) : null}
       </div>

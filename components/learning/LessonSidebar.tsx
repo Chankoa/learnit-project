@@ -86,7 +86,11 @@ export function LessonSidebar({
 
       <div className="lesson-sidebar__modules">
         {modules.map((module) => (
-          <details key={module.id} open={module.lessons.some((lesson) => lesson.id === currentLessonId)}>
+          <details
+            aria-label={`Module ${module.order} : ${module.title}`}
+            key={module.id}
+            open={module.lessons.some((lesson) => lesson.id === currentLessonId)}
+          >
             <summary>
               <span>Module {module.order}</span>
               <strong>{module.title}</strong>

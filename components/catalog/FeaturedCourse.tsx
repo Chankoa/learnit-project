@@ -62,7 +62,12 @@ export function FeaturedCourse({
 
       {course.coverImage ? (
         <div className="featured-course__media">
-          <Image alt="" fill sizes="(max-width: 900px) 100vw, 45vw" src={course.coverImage} />
+          <Image
+            alt={`Couverture de ${course.title}`}
+            fill
+            sizes="(max-width: 900px) 100vw, 45vw"
+            src={course.coverImage}
+          />
         </div>
       ) : null}
     </article>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { SiteShell } from "@/components/layout/SiteShell";
+import { createPageMetadata, getSiteUrl } from "@/lib/seo";
 import { getSiteConfig } from "@/lib/site";
 import "@/styles/globals.scss";
 
@@ -33,11 +34,15 @@ const themeInitializer = `
 const siteConfig = getSiteConfig();
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
+  ...createPageMetadata({
+    title: siteConfig.name,
+    description: siteConfig.description
+  }),
   title: {
     default: siteConfig.name,
     template: `%s | ${siteConfig.name}`
-  },
-  description: siteConfig.description
+  }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -47,6 +52,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <script dangerouslySetInnerHTML={{ __html: themeInitializer }} />
       </head>
       <body>
+        <a className="skip-link" href="#main-content">
+          Aller au contenu principal
+        </a>
         <SiteShell>{children}</SiteShell>
       </body>
     </html>

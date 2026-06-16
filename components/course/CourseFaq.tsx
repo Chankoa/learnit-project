@@ -19,7 +19,7 @@ export function CourseFaq({ faq = [] }: CourseFaqProps) {
         {[...faq]
           .sort((first, second) => (first.order ?? 999) - (second.order ?? 999))
           .map((item) => (
-            <details className="faq-item" key={item.id}>
+            <details aria-label={`Question fréquente : ${item.question}`} className="faq-item" key={item.id}>
               <summary>
                 <span>{item.question}</span>
                 <ChevronDown size={18} aria-hidden="true" />

@@ -91,6 +91,7 @@ export function LearningShell({
           <div className="learning-header__title">
             <button
               aria-expanded={isMobileMenuOpen}
+              aria-controls="learning-mobile-drawer"
               aria-label={isMobileMenuOpen ? "Fermer la navigation" : "Ouvrir la navigation"}
               className="learning-menu-button"
               type="button"
@@ -100,7 +101,11 @@ export function LearningShell({
             </button>
             <div>
               <span>Espace apprenant</span>
-              <h1>{pageTitle}</h1>
+              {variant === "lesson" ? (
+                <p className="learning-header__page-title">{pageTitle}</p>
+              ) : (
+                <h1>{pageTitle}</h1>
+              )}
             </div>
           </div>
 
@@ -117,12 +122,25 @@ export function LearningShell({
         </header>
 
         {isMobileMenuOpen ? (
-          <nav className="learning-mobile-drawer" aria-label="Navigation apprenant mobile">
+          <nav
+            className="learning-mobile-drawer"
+            id="learning-mobile-drawer"
+            aria-label="Navigation apprenant mobile"
+          >
             {learningNavigation.map((item) => {
               const Icon = item.icon;
+              const isActive =
+                (item.href === "/dashboard" && pathname === "/dashboard") ||
+                (item.label === "Mes formations" && pathname.startsWith("/learn/"));
 
               return (
-                <Link href={item.href} key={item.label} onClick={closeMobileMenu}>
+                <Link
+                  aria-current={isActive ? "page" : undefined}
+                  data-active={isActive}
+                  href={item.href}
+                  key={item.label}
+                  onClick={closeMobileMenu}
+                >
                   <Icon size={18} aria-hidden="true" />
                   {item.label}
                 </Link>
@@ -135,7 +153,7 @@ export function LearningShell({
           </nav>
         ) : null}
 
-        <main className="learning-main">{children}</main>
+        <main className="learning-main" id="main-content">{children}</main>
       </div>
 
       <nav className="learning-mobile-nav" aria-label="Navigation apprenant principale">
@@ -146,7 +164,12 @@ export function LearningShell({
             (item.label === "Mes formations" && pathname.startsWith("/learn/"));
 
           return (
-            <Link data-active={isActive} href={item.href} key={item.label}>
+            <Link
+              aria-current={isActive ? "page" : undefined}
+              data-active={isActive}
+              href={item.href}
+              key={item.label}
+            >
               <Icon size={19} aria-hidden="true" />
               <span>{item.label.replace("Tableau de bord", "Accueil").replace("Mes formations", "Formations")}</span>
             </Link>

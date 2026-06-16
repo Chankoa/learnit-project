@@ -65,7 +65,7 @@ export function CourseCard({ course }: CourseCardProps) {
       {course.coverImage ? (
         <div className="course-card__media">
           <Image
-            alt=""
+            alt={`Couverture de ${course.title}`}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             src={course.coverImage}

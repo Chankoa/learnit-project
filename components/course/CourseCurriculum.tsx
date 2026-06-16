@@ -160,7 +160,13 @@ export function CourseCurriculum({ course, modules, lessons }: CourseCurriculumP
             .sort((first, second) => first.order - second.order);
 
           return (
-            <details className="curriculum-module" data-status={moduleStatus} key={module.id} open={moduleIndex === 0}>
+            <details
+              aria-label={`Module ${module.order} : ${module.title}`}
+              className="curriculum-module"
+              data-status={moduleStatus}
+              key={module.id}
+              open={moduleIndex === 0}
+            >
               <summary>
                 <div className="curriculum-module__index">
                   {moduleStatus === "completed" ? <CheckCircle2 size={20} aria-hidden="true" /> : module.order}

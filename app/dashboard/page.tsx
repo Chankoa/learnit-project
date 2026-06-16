@@ -17,12 +17,15 @@ import {
 import { formatCourseDuration } from "@/components/catalog/CourseCard";
 import { LearningShell } from "@/components/learning/LearningShell";
 import { getLearnerDashboardData } from "@/lib/progress";
+import { createPageMetadata } from "@/lib/seo";
 import type { DeliverableStatus } from "@/types/learning";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Tableau de bord",
-  description: "Suivez votre progression, vos prochaines leçons et vos livrables LearnIt."
-};
+  description: "Suivez votre progression, vos prochaines leçons et vos livrables LearnIt.",
+  path: "/dashboard",
+  noIndex: true
+});
 
 const deliverableStatusLabels: Record<DeliverableStatus, string> = {
   todo: "À faire",
@@ -123,7 +126,7 @@ export default function DashboardPage() {
                   {currentEnrollment.course.coverImage ? (
                     <div className="current-course__media">
                       <Image
-                        alt=""
+                        alt={`Couverture de ${currentEnrollment.course.title}`}
                         fill
                         sizes="(max-width: 900px) 100vw, 260px"
                         src={currentEnrollment.course.coverImage}
@@ -219,7 +222,7 @@ export default function DashboardPage() {
                 {enrollment.course.coverImage ? (
                   <div className="enrollment-card__media">
                     <Image
-                      alt=""
+                      alt={`Couverture de ${enrollment.course.title}`}
                       fill
                       sizes="(max-width: 760px) 100vw, 35vw"
                       src={enrollment.course.coverImage}

@@ -15,17 +15,19 @@ import {
 } from "lucide-react";
 
 import { FeaturedCourse } from "@/components/catalog/FeaturedCourse";
-import { formatCourseDuration, getCourseLessonCount } from "@/components/catalog/CourseCard";
+import { getCourseLessonCount } from "@/components/catalog/CourseCard";
 import { CourseCatalog } from "@/components/courses/CourseCatalog";
 import { getCatalogCourses, getFeaturedCourses } from "@/lib/courses";
 import { getAllDomains } from "@/lib/domains";
+import { createPageMetadata } from "@/lib/seo";
 import type { Course, Domain } from "@/types/course";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Formations web et création IA",
   description:
-    "Explorez les formations LearnIt en création web, WordPress, AI Filmmaking et Prompt Design."
-};
+    "Explorez les formations LearnIt en création web, WordPress, AI Filmmaking et Prompt Design.",
+  path: "/"
+});
 
 const domainVisuals: Record<string, { image: string; icon: typeof Code2 }> = {
   "creation-web": {
@@ -49,7 +51,7 @@ function DomainCard({ domain }: { domain: Domain }) {
   return (
     <Link className="domain-card group" href={`/domaines/${domain.slug}`}>
       <div className="domain-card__media">
-        <Image alt="" fill sizes="(max-width: 768px) 100vw, 50vw" src={visual.image} />
+        <Image alt={`Domaine ${domain.name}`} fill sizes="(max-width: 768px) 100vw, 50vw" src={visual.image} />
       </div>
       <div className="domain-card__content">
         <span className="icon-badge">
@@ -182,7 +184,7 @@ export default function HomePage() {
               <span className="eyebrow w-fit">Parcours recommandé</span>
               <h2>Commencez par une formation complète.</h2>
             </div>
-              <Link className="text-link" href="/formations">
+            <Link className="text-link" href="/formations">
               Voir tout le catalogue
               <ArrowRight size={16} aria-hidden="true" />
             </Link>

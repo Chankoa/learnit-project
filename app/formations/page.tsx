@@ -6,12 +6,14 @@ import { getCourseLessonCount } from "@/components/catalog/CourseCard";
 import { CourseCatalog } from "@/components/courses/CourseCatalog";
 import { getCatalogCourses } from "@/lib/courses";
 import { getAllDomains } from "@/lib/domains";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Catalogue des formations",
   description:
-    "Recherchez et filtrez les formations LearnIt par domaine, niveau, format, durée et statut."
-};
+    "Recherchez et filtrez les formations LearnIt par domaine, niveau, format, durée et statut.",
+  path: "/formations"
+});
 
 export default function FormationsPage() {
   const courses = getCatalogCourses();
