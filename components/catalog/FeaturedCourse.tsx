@@ -3,10 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 import {
+  courseAvailabilityLabels,
   courseLevelLabels,
-  courseStatusLabels,
   formatCourseDuration,
-  getCourseLessonCount
+  getCourseLessonCount,
+  isCourseFullPageAvailable
 } from "@/components/catalog/CourseCard";
 import type { Course } from "@/types/course";
 
@@ -19,10 +20,10 @@ type FeaturedCourseProps = {
 
 export function FeaturedCourse({
   course,
-  ctaHref = course.status === "published"
+  ctaHref = isCourseFullPageAvailable(course)
     ? `/formations/${course.slug}`
     : `/formations/${course.slug}/curriculum`,
-  ctaLabel = course.status === "published" ? "Voir la formation" : "Voir le curriculum",
+  ctaLabel = isCourseFullPageAvailable(course) ? "Voir la formation" : "Voir le curriculum",
   eyebrow = "Formation recommandée"
 }: FeaturedCourseProps) {
   return (
@@ -31,7 +32,7 @@ export function FeaturedCourse({
         <div className="tag-list">
           <span>{course.domain.name}</span>
           <span>{courseLevelLabels[course.level]}</span>
-          <span>{courseStatusLabels[course.status]}</span>
+          <span>{courseAvailabilityLabels[course.availability]}</span>
         </div>
 
         <p className="featured-course__eyebrow">{eyebrow}</p>

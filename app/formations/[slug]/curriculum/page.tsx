@@ -52,7 +52,8 @@ export default async function CurriculumPage({ params }: CurriculumPageProps) {
 
   const modules = getCourseModules(course.id);
   const lessons = getCourseLessons(course.id);
-  const backHref = course.status === "published" ? `/formations/${course.slug}` : `/domaines/${course.domain.slug}`;
+  const hasFullCoursePage = course.status === "published" && course.availability === "complete";
+  const backHref = hasFullCoursePage ? `/formations/${course.slug}` : `/domaines/${course.domain.slug}`;
   const domainCourses = getOtherCatalogCoursesInSameDomain(course.id, 2);
   const domainCourseIds = new Set(domainCourses.map((domainCourse) => domainCourse.id));
   const relatedCourses = getRelatedCourses(course.id, 3)
@@ -64,7 +65,7 @@ export default async function CurriculumPage({ params }: CurriculumPageProps) {
       <div className="section-shell curriculum-page">
         <Link className="nav-link inline-flex items-center gap-2" href={backHref}>
           <ArrowLeft size={16} aria-hidden="true" />
-          {course.status === "published" ? "Retour à la formation" : `Retour au domaine ${course.domain.name}`}
+          {hasFullCoursePage ? "Retour à la formation" : `Retour au domaine ${course.domain.name}`}
         </Link>
         <CourseCurriculum course={course} lessons={lessons} modules={modules} />
       </div>

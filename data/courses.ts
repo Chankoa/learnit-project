@@ -19,6 +19,8 @@ export const webCreationCourse = {
   domain: webCreationDomain,
   level: "beginner",
   status: "published",
+  visibility: "public",
+  availability: "complete",
   modules: webCourseModules,
   instructors: instructors.filter((instructor) => instructor.id === "instructor-rexcode-web"),
   resources: webResources,
@@ -57,6 +59,7 @@ export const webCreationCourse = {
   durationMinutes: 780,
   format: "Formation guidée",
   tags: ["html", "css", "nextjs", "typescript", "netlify"],
+  createdBy: "admin-rekode",
   publishedAt: "2026-06-03",
   updatedAt: "2026-06-03"
 } satisfies Course;
@@ -70,7 +73,9 @@ export const aiFilmmakingCourse = {
     "Une formation en aperçu pour découvrir les bases de la création audiovisuelle assistée par IA. Le parcours pose les fondations d'un workflow court : intention créative, préproduction, prompts vidéo, cohérence visuelle, sélection des plans et assemblage d'une première séquence de démonstration.",
   domain: aiFilmmakingDomain,
   level: "beginner",
-  status: "preview",
+  status: "published",
+  visibility: "public",
+  availability: "preview",
   modules: aiFilmmakingModules,
   instructors: instructors.filter((instructor) => instructor.id === "instructor-ai-studio"),
   resources: aiFilmmakingResources,
@@ -93,6 +98,7 @@ export const aiFilmmakingCourse = {
   durationMinutes: 150,
   format: "Fiche aperçu",
   tags: ["ia", "video", "prompt", "filmmaking"],
+  createdBy: "admin-rekode",
   publishedAt: "2026-06-03",
   updatedAt: "2026-06-03"
 } satisfies Course;
@@ -105,7 +111,9 @@ export const wordpressForIndependentsCourse = {
     "Un futur parcours pratique pour créer un site vitrine WordPress clair, crédible et facile à maintenir.",
   domain: webCreationDomain,
   level: "beginner",
-  status: "coming-soon",
+  status: "published",
+  visibility: "public",
+  availability: "coming-soon",
   modules: wordpressModules,
   instructors: instructors.filter((instructor) => instructor.id === "instructor-rexcode-web"),
   featured: false,
@@ -113,6 +121,7 @@ export const wordpressForIndependentsCourse = {
   durationMinutes: 75,
   format: "Parcours guidé",
   tags: ["wordpress", "independants", "site vitrine", "no-code"],
+  createdBy: "admin-rekode",
   publishedAt: "2026-06-03",
   updatedAt: "2026-06-03"
 } satisfies Course;
@@ -125,7 +134,9 @@ export const promptDesignForCreativesCourse = {
     "Une fiche aperçu pour apprendre à formuler, tester et améliorer des prompts visuels, éditoriaux et vidéo.",
   domain: aiFilmmakingDomain,
   level: "intermediate",
-  status: "preview",
+  status: "published",
+  visibility: "public",
+  availability: "preview",
   modules: promptDesignModules,
   instructors: instructors.filter((instructor) => instructor.id === "instructor-ai-studio"),
   resources: aiFilmmakingResources,
@@ -134,6 +145,7 @@ export const promptDesignForCreativesCourse = {
   durationMinutes: 60,
   format: "Atelier pratique",
   tags: ["ia", "prompt", "creation", "workflow"],
+  createdBy: "admin-rekode",
   publishedAt: "2026-06-03",
   updatedAt: "2026-06-03"
 } satisfies Course;

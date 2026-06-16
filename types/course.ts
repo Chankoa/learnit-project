@@ -3,7 +3,11 @@ import type { FAQItem, Instructor, Resource } from "@/types/resource";
 
 export type CourseLevel = "beginner" | "intermediate" | "advanced";
 
-export type CourseStatus = "draft" | "published" | "preview" | "coming-soon" | "archived";
+export type CourseStatus = "draft" | "published" | "archived";
+
+export type CourseVisibility = "public" | "private" | "unlisted";
+
+export type CourseAvailability = "complete" | "preview" | "coming-soon";
 
 export type CourseModuleStatus = "available" | "in-progress" | "completed" | "locked" | "preview";
 
@@ -37,6 +41,8 @@ export type Course = {
   domain: Domain;
   level: CourseLevel;
   status: CourseStatus;
+  visibility: CourseVisibility;
+  availability: CourseAvailability;
   modules: CourseModule[];
   instructors?: Instructor[];
   resources?: Resource[];
@@ -51,6 +57,7 @@ export type Course = {
   durationMinutes?: number;
   format?: string;
   tags?: string[];
+  createdBy: string;
   publishedAt?: string;
-  updatedAt?: string;
+  updatedAt: string;
 };

@@ -4,12 +4,12 @@ import {
   learningDeliverables,
   recentResourceIds
 } from "@/data/progress";
-import { resources } from "@/data/resources";
 import {
   getAllCourses,
   getCourseLessons,
   getNextLesson
 } from "@/lib/courses";
+import { getResources } from "@/lib/data-source";
 import type { CourseProgress } from "@/types/learning";
 
 type ProgressSource = {
@@ -80,6 +80,7 @@ export function getLearnerDashboardData() {
     (total, enrollment) => total + enrollment.totalLessons,
     0
   );
+  const resources = getResources();
 
   return {
     learner: learnerProfile,

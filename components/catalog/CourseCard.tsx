@@ -2,7 +2,7 @@ import { ArrowRight, BookOpen, Clock, Layers } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import type { Course, CourseLevel, CourseStatus } from "@/types/course";
+import type { Course, CourseAvailability, CourseLevel, CourseStatus } from "@/types/course";
 
 type CourseCardProps = {
   course: Course;
@@ -16,11 +16,23 @@ export const courseLevelLabels: Record<CourseLevel, string> = {
 
 export const courseStatusLabels: Record<CourseStatus, string> = {
   draft: "Brouillon",
-  published: "Programme complet",
-  preview: "Aperçu",
-  "coming-soon": "Bientôt disponible",
+  published: "Publié",
   archived: "Archivé"
 };
+
+export const courseAvailabilityLabels: Record<CourseAvailability, string> = {
+  complete: "Programme complet",
+  preview: "Aperçu",
+  "coming-soon": "Bientôt disponible"
+};
+
+export function isCourseFullPageAvailable(course: Course) {
+  return (
+    course.status === "published" &&
+    (course.visibility === "public" || course.visibility === "unlisted") &&
+    course.availability === "complete"
+  );
+}
 
 export function formatCourseDuration(minutes?: number) {
   if (!minutes) {
@@ -42,11 +54,11 @@ export function getCourseLessonCount(course: Course) {
 }
 
 export function CourseCard({ course }: CourseCardProps) {
-  const isPublished = course.status === "published";
-  const courseHref = isPublished
+  const hasFullPage = isCourseFullPageAvailable(course);
+  const courseHref = hasFullPage
     ? `/formations/${course.slug}`
     : `/formations/${course.slug}/curriculum`;
-  const courseCtaLabel = isPublished ? "Voir la formation" : "Voir le curriculum";
+  const courseCtaLabel = hasFullPage ? "Voir la formation" : "Voir le curriculum";
 
   return (
     <article className="course-card" id={course.slug}>
@@ -58,7 +70,7 @@ export function CourseCard({ course }: CourseCardProps) {
             sizes="(max-width: 1024px) 100vw, 50vw"
             src={course.coverImage}
           />
-          <span className="course-card__status">{courseStatusLabels[course.status]}</span>
+          <span className="course-card__status">{courseAvailabilityLabels[course.availability]}</span>
         </div>
       ) : null}
 

@@ -1,23 +1,14 @@
-import { courses as staticCourses } from "@/data/courses";
-import type { Course, CourseModule, CourseStatus } from "@/types/course";
+import {
+  getCourse,
+  getCourses,
+  getLessons,
+  getModules
+} from "@/lib/data-source";
+import type { Course, CourseModule } from "@/types/course";
 import type { Lesson } from "@/types/learning";
 
-type CourseSource = {
-  getCourses: () => Course[];
-};
-
-const staticCourseSource: CourseSource = {
-  getCourses: () => staticCourses
-};
-
-const catalogCourseStatuses = new Set<CourseStatus>(["published", "preview", "coming-soon"]);
-
-function getCourseSource() {
-  return staticCourseSource;
-}
-
 function getCoursesSnapshot() {
-  return [...getCourseSource().getCourses()];
+  return getCourses();
 }
 
 function sortModules(modules: CourseModule[]) {
@@ -41,26 +32,48 @@ export function getPublishedCourses() {
 }
 
 export function getCatalogCourses() {
-  return getAllCourses().filter((course) => catalogCourseStatuses.has(course.status));
+  return getAllCourses().filter(
+    (course) => course.status === "published" && course.visibility === "public"
+  );
 }
 
 export function getCatalogCourseBySlug(slug: string) {
-  return getCatalogCourses().find((course) => course.slug === slug);
+  const course = getCourseBySlug(slug);
+
+  return course?.status === "published" &&
+    (course.visibility === "public" || course.visibility === "unlisted")
+    ? course
+    : undefined;
 }
 
 export function getCatalogCourseStaticParams() {
-  return getCatalogCourses().map((course) => ({ slug: course.slug }));
+  return getAllCourses()
+    .filter(
+      (course) =>
+        course.status === "published" &&
+        (course.visibility === "public" || course.visibility === "unlisted")
+    )
+    .map((course) => ({ slug: course.slug }));
 }
 
 export function getPublishedCourseBySlug(slug: string) {
   const course = getCourseBySlug(slug);
 
-  return course?.status === "published" ? course : undefined;
+  return course?.status === "published" &&
+    (course.visibility === "public" || course.visibility === "unlisted") &&
+    course.availability === "complete"
+    ? course
+    : undefined;
 }
 
 export function getPublishedCourseStaticParams() {
   return getAllCourses()
-    .filter((course) => course.status === "published")
+    .filter(
+      (course) =>
+        course.status === "published" &&
+        course.visibility === "public" &&
+        course.availability === "complete"
+    )
     .map((course) => ({ slug: course.slug }));
 }
 
@@ -71,11 +84,11 @@ export function getFeaturedCourses() {
 }
 
 export function getCourseBySlug(slug: string) {
-  return getAllCourses().find((course) => course.slug === slug);
+  return getCourse({ slug });
 }
 
 export function getCourseById(courseId: string) {
-  return getAllCourses().find((course) => course.id === courseId);
+  return getCourse({ id: courseId });
 }
 
 export function getCoursesByDomain(domainId: string) {
@@ -138,15 +151,11 @@ export function getRelatedCourses(courseId: string, limit = 3) {
 }
 
 export function getCourseModules(courseId: string) {
-  const course = getAllCourses().find((item) => item.id === courseId);
-
-  return course ? sortModules(course.modules) : [];
+  return getModules(courseId);
 }
 
 export function getCourseLessons(courseId: string) {
-  const course = getAllCourses().find((item) => item.id === courseId);
-
-  return course ? getOrderedCourseLessons(course) : [];
+  return getLessons(courseId);
 }
 
 export function getLessonBySlug(courseSlug: string, lessonSlug: string) {

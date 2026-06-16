@@ -15,7 +15,7 @@ import {
   Video
 } from "lucide-react";
 
-import { courseStatusLabels, formatCourseDuration } from "@/components/catalog/CourseCard";
+import { courseAvailabilityLabels, formatCourseDuration } from "@/components/catalog/CourseCard";
 import type { Course, CourseModule, CourseModuleStatus } from "@/types/course";
 import type { Lesson, LessonStatus, LessonType } from "@/types/learning";
 
@@ -138,13 +138,13 @@ export function CourseCurriculum({ course, modules, lessons }: CourseCurriculumP
         </div>
       </section>
 
-      {course.status !== "published" ? (
-        <aside className="curriculum-notice" data-status={course.status}>
-          {course.status === "coming-soon" ? <LockKeyhole size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
+      {course.availability !== "complete" ? (
+        <aside className="curriculum-notice" data-status={course.availability}>
+          {course.availability === "coming-soon" ? <LockKeyhole size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
           <div>
-            <strong>{courseStatusLabels[course.status]}</strong>
+            <strong>{courseAvailabilityLabels[course.availability]}</strong>
             <p>
-              {course.status === "coming-soon"
+              {course.availability === "coming-soon"
                 ? "Le programme est présenté à titre prévisionnel. Les leçons seront ouvertes lors de la publication."
                 : "Cette fiche permet de consulter la structure prévue et les contenus disponibles en aperçu."}
             </p>

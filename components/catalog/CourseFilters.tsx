@@ -3,8 +3,8 @@
 import { RotateCcw, Search } from "lucide-react";
 
 import { DomainPill } from "@/components/catalog/DomainPill";
-import { courseLevelLabels, courseStatusLabels } from "@/components/catalog/CourseCard";
-import type { CourseLevel, CourseStatus, Domain } from "@/types/course";
+import { courseAvailabilityLabels, courseLevelLabels } from "@/components/catalog/CourseCard";
+import type { CourseAvailability, CourseLevel, Domain } from "@/types/course";
 
 export type CourseDurationFilter = "all" | "short" | "medium" | "long";
 
@@ -20,12 +20,12 @@ type CourseFiltersProps = {
   domains: Domain[];
   levels: CourseLevel[];
   formats: string[];
-  statuses: CourseStatus[];
+  availabilities: CourseAvailability[];
   activeDomain: string;
   activeLevel: CourseLevel | "all";
   activeFormat: string;
   activeDuration: CourseDurationFilter;
-  activeStatus: CourseStatus | "all";
+  activeAvailability: CourseAvailability | "all";
   resultCount: number;
   totalCount: number;
   hasActiveFilters: boolean;
@@ -34,7 +34,7 @@ type CourseFiltersProps = {
   onLevelChange: (level: CourseLevel | "all") => void;
   onFormatChange: (format: string) => void;
   onDurationChange: (duration: CourseDurationFilter) => void;
-  onStatusChange: (status: CourseStatus | "all") => void;
+  onAvailabilityChange: (availability: CourseAvailability | "all") => void;
   onReset: () => void;
 };
 
@@ -43,12 +43,12 @@ export function CourseFilters({
   domains,
   levels,
   formats,
-  statuses,
+  availabilities,
   activeDomain,
   activeLevel,
   activeFormat,
   activeDuration,
-  activeStatus,
+  activeAvailability,
   resultCount,
   totalCount,
   hasActiveFilters,
@@ -57,7 +57,7 @@ export function CourseFilters({
   onLevelChange,
   onFormatChange,
   onDurationChange,
-  onStatusChange,
+  onAvailabilityChange,
   onReset
 }: CourseFiltersProps) {
   return (
@@ -156,12 +156,16 @@ export function CourseFilters({
 
           <div className="catalog-filter-group">
             <p>Statut</p>
-            <DomainPill active={activeStatus === "all"} onClick={() => onStatusChange("all")}>
+            <DomainPill active={activeAvailability === "all"} onClick={() => onAvailabilityChange("all")}>
               Tous les statuts
             </DomainPill>
-            {statuses.map((status) => (
-              <DomainPill active={activeStatus === status} key={status} onClick={() => onStatusChange(status)}>
-                {courseStatusLabels[status]}
+            {availabilities.map((availability) => (
+              <DomainPill
+                active={activeAvailability === availability}
+                key={availability}
+                onClick={() => onAvailabilityChange(availability)}
+              >
+                {courseAvailabilityLabels[availability]}
               </DomainPill>
             ))}
           </div>

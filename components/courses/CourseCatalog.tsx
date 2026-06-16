@@ -8,10 +8,10 @@ import {
 } from "@/components/catalog/CourseFilters";
 import { CourseGrid } from "@/components/catalog/CourseGrid";
 import {
-  courseLevelLabels,
-  courseStatusLabels
+  courseAvailabilityLabels,
+  courseLevelLabels
 } from "@/components/catalog/CourseCard";
-import type { Course, CourseLevel, CourseStatus, Domain } from "@/types/course";
+import type { Course, CourseAvailability, CourseLevel, Domain } from "@/types/course";
 
 type CourseCatalogProps = {
   courses: Course[];
@@ -51,7 +51,7 @@ export function CourseCatalog({ courses, domains }: CourseCatalogProps) {
   const [activeLevel, setActiveLevel] = useState<CourseLevel | "all">("all");
   const [activeFormat, setActiveFormat] = useState("all");
   const [activeDuration, setActiveDuration] = useState<CourseDurationFilter>("all");
-  const [activeStatus, setActiveStatus] = useState<CourseStatus | "all">("all");
+  const [activeAvailability, setActiveAvailability] = useState<CourseAvailability | "all">("all");
 
   const levels = useMemo(() => {
     return Array.from(new Set(courses.map((course) => course.level)));
@@ -63,8 +63,8 @@ export function CourseCatalog({ courses, domains }: CourseCatalogProps) {
     ).sort((first, second) => first.localeCompare(second));
   }, [courses]);
 
-  const statuses = useMemo(() => {
-    return Array.from(new Set(courses.map((course) => course.status)));
+  const availabilities = useMemo(() => {
+    return Array.from(new Set(courses.map((course) => course.availability)));
   }, [courses]);
 
   const filteredCourses = useMemo(() => {
@@ -75,7 +75,7 @@ export function CourseCatalog({ courses, domains }: CourseCatalogProps) {
       const matchesLevel = activeLevel === "all" || course.level === activeLevel;
       const matchesFormat = activeFormat === "all" || course.format === activeFormat;
       const matchesDuration = matchesDurationFilter(course.durationMinutes, activeDuration);
-      const matchesStatus = activeStatus === "all" || course.status === activeStatus;
+      const matchesAvailability = activeAvailability === "all" || course.availability === activeAvailability;
       const searchableContent = normalize(
         [
           course.title,
@@ -83,17 +83,17 @@ export function CourseCatalog({ courses, domains }: CourseCatalogProps) {
           course.domain.name,
           course.level,
           courseLevelLabels[course.level],
-          course.status,
-          courseStatusLabels[course.status],
+          course.availability,
+          courseAvailabilityLabels[course.availability],
           course.format ?? "",
           ...(course.tags ?? [])
         ].join(" ")
       );
       const matchesQuery = normalizedQuery.length === 0 || searchableContent.includes(normalizedQuery);
 
-      return matchesDomain && matchesLevel && matchesFormat && matchesDuration && matchesStatus && matchesQuery;
+      return matchesDomain && matchesLevel && matchesFormat && matchesDuration && matchesAvailability && matchesQuery;
     });
-  }, [activeDomain, activeDuration, activeFormat, activeLevel, activeStatus, courses, query]);
+  }, [activeAvailability, activeDomain, activeDuration, activeFormat, activeLevel, courses, query]);
 
   const hasActiveFilters =
     query.trim().length > 0 ||
@@ -101,7 +101,7 @@ export function CourseCatalog({ courses, domains }: CourseCatalogProps) {
     activeLevel !== "all" ||
     activeFormat !== "all" ||
     activeDuration !== "all" ||
-    activeStatus !== "all";
+    activeAvailability !== "all";
 
   function resetFilters() {
     setQuery("");
@@ -109,32 +109,32 @@ export function CourseCatalog({ courses, domains }: CourseCatalogProps) {
     setActiveLevel("all");
     setActiveFormat("all");
     setActiveDuration("all");
-    setActiveStatus("all");
+    setActiveAvailability("all");
   }
 
   return (
     <section className="section-shell content-section catalog-section" id="catalogue">
       <CourseFilters
+        activeAvailability={activeAvailability}
         activeDomain={activeDomain}
         activeDuration={activeDuration}
         activeFormat={activeFormat}
         activeLevel={activeLevel}
-        activeStatus={activeStatus}
+        availabilities={availabilities}
         domains={domains}
         formats={formats}
         hasActiveFilters={hasActiveFilters}
         levels={levels}
         query={query}
         resultCount={filteredCourses.length}
-        statuses={statuses}
         totalCount={courses.length}
+        onAvailabilityChange={setActiveAvailability}
         onDomainChange={setActiveDomain}
         onDurationChange={setActiveDuration}
         onFormatChange={setActiveFormat}
         onLevelChange={setActiveLevel}
         onQueryChange={setQuery}
         onReset={resetFilters}
-        onStatusChange={setActiveStatus}
       />
       <CourseGrid courses={filteredCourses} />
     </section>
