@@ -26,6 +26,11 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link className="transition hover:text-white" href="/case-study">
+                  Étude de cas
+                </Link>
+              </li>
             </ul>
           </div>
 
