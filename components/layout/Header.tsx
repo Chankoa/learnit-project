@@ -1,34 +1,26 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { LogoMark } from "@/components/ui/LogoMark";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { getSiteConfig } from "@/lib/site";
-
-const siteConfig = getSiteConfig();
+import {
+  isNavigationItemActive,
+  platformAccessNavigation,
+  publicNavigation
+} from "@/lib/navigation";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isPlatformMenuOpen, setIsPlatformMenuOpen] = useState(false);
   const pathname = usePathname();
 
   function closeMenu() {
     setIsMenuOpen(false);
-  }
-
-  function isActive(label: string) {
-    if (label === "Formations") {
-      return pathname.startsWith("/formations");
-    }
-
-    if (label === "Domaines") {
-      return pathname.startsWith("/domaines");
-    }
-
-    return false;
+    setIsPlatformMenuOpen(false);
   }
 
   return (
@@ -38,9 +30,9 @@ export function Header() {
           <LogoMark />
         </Link>
 
-        <nav className="hidden items-center gap-7 lg:flex" aria-label="Navigation principale">
-          {siteConfig.nav.map((item) => {
-            const active = isActive(item.label);
+        <nav className="hidden items-center gap-5 lg:flex" aria-label="Navigation principale">
+          {publicNavigation.map((item) => {
+            const active = isNavigationItemActive(item, pathname);
 
             return (
               <Link
@@ -57,6 +49,48 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <div className="platform-menu hidden lg:block">
+            <button
+              aria-expanded={isPlatformMenuOpen}
+              aria-controls="platform-access-menu"
+              className="platform-menu__button"
+              type="button"
+              onClick={() => setIsPlatformMenuOpen((current) => !current)}
+            >
+              Accès plateforme
+              <span>Démo</span>
+              <ChevronDown size={15} aria-hidden="true" />
+            </button>
+
+            {isPlatformMenuOpen ? (
+              <nav
+                aria-label="Accès plateforme"
+                className="platform-menu__panel"
+                id="platform-access-menu"
+              >
+                <p>Choisir un espace</p>
+                {platformAccessNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const active = isNavigationItemActive(item, pathname);
+
+                  return (
+                    <Link
+                      aria-current={active ? "page" : undefined}
+                      data-active={active}
+                      href={item.href}
+                      key={item.href}
+                      onClick={closeMenu}
+                    >
+                      <Icon size={18} aria-hidden="true" />
+                      <span>{item.label}</span>
+                      {item.badge ? <small>{item.badge}</small> : null}
+                    </Link>
+                  );
+                })}
+              </nav>
+            ) : null}
+          </div>
+
           <ThemeToggle />
           <Link className="btn btn-primary hidden sm:inline-flex" href="/formations/formation-creation-web">
             Accéder à la démo
@@ -77,8 +111,9 @@ export function Header() {
       {isMenuOpen ? (
         <div className="site-header__mobile lg:hidden" id="site-mobile-nav">
           <nav className="section-shell flex flex-col gap-1 py-4" aria-label="Navigation mobile">
-            {siteConfig.nav.map((item) => {
-              const active = isActive(item.label);
+            {publicNavigation.map((item) => {
+              const Icon = item.icon;
+              const active = isNavigationItemActive(item, pathname);
 
               return (
                 <Link
@@ -89,10 +124,38 @@ export function Header() {
                   key={item.href}
                   onClick={closeMenu}
                 >
+                  <Icon size={17} aria-hidden="true" />
                   {item.label}
                 </Link>
               );
             })}
+
+            <div className="mobile-platform-menu">
+              <p>
+                Accès plateforme
+                <span>Démo</span>
+              </p>
+              {platformAccessNavigation.map((item) => {
+                const Icon = item.icon;
+                const active = isNavigationItemActive(item, pathname);
+
+                return (
+                  <Link
+                    aria-current={active ? "page" : undefined}
+                    className="mobile-platform-menu__link"
+                    data-active={active}
+                    href={item.href}
+                    key={item.href}
+                    onClick={closeMenu}
+                  >
+                    <Icon size={17} aria-hidden="true" />
+                    <span>{item.label}</span>
+                    {item.badge ? <small>{item.badge}</small> : null}
+                  </Link>
+                );
+              })}
+            </div>
+
             <Link
               className="btn btn-primary mt-3 w-full"
               href="/formations/formation-creation-web"

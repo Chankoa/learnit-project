@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { LogoMark } from "@/components/ui/LogoMark";
+import { publicNavigation } from "@/lib/navigation";
 import { getSiteConfig } from "@/lib/site";
 
 export function Footer() {
@@ -19,7 +20,7 @@ export function Footer() {
           <div>
             <h2 className="text-sm font-extrabold uppercase text-white">Navigation</h2>
             <ul className="mt-4 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
-              {siteConfig.nav.map((item) => (
+              {publicNavigation.map((item) => (
                 <li key={item.href}>
                   <Link className="transition hover:text-white" href={item.href}>
                     {item.label}

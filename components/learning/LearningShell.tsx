@@ -1,12 +1,7 @@
 "use client";
 
 import {
-  BookOpen,
-  CheckSquare2,
   ChevronLeft,
-  GraduationCap,
-  LayoutDashboard,
-  Library,
   Menu,
   X
 } from "lucide-react";
@@ -16,6 +11,7 @@ import { useState } from "react";
 
 import { LogoMark } from "@/components/ui/LogoMark";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { isNavigationItemActive, learnerNavigation } from "@/lib/navigation";
 import type { LearnerProfile } from "@/types/learning";
 import type { ReactNode } from "react";
 
@@ -25,14 +21,6 @@ type LearningShellProps = {
   pageTitle: string;
   variant?: "default" | "lesson";
 };
-
-const learningNavigation = [
-  { label: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Mes formations", href: "/dashboard#mes-formations", icon: GraduationCap },
-  { label: "Progression", href: "/dashboard#progression", icon: BookOpen },
-  { label: "Ressources", href: "/dashboard#ressources", icon: Library },
-  { label: "Livrables", href: "/dashboard#livrables", icon: CheckSquare2 }
-];
 
 export function LearningShell({
   children,
@@ -56,11 +44,9 @@ export function LearningShell({
 
         <nav className="learning-sidebar__nav">
           <p>Apprentissage</p>
-          {learningNavigation.map((item) => {
+          {learnerNavigation.map((item) => {
             const Icon = item.icon;
-            const isActive =
-              (item.href === "/dashboard" && pathname === "/dashboard") ||
-              (item.label === "Mes formations" && pathname.startsWith("/learn/"));
+            const isActive = isNavigationItemActive(item, pathname);
 
             return (
               <Link data-active={isActive} href={item.href} key={item.label}>
@@ -127,11 +113,9 @@ export function LearningShell({
             id="learning-mobile-drawer"
             aria-label="Navigation apprenant mobile"
           >
-            {learningNavigation.map((item) => {
+            {learnerNavigation.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                (item.href === "/dashboard" && pathname === "/dashboard") ||
-                (item.label === "Mes formations" && pathname.startsWith("/learn/"));
+              const isActive = isNavigationItemActive(item, pathname);
 
               return (
                 <Link
@@ -157,11 +141,9 @@ export function LearningShell({
       </div>
 
       <nav className="learning-mobile-nav" aria-label="Navigation apprenant principale">
-        {learningNavigation.slice(0, 4).map((item) => {
+        {learnerNavigation.slice(0, 4).map((item) => {
           const Icon = item.icon;
-          const isActive =
-            (item.href === "/dashboard" && pathname === "/dashboard") ||
-            (item.label === "Mes formations" && pathname.startsWith("/learn/"));
+          const isActive = isNavigationItemActive(item, pathname);
 
           return (
             <Link
