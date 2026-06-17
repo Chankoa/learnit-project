@@ -4,18 +4,15 @@ import {
   BookOpen,
   BookPlus,
   Compass,
-  FileText,
   GraduationCap,
   Home,
   Info,
   LayoutDashboard,
   Library,
   Mail,
-  Newspaper,
   Send,
   Settings,
   ShieldCheck,
-  SlidersHorizontal,
   SquarePen,
   TrendingUp,
   UserCircle,
@@ -96,28 +93,28 @@ export const publicNavigation = [
 export const learnerNavigation = [
   {
     label: "Tableau de bord",
-    href: "/dashboard",
+    href: "/app/learner",
     icon: LayoutDashboard,
     role: "learner",
-    isActive: (pathname) => pathname === "/dashboard"
+    isActive: (pathname) => pathname === "/app/learner" || pathname === "/dashboard"
   },
   {
     label: "Mes formations",
-    href: "/dashboard#mes-formations",
+    href: "/app/learner#formations",
     icon: GraduationCap,
     role: "learner",
     isActive: (pathname) => pathname.startsWith("/learn")
   },
   {
     label: "Progression",
-    href: "/dashboard#progression",
+    href: "/app/learner#progression",
     icon: TrendingUp,
     role: "learner",
     isActive: inactiveAnchor
   },
   {
     label: "Ressources",
-    href: "/dashboard#ressources",
+    href: "/app/learner#ressources",
     icon: Library,
     role: "learner",
     isActive: inactiveAnchor
@@ -315,12 +312,6 @@ export function getNavigationForRole(role: ApplicationRole): NavigationItem[] {
 
 export function getApplicationSpaceByRole(role: string) {
   return applicationSpaces.find((space) => space.role === role);
-}
-
-export function getApplicationSpaceStaticParams() {
-  return applicationSpaces.map((space) => ({
-    role: space.role
-  }));
 }
 
 export function isNavigationItemActive(item: NavigationItem, pathname: string) {

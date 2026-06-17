@@ -5,6 +5,7 @@ import { SiteShell } from "@/components/layout/SiteShell";
 import { createPageMetadata, getSiteUrl } from "@/lib/seo";
 import { getSiteConfig } from "@/lib/site";
 import "@/styles/globals.scss";
+import "@/styles/app.scss";
 
 const themeInitializer = `
 (function() {
@@ -13,7 +14,9 @@ const themeInitializer = `
     var storedTheme = window.localStorage.getItem(key);
     var isLearningRoute = window.location.pathname === "/dashboard"
       || window.location.pathname.indexOf("/dashboard/") === 0
-      || window.location.pathname.indexOf("/learn/") === 0;
+      || window.location.pathname.indexOf("/learn/") === 0
+      || window.location.pathname === "/app"
+      || window.location.pathname.indexOf("/app/") === 0;
     var theme = storedTheme === "light" || storedTheme === "dark"
       ? storedTheme
       : isLearningRoute || window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -25,6 +28,7 @@ const themeInitializer = `
     document.documentElement.dataset.theme =
       window.location.pathname.indexOf("/dashboard") === 0
       || window.location.pathname.indexOf("/learn/") === 0
+      || window.location.pathname.indexOf("/app") === 0
       ? "dark"
       : "light";
   }

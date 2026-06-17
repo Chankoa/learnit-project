@@ -16,8 +16,9 @@ export function SiteShell({ children }: SiteShellProps) {
     pathname === "/dashboard" ||
     pathname.startsWith("/dashboard/") ||
     pathname.startsWith("/learn/");
+  const isAppRoute = pathname === "/app" || pathname.startsWith("/app/");
 
-  if (isLearningRoute) {
+  if (isLearningRoute || isAppRoute) {
     return children;
   }
 

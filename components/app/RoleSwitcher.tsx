@@ -6,6 +6,10 @@ import { roleSwitcherOptions, type ApplicationRole } from "@/lib/navigation";
 
 const ROLE_STORAGE_KEY = "learnit-demo-role";
 
+type RoleSwitcherProps = {
+  variant?: "default" | "compact";
+};
+
 function isApplicationRole(value: string | null): value is ApplicationRole {
   return value === "visitor" || value === "learner" || value === "teacher" || value === "admin";
 }
@@ -28,7 +32,7 @@ function storeRole(role: ApplicationRole) {
   }
 }
 
-export function RoleSwitcher() {
+export function RoleSwitcher({ variant = "default" }: RoleSwitcherProps) {
   const [selectedRole, setSelectedRole] = useState<ApplicationRole>("visitor");
 
   useEffect(() => {
@@ -41,7 +45,7 @@ export function RoleSwitcher() {
   }
 
   return (
-    <section className="role-switcher" aria-label="Sélecteur de rôle de démonstration">
+    <section className="role-switcher" data-variant={variant} aria-label="Sélecteur de rôle de démonstration">
       <div>
         <span className="eyebrow w-fit">Mode démo</span>
         <h2>Basculer fictivement de rôle.</h2>

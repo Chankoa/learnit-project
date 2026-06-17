@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 
-import { RoleSwitcher } from "@/components/app/RoleSwitcher";
+import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
+import { AppPageHeader } from "@/components/app/AppPageHeader";
+import { AppShellFrame } from "@/components/app/AppShellFrame";
 import { applicationSpaces } from "@/lib/navigation";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -16,23 +18,16 @@ export const metadata: Metadata = createPageMetadata({
 
 export default function AppAccessPage() {
   return (
-    <>
-      <section className="section-shell page-hero app-access-hero">
-        <div className="app-access-hero__content">
-          <span className="eyebrow w-fit">
-            <Sparkles size={14} aria-hidden="true" />
-            Accès plateforme
-          </span>
-          <h1>Choisissez l'espace LearnIt à explorer.</h1>
-          <p>
-            La plateforme distingue clairement les besoins du visiteur, de l'apprenant, de l'enseignant
-            et de l'administrateur. Ces accès sont encore des démonstrations en attendant l'authentification.
-          </p>
-        </div>
-      </section>
+    <AppShellFrame role="visitor" title="Accès plateforme">
+      <div className="app-page">
+        <AppBreadcrumb items={[{ label: "Accès plateforme" }]} />
+        <AppPageHeader
+          eyebrow="Sélection d'espace"
+          title="Choisissez l'espace LearnIt à explorer."
+          description="La plateforme distingue les besoins du visiteur, de l'apprenant, de l'enseignant et de l'administrateur. Ces accès restent des démonstrations en attendant l'authentification."
+        />
 
-      <section className="section-shell content-section">
-        <div className="app-space-grid">
+        <section className="app-space-grid" aria-label="Espaces applicatifs disponibles">
           {applicationSpaces.map((space) => {
             const Icon = space.icon;
 
@@ -60,12 +55,8 @@ export default function AppAccessPage() {
               </article>
             );
           })}
-        </div>
-      </section>
-
-      <section className="section-shell content-section">
-        <RoleSwitcher />
-      </section>
-    </>
+        </section>
+      </div>
+    </AppShellFrame>
   );
 }
