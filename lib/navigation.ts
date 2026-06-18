@@ -145,38 +145,42 @@ export const teacherNavigation = [
   },
   {
     label: "Mes formations",
-    href: "/app/teacher#formations",
+    href: "/app/teacher/courses",
     icon: GraduationCap,
     role: "teacher",
-    isActive: inactiveAnchor
+    isActive: (pathname) =>
+      pathname === "/app/teacher/courses" ||
+      (pathname.startsWith("/app/teacher/courses/") &&
+        pathname !== "/app/teacher/courses/new" &&
+        !pathname.endsWith("/builder"))
   },
   {
     label: "Créer une formation",
-    href: "/app/teacher#create-course",
+    href: "/app/teacher/courses/new",
     icon: BookPlus,
     role: "teacher",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname === "/app/teacher/courses/new"
   },
   {
     label: "Leçons",
-    href: "/app/teacher#lessons",
+    href: "/app/teacher/courses/teacher-course-web-portfolio/builder",
     icon: BookOpen,
     role: "teacher",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname.endsWith("/builder")
   },
   {
     label: "Ressources",
-    href: "/app/teacher#resources",
+    href: "/app/teacher/resources",
     icon: Library,
     role: "teacher",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname === "/app/teacher/resources"
   },
   {
     label: "Apprenants",
-    href: "/app/teacher#learners",
+    href: "/app/teacher/students",
     icon: Users,
     role: "teacher",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname === "/app/teacher/students"
   }
 ] satisfies NavigationItem[];
 
