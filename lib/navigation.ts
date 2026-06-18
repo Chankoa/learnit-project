@@ -194,24 +194,24 @@ export const adminNavigation = [
   },
   {
     label: "Utilisateurs",
-    href: "/app/admin#users",
+    href: "/app/admin/users",
     icon: UserCog,
     role: "admin",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname === "/app/admin/users"
   },
   {
     label: "Formations",
-    href: "/app/admin#courses",
+    href: "/app/admin/courses",
     icon: GraduationCap,
     role: "admin",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname === "/app/admin/courses"
   },
   {
     label: "Domaines",
-    href: "/app/admin#domains",
+    href: "/app/admin/domains",
     icon: Compass,
     role: "admin",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname === "/app/admin/domains"
   },
   {
     label: "Publications",
@@ -222,10 +222,10 @@ export const adminNavigation = [
   },
   {
     label: "Paramètres",
-    href: "/app/admin#settings",
+    href: "/app/admin/settings",
     icon: Settings,
     role: "admin",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname === "/app/admin/settings"
   }
 ] satisfies NavigationItem[];
 
