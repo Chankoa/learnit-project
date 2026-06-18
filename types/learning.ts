@@ -45,6 +45,55 @@ export type LearningDeliverable = {
   status: DeliverableStatus;
 };
 
+export type LearnerEnrollmentStatus = "in-progress" | "completed" | "not-started";
+
+export type LearnerModuleProgress = {
+  moduleId: string;
+  completedLessonIds: string[];
+  submittedExerciseCount: number;
+  totalExerciseCount: number;
+  learningTimeMinutes: number;
+};
+
+export type LearnerEnrollment = {
+  courseId: string;
+  status: LearnerEnrollmentStatus;
+  completedLessonIds: string[];
+  currentLessonId?: string;
+  lastAccessedAt?: string;
+  learningTimeMinutes: number;
+  moduleProgress: LearnerModuleProgress[];
+};
+
+export type LearnerResourceType = "pdf" | "template" | "exercise" | "external-link" | "checklist";
+
+export type LearnerResource = {
+  id: string;
+  courseId: string;
+  title: string;
+  type: LearnerResourceType;
+  href: string;
+  description: string;
+  favorite: boolean;
+  lastConsultedAt?: string;
+  tags?: string[];
+};
+
+export type CertificateStatus = "obtained" | "eligible" | "in-progress" | "coming-soon";
+
+export type Certificate = {
+  id: string;
+  courseId: string;
+  title: string;
+  description?: string;
+  status: CertificateStatus;
+  requiredProgressPercentage: number;
+  currentProgressPercentage: number;
+  issuedAt?: string;
+  credentialId?: string;
+  availableAtLabel?: string;
+};
+
 export type LessonContentSection = {
   id: string;
   title: string;

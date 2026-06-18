@@ -100,31 +100,31 @@ export const learnerNavigation = [
   },
   {
     label: "Mes formations",
-    href: "/app/learner#formations",
+    href: "/app/learner/courses",
     icon: GraduationCap,
     role: "learner",
-    isActive: (pathname) => pathname.startsWith("/learn")
+    isActive: (pathname) => pathname === "/app/learner/courses" || pathname.startsWith("/learn")
   },
   {
     label: "Progression",
-    href: "/app/learner#progression",
+    href: "/app/learner/progress",
     icon: TrendingUp,
     role: "learner",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname === "/app/learner/progress"
   },
   {
     label: "Ressources",
-    href: "/app/learner#ressources",
+    href: "/app/learner/resources",
     icon: Library,
     role: "learner",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname === "/app/learner/resources"
   },
   {
     label: "Certificats",
-    href: "/app/learner#certificats",
+    href: "/app/learner/certificates",
     icon: Award,
     role: "learner",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname === "/app/learner/certificates"
   },
   {
     label: "Profil",
@@ -232,7 +232,7 @@ export const platformAccessNavigation = [
     icon: GraduationCap,
     role: "learner",
     badge: "Démo",
-    isActive: (pathname) => pathname === "/app/learner" || pathname.startsWith("/dashboard") || pathname.startsWith("/learn")
+    isActive: (pathname) => pathname.startsWith("/app/learner") || pathname.startsWith("/dashboard") || pathname.startsWith("/learn")
   },
   {
     label: "Espace enseignant",
@@ -269,7 +269,7 @@ export const applicationSpaces = [
     title: "Espace apprenant",
     href: "/app/learner",
     description: "Suivre vos formations, reprendre vos leçons et consulter vos ressources.",
-    primaryHref: "/dashboard",
+    primaryHref: "/app/learner",
     primaryLabel: "Ouvrir le dashboard",
     icon: GraduationCap,
     highlights: ["formations suivies", "progression", "prochaine leçon", "ressources"]
