@@ -414,6 +414,68 @@
   color: var(--status-success);
 }
 
+.role-guard {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.role-guard__message {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.role-guard__message > span {
+  width: fit-content;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  color: var(--accent-primary);
+  padding: 0.28rem 0.65rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-extrabold);
+  text-transform: uppercase;
+}
+
+.role-guard__message h1 {
+  max-width: 720px;
+  color: var(--text-strong);
+  font-size: clamp(var(--text-2xl), 4vw, var(--text-4xl));
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0;
+  line-height: var(--leading-tight);
+}
+
+.role-guard__message p {
+  max-width: 680px;
+  color: var(--text-muted);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+}
+
+.role-guard__message strong {
+  color: var(--text-strong);
+}
+
+.role-guard__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-soft);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.role-guard__status svg {
+  flex: 0 0 auto;
+  color: var(--status-warning);
+}
+
 .role-switcher[data-variant="compact"] {
   grid-template-columns: 1fr;
   gap: var(--space-3);

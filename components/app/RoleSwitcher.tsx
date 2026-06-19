@@ -2,46 +2,23 @@
 
 import { useEffect, useState } from "react";
 
+import { getDemoRoleFromStorage, storeDemoRole } from "@/lib/auth/demo-role";
 import { roleSwitcherOptions, type ApplicationRole } from "@/lib/navigation";
-
-const ROLE_STORAGE_KEY = "learnit-demo-role";
 
 type RoleSwitcherProps = {
   variant?: "default" | "compact";
 };
 
-function isApplicationRole(value: string | null): value is ApplicationRole {
-  return value === "visitor" || value === "learner" || value === "teacher" || value === "admin";
-}
-
-function getStoredRole(): ApplicationRole {
-  try {
-    const storedRole = window.localStorage.getItem(ROLE_STORAGE_KEY);
-
-    return isApplicationRole(storedRole) ? storedRole : "visitor";
-  } catch {
-    return "visitor";
-  }
-}
-
-function storeRole(role: ApplicationRole) {
-  try {
-    window.localStorage.setItem(ROLE_STORAGE_KEY, role);
-  } catch {
-    // The switcher remains usable even if storage is blocked.
-  }
-}
-
 export function RoleSwitcher({ variant = "default" }: RoleSwitcherProps) {
   const [selectedRole, setSelectedRole] = useState<ApplicationRole>("visitor");
 
   useEffect(() => {
-    setSelectedRole(getStoredRole());
+    setSelectedRole(getDemoRoleFromStorage());
   }, []);
 
   function handleRoleChange(role: ApplicationRole) {
     setSelectedRole(role);
-    storeRole(role);
+    storeDemoRole(role);
   }
 
   return (
