@@ -3328,6 +3328,61 @@ section[id] {
   margin-top: var(--space-2);
 }
 
+.learning-local-progress {
+  display: grid;
+  align-content: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-card) 90%, transparent);
+}
+
+.learning-local-progress > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.learning-local-progress > div:first-child span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.learning-local-progress > div:first-child strong {
+  color: var(--text-strong);
+  font-size: var(--text-4xl);
+  line-height: 1;
+}
+
+.learning-local-progress p {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.learning-local-progress__lessons {
+  display: grid;
+  gap: var(--space-2);
+  max-height: 12rem;
+  overflow-y: auto;
+  padding-top: var(--space-2);
+}
+
+.learning-local-progress__lessons span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.learning-local-progress__lessons span[data-completed="true"] {
+  color: var(--status-success);
+}
+
 .learning-course-curriculum {
   min-width: 0;
 }
@@ -3906,6 +3961,52 @@ a.lesson-sidebar__lesson:hover {
   border-color: color-mix(in srgb, var(--status-success) 34%, var(--border-soft));
   background: color-mix(in srgb, var(--status-success) 12%, transparent);
   color: var(--status-success);
+}
+
+.lesson-notes {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+  padding: var(--space-5);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+}
+
+.lesson-notes label {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.lesson-notes label span {
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.lesson-notes textarea {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-panel);
+  padding: var(--space-3);
+  color: var(--text-strong);
+  font: inherit;
+  line-height: var(--leading-relaxed);
+}
+
+.lesson-notes textarea:focus {
+  border-color: var(--accent-primary);
+  outline: 0;
+  box-shadow: var(--shadow-focus);
+}
+
+.lesson-notes > p {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
 }
 
 .lesson-navigation {

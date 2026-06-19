@@ -18,6 +18,9 @@ import {
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { formatCourseDuration } from "@/components/catalog/CourseCard";
+import { LearnerLocalProgressStrip } from "@/components/learning/LearnerLocalProgressStrip";
+import { ResumeCourseButton } from "@/components/learning/ResumeCourseButton";
+import { getCourseLessons } from "@/lib/courses";
 import {
   certificateStatusLabels,
   formatLearnerDate,
@@ -44,6 +47,17 @@ const deliverableStatusLabels: Record<DeliverableStatus, string> = {
 export default function LearnerAppPage() {
   const dashboard = getLearnerDashboardData();
   const nextLesson = dashboard.nextCourse?.nextLesson ?? dashboard.nextCourse?.currentLesson;
+  const resumeCourses = dashboard.courses.map((summary) => ({
+    id: summary.course.id,
+    slug: summary.course.slug,
+    title: summary.course.title,
+    lessons: getCourseLessons(summary.course.id).map((lesson) => ({
+      id: lesson.id,
+      slug: lesson.slug,
+      title: lesson.title,
+      status: lesson.status
+    }))
+  }));
 
   return (
     <div className="app-page learner-page">
@@ -59,10 +73,13 @@ export default function LearnerAppPage() {
         title={`Bonjour ${dashboard.learner.firstName}`}
         description="Votre suivi pédagogique regroupe la progression, les formations actives, les ressources récentes, les travaux attendus et les certificats."
         actions={
-          <Link className="btn btn-primary" href="/app/learner/courses">
-            <GraduationCap size={17} aria-hidden="true" />
-            Mes formations
-          </Link>
+          <>
+            <ResumeCourseButton courses={resumeCourses} />
+            <Link className="btn btn-secondary" href="/app/learner/courses">
+              <GraduationCap size={17} aria-hidden="true" />
+              Mes formations
+            </Link>
+          </>
         }
       />
 
@@ -108,6 +125,8 @@ export default function LearnerAppPage() {
           </div>
         </article>
       </section>
+
+      <LearnerLocalProgressStrip courses={resumeCourses} />
 
       <div className="dashboard-primary-grid">
         <section className="learning-panel">

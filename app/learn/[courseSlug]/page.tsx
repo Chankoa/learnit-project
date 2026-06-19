@@ -12,6 +12,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { formatCourseDuration } from "@/components/catalog/CourseCard";
+import { LearningCourseLocalProgress } from "@/components/learning/LearningCourseLocalProgress";
 import { LearningShell } from "@/components/learning/LearningShell";
 import {
   getLearningCourseData,
@@ -76,9 +77,17 @@ export default async function LearningCoursePage({
   }
 
   const learner = getLearnerProfile();
-  const continueHref = data.currentLesson
-    ? `/learn/${data.course.slug}/${data.currentLesson.slug}`
-    : undefined;
+  const resumeCourse = {
+    id: data.course.id,
+    slug: data.course.slug,
+    title: data.course.title,
+    lessons: data.lessons.map((lesson) => ({
+      id: lesson.id,
+      slug: lesson.slug,
+      title: lesson.title,
+      status: lesson.status
+    }))
+  };
 
   return (
     <LearningShell learner={learner} pageTitle="Mon parcours">
@@ -90,19 +99,7 @@ export default async function LearningCoursePage({
             <p>{data.course.subtitle ?? data.course.description}</p>
           </div>
 
-          <div className="learning-course-hero__progress">
-            <strong>{data.percentage}%</strong>
-            <span>de la formation terminée</span>
-            <div className="learning-progress">
-              <span style={{ width: `${data.percentage}%` }} />
-            </div>
-            {continueHref ? (
-              <Link className="btn btn-primary" href={continueHref}>
-                <PlayCircle size={18} aria-hidden="true" />
-                Continuer la formation
-              </Link>
-            ) : null}
-          </div>
+          <LearningCourseLocalProgress course={resumeCourse} />
         </section>
 
         <section className="learning-metrics" aria-label="Résumé de la formation">

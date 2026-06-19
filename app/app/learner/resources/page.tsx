@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  BookOpenCheck,
-  ClipboardCheck,
-  ExternalLink,
-  FileText,
-  Library,
-  Star
-} from "lucide-react";
+import { Star } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
+import { LearnerResourceGrid } from "@/components/learning/LearnerResourceGrid";
 import {
   getCourseForLearnerResource,
   getLearnerResourceCourses,
@@ -21,7 +14,7 @@ import {
   type LearnerResourceFilters
 } from "@/lib/learner";
 import { createPageMetadata } from "@/lib/seo";
-import type { LearnerResource, LearnerResourceType } from "@/types/learning";
+import type { LearnerResourceType } from "@/types/learning";
 
 type ResourcesSearchParams = {
   course?: string | string[];
@@ -48,18 +41,6 @@ function isResourceType(value?: string): value is LearnerResourceType {
   return Boolean(value && value in learnerResourceTypeLabels);
 }
 
-function getResourceIcon(type: LearnerResourceType) {
-  const icons = {
-    pdf: FileText,
-    template: Library,
-    exercise: BookOpenCheck,
-    "external-link": ExternalLink,
-    checklist: ClipboardCheck
-  };
-
-  return icons[type];
-}
-
 function buildResourceFilterHref(filters: LearnerResourceFilters) {
   const params = new URLSearchParams();
 
@@ -80,29 +61,6 @@ function buildResourceFilterHref(filters: LearnerResourceFilters) {
   return query ? `/app/learner/resources?${query}` : "/app/learner/resources";
 }
 
-function ResourceLink({ resource }: { resource: LearnerResource }) {
-  const content = (
-    <>
-      Ouvrir
-      <ArrowUpRight size={16} aria-hidden="true" />
-    </>
-  );
-
-  if (resource.href.startsWith("http")) {
-    return (
-      <a className="text-link" href={resource.href} rel="noreferrer" target="_blank">
-        {content}
-      </a>
-    );
-  }
-
-  return (
-    <Link className="text-link" href={resource.href}>
-      {content}
-    </Link>
-  );
-}
-
 export default async function LearnerResourcesPage({
   searchParams
 }: LearnerResourcesPageProps) {
@@ -121,7 +79,14 @@ export default async function LearnerResourcesPage({
     type: selectedType,
     favoritesOnly
   } satisfies LearnerResourceFilters;
-  const resources = getLearnerResources(filters);
+  const resources = getLearnerResources({
+    courseId: filters.courseId,
+    type: filters.type
+  });
+  const resourceItems = resources.map((resource) => ({
+    resource,
+    courseTitle: getCourseForLearnerResource(resource)?.title ?? "Formation"
+  }));
 
   return (
     <div className="app-page learner-page">
@@ -228,36 +193,7 @@ export default async function LearnerResourcesPage({
         </div>
       </section>
 
-      <section className="learner-resource-grid" aria-label="Ressources accessibles">
-        {resources.map((resource) => {
-          const Icon = getResourceIcon(resource.type);
-          const course = getCourseForLearnerResource(resource);
-
-          return (
-            <article className="learner-resource-card" key={resource.id}>
-              <div className="learner-resource-card__header">
-                <span className="learning-metric-icon learning-metric-icon--cyan">
-                  <Icon size={18} aria-hidden="true" />
-                </span>
-                {resource.favorite ? (
-                  <span className="state-badge" data-state="favorite">
-                    Favori
-                  </span>
-                ) : null}
-              </div>
-              <div>
-                <span>{learnerResourceTypeLabels[resource.type]}</span>
-                <h2>{resource.title}</h2>
-                <p>{resource.description}</p>
-              </div>
-              <div className="learner-resource-card__footer">
-                <small>{course?.title ?? "Formation"}</small>
-                <ResourceLink resource={resource} />
-              </div>
-            </article>
-          );
-        })}
-      </section>
+      <LearnerResourceGrid items={resourceItems} favoritesOnly={favoritesOnly} />
     </div>
   );
 }

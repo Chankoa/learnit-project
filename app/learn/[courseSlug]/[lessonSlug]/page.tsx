@@ -6,6 +6,7 @@ import { ExerciseBlock } from "@/components/learning/ExerciseBlock";
 import { LearningShell } from "@/components/learning/LearningShell";
 import { LessonContent } from "@/components/learning/LessonContent";
 import { LessonHeader } from "@/components/learning/LessonHeader";
+import { LessonNotes } from "@/components/learning/LessonNotes";
 import { LessonNavigation } from "@/components/learning/LessonNavigation";
 import { LessonSidebar } from "@/components/learning/LessonSidebar";
 import { ResourceList } from "@/components/learning/ResourceList";
@@ -97,10 +98,14 @@ export default async function LessonPage({ params }: LessonPageProps) {
               <h2>Cette leçon est-elle terminée ?</h2>
             </div>
             <CompletionButton
+              courseSlug={data.course.slug}
               initiallyCompleted={data.lesson.status === "completed"}
               lessonId={data.lesson.id}
+              lessonSlug={data.lesson.slug}
             />
           </div>
+
+          <LessonNotes lessonId={data.lesson.id} />
 
           <LessonNavigation
             courseSlug={data.course.slug}
