@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   Copy,
   Eye,
+  GraduationCap,
   Layers3,
   Pencil,
   Plus,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
+import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import {
   countTeacherLessons,
@@ -51,7 +53,7 @@ export default function TeacherCoursesPage() {
       />
 
       <section className="teacher-course-management-grid" aria-label="Formations créées">
-        {courses.map((course) => (
+        {courses.length > 0 ? courses.map((course) => (
           <article className="teacher-management-card" key={course.id}>
             <div className="teacher-management-card__heading">
               <div>
@@ -112,7 +114,19 @@ export default function TeacherCoursesPage() {
               </span>
             </div>
           </article>
-        ))}
+        )) : (
+          <AppEmptyState
+            action={
+              <Link className="btn btn-primary" href="/app/teacher/courses/new">
+                <Plus size={17} aria-hidden="true" />
+                Créer une formation
+              </Link>
+            }
+            description="Les formations créées par cet enseignant apparaîtront ici avec leurs modules, leçons et inscrits."
+            icon={GraduationCap}
+            title="Aucune formation"
+          />
+        )}
       </section>
     </div>
   );

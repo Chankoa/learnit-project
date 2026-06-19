@@ -1,4 +1,4 @@
-import { domains as staticDomains } from "@/data/domains";
+import { listDomains } from "@/lib/repositories/courseRepository";
 import type { Domain } from "@/types/course";
 
 type DomainSource = {
@@ -6,7 +6,7 @@ type DomainSource = {
 };
 
 const staticDomainSource: DomainSource = {
-  getDomains: () => staticDomains
+  getDomains: () => listDomains()
 };
 
 function getDomainSource() {

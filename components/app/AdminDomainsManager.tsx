@@ -4,6 +4,7 @@ import { CheckCircle2, Pencil, Plus, Power } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
+import { useToast } from "@/components/app/ToastProvider";
 import { adminDomainStatusLabels, formatAdminDate } from "@/lib/admin";
 import type { AdminDomain } from "@/types/admin";
 
@@ -26,12 +27,22 @@ export function AdminDomainsManager({ domains }: AdminDomainsManagerProps) {
   const [editingDomainId, setEditingDomainId] = useState<string>();
   const [draftName, setDraftName] = useState("");
   const [toast, setToast] = useState<string>();
+  const { showToast } = useToast();
+
+  function notify(message: string, variant: "success" | "warning" = "success") {
+    setToast(message);
+    showToast({
+      description: variant === "success" ? "Action appliquée localement en mode démo." : undefined,
+      title: message,
+      variant
+    });
+  }
 
   function createDomain(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!newDomainName.trim()) {
-      setToast("Le nom du domaine est requis.");
+      notify("Le nom du domaine est requis.", "warning");
       return;
     }
 
@@ -49,7 +60,7 @@ export function AdminDomainsManager({ domains }: AdminDomainsManagerProps) {
       }
     ]);
     setNewDomainName("");
-    setToast("Domaine créé en mode démo.");
+    notify("Domaine créé en mode démo.");
   }
 
   function startEdit(domain: AdminDomain) {
@@ -59,7 +70,7 @@ export function AdminDomainsManager({ domains }: AdminDomainsManagerProps) {
 
   function saveEdit(domainId: string) {
     if (!draftName.trim()) {
-      setToast("Le nom du domaine est requis.");
+      notify("Le nom du domaine est requis.", "warning");
       return;
     }
 
@@ -77,7 +88,7 @@ export function AdminDomainsManager({ domains }: AdminDomainsManagerProps) {
     );
     setEditingDomainId(undefined);
     setDraftName("");
-    setToast("Domaine modifié en mode démo.");
+    notify("Domaine modifié en mode démo.");
   }
 
   function toggleDomain(domainId: string) {
@@ -92,7 +103,7 @@ export function AdminDomainsManager({ domains }: AdminDomainsManagerProps) {
           : domain
       )
     );
-    setToast("Statut du domaine modifié en mode démo.");
+    notify("Statut du domaine modifié en mode démo.");
   }
 
   return (

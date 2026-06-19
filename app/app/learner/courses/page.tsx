@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
+import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { formatLearningTime, getLearnerCourseSummaries } from "@/lib/learner";
 import { createPageMetadata } from "@/lib/seo";
@@ -75,7 +76,7 @@ export default function LearnerCoursesPage() {
             </div>
 
             <div className="learner-course-grid">
-              {groupCourses.map((summary) => (
+              {groupCourses.length > 0 ? groupCourses.map((summary) => (
                 <article className="learner-course-card" key={summary.course.id}>
                   {summary.course.coverImage ? (
                     <div className="learner-course-card__media">
@@ -120,7 +121,13 @@ export default function LearnerCoursesPage() {
                     </Link>
                   </div>
                 </article>
-              ))}
+              )) : (
+                <AppEmptyState
+                  description="Aucune formation ne correspond à cette catégorie pour le moment."
+                  icon={GraduationCap}
+                  title={`Aucune formation ${group.title.toLowerCase()}`}
+                />
+              )}
             </div>
           </section>
         );

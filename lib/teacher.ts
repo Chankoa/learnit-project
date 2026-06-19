@@ -1,11 +1,14 @@
-import { domains } from "@/data/domains";
 import {
-  teacherActivities,
-  teacherCourses,
-  teacherProfile,
-  teacherResources,
-  teacherStudents
-} from "@/data/teacher";
+  findTeacherCourse,
+  listDomains,
+  listTeacherCourses
+} from "@/lib/repositories/courseRepository";
+import {
+  listTeacherActivities,
+  listTeacherStudents
+} from "@/lib/repositories/progressRepository";
+import { listTeacherResources } from "@/lib/repositories/resourceRepository";
+import { getTeacherProfile as getTeacherProfileFromRepository } from "@/lib/repositories/userRepository";
 import type { CourseLevel } from "@/types/course";
 import type { LessonType } from "@/types/learning";
 import type { ResourceType } from "@/types/resource";
@@ -90,41 +93,41 @@ export function formatTeacherDateTime(value: string) {
 }
 
 export function getTeacherProfile() {
-  return teacherProfile;
+  return getTeacherProfileFromRepository();
 }
 
 export function getTeacherDomains() {
-  return domains;
+  return listDomains();
 }
 
 export function getTeacherCourses() {
-  return [...teacherCourses].sort(
+  return listTeacherCourses().sort(
     (first, second) => new Date(second.updatedAt).getTime() - new Date(first.updatedAt).getTime()
   );
 }
 
 export function getTeacherCourseById(courseId: string) {
-  return teacherCourses.find((course) => course.id === courseId);
+  return findTeacherCourse(courseId);
 }
 
 export function getTeacherCourseStaticParams() {
-  return teacherCourses.map((course) => ({ courseId: course.id }));
+  return listTeacherCourses().map((course) => ({ courseId: course.id }));
 }
 
 export function getTeacherResources() {
-  return [...teacherResources].sort(
+  return listTeacherResources().sort(
     (first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime()
   );
 }
 
 export function getTeacherStudents() {
-  return [...teacherStudents].sort((first, second) =>
+  return listTeacherStudents().sort((first, second) =>
     first.name.localeCompare(second.name, "fr")
   );
 }
 
 export function getTeacherActivities() {
-  return [...teacherActivities].sort(
+  return listTeacherActivities().sort(
     (first, second) => new Date(second.updatedAt).getTime() - new Date(first.updatedAt).getTime()
   );
 }
@@ -144,7 +147,7 @@ export function getTeacherCourseMetrics() {
     createdCourseCount: courses.length,
     publishedCourseCount: publishedCourses.length,
     draftCourseCount: draftCourses.length,
-    learnerCount: teacherStudents.length,
+    learnerCount: listTeacherStudents().length,
     publishedResourceCount: publishedResources.length
   };
 }
@@ -192,7 +195,7 @@ export function getTeacherCourseFormDefaults(course?: TeacherCourse) {
   return {
     title: course?.title ?? "",
     description: course?.description ?? "",
-    domainId: course?.domain.id ?? domains[0]?.id ?? "",
+    domainId: course?.domain.id ?? listDomains()[0]?.id ?? "",
     level: course?.level ?? "beginner",
     format: course?.format ?? "Formation guidée",
     objectives: (course?.objectives ?? []).join("\n"),

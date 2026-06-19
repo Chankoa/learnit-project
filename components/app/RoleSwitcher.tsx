@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { useToast } from "@/components/app/ToastProvider";
 import { getDemoRoleFromStorage, storeDemoRole } from "@/lib/auth/demo-role";
 import { roleSwitcherOptions, type ApplicationRole } from "@/lib/navigation";
 
@@ -11,14 +12,22 @@ type RoleSwitcherProps = {
 
 export function RoleSwitcher({ variant = "default" }: RoleSwitcherProps) {
   const [selectedRole, setSelectedRole] = useState<ApplicationRole>("visitor");
+  const { showToast } = useToast();
 
   useEffect(() => {
     setSelectedRole(getDemoRoleFromStorage());
   }, []);
 
   function handleRoleChange(role: ApplicationRole) {
+    const option = roleSwitcherOptions.find((item) => item.role === role);
+
     setSelectedRole(role);
     storeDemoRole(role);
+    showToast({
+      description: `Rôle actif : ${option?.label ?? role}.`,
+      title: "Rôle de démonstration modifié",
+      variant: "info"
+    });
   }
 
   return (

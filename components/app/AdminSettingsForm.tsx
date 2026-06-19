@@ -4,6 +4,7 @@ import { Save } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
+import { useToast } from "@/components/app/ToastProvider";
 import type { PlatformSettings } from "@/types/admin";
 
 type AdminSettingsFormProps = {
@@ -13,11 +14,17 @@ type AdminSettingsFormProps = {
 export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
   const [form, setForm] = useState(settings);
   const [toast, setToast] = useState<string>();
+  const { showToast } = useToast();
 
   function submitSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     console.log("[LearnIt demo] admin settings", form);
     setToast("Paramètres enregistrés en mode démo.");
+    showToast({
+      description: "Ces paramètres ne modifient pas encore une base de données.",
+      title: "Paramètres enregistrés",
+      variant: "success"
+    });
   }
 
   return (

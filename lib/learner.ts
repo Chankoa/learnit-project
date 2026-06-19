@@ -1,15 +1,15 @@
 import {
-  learnerCertificates,
-  learnerDeliverables,
-  learnerEnrollments,
-  learnerProfile,
-  learnerResources
-} from "@/data/learner";
-import {
   getCourseById,
   getCourseLessons,
   getCourseModules
 } from "@/lib/courses";
+import {
+  listLearnerCertificates,
+  listLearnerDeliverables,
+  listLearnerEnrollments
+} from "@/lib/repositories/progressRepository";
+import { listLearnerResources } from "@/lib/repositories/resourceRepository";
+import { getLearnerProfile as getLearnerProfileFromRepository } from "@/lib/repositories/userRepository";
 import type { Course, CourseModule } from "@/types/course";
 import type {
   Certificate,
@@ -214,11 +214,11 @@ export function formatLearnerDate(value?: string) {
 }
 
 export function getLearnerProfile() {
-  return learnerProfile;
+  return getLearnerProfileFromRepository();
 }
 
 export function getLearnerCourseSummaries(): LearnerCourseSummary[] {
-  return learnerEnrollments
+  return listLearnerEnrollments()
     .map(buildCourseSummary)
     .filter((summary): summary is LearnerCourseSummary => Boolean(summary));
 }
@@ -251,7 +251,7 @@ export function getLearnerGlobalProgress() {
 }
 
 export function getRecentLearnerResources(limit = 4) {
-  return [...learnerResources]
+  return listLearnerResources()
     .filter((resource) => Boolean(resource.lastConsultedAt))
     .sort(
       (first, second) =>
@@ -262,14 +262,14 @@ export function getRecentLearnerResources(limit = 4) {
 }
 
 export function getLearnerDeliverableSummaries(): LearnerDeliverableSummary[] {
-  return learnerDeliverables.map((deliverable) => ({
+  return listLearnerDeliverables().map((deliverable) => ({
     deliverable,
     course: getCourseById(deliverable.courseId)
   }));
 }
 
 export function getLearnerCertificateSummaries(): LearnerCertificateSummary[] {
-  return learnerCertificates.map((certificate) => ({
+  return listLearnerCertificates().map((certificate) => ({
     certificate,
     course: getCourseById(certificate.courseId)
   }));
@@ -307,7 +307,7 @@ export type LearnerResourceFilters = {
 };
 
 export function getLearnerResources(filters: LearnerResourceFilters = {}) {
-  return learnerResources.filter((resource) => {
+  return listLearnerResources().filter((resource) => {
     if (filters.courseId && resource.courseId !== filters.courseId) {
       return false;
     }
@@ -325,7 +325,9 @@ export function getLearnerResources(filters: LearnerResourceFilters = {}) {
 }
 
 export function getLearnerResourceCourses() {
-  const courseIds = Array.from(new Set(learnerResources.map((resource) => resource.courseId)));
+  const courseIds = Array.from(
+    new Set(listLearnerResources().map((resource) => resource.courseId))
+  );
 
   return courseIds
     .map((courseId) => getCourseById(courseId))

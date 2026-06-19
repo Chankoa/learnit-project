@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { useToast } from "@/components/app/ToastProvider";
 import { LessonEditor } from "@/components/teacher/LessonEditor";
 import { ModuleEditor } from "@/components/teacher/ModuleEditor";
 import {
@@ -139,6 +140,7 @@ export function TeacherCourseBuilder({ course, resources }: TeacherCourseBuilder
   const [selection, setSelection] = useState<BuilderSelection | null>(null);
   const [previewSelection, setPreviewSelection] = useState<PreviewSelection | null>(null);
   const [toast, setToast] = useState<string>();
+  const { showToast } = useToast();
 
   const selectedModule = selection
     ? modules.find((module) => module.id === selection.moduleId)
@@ -160,6 +162,11 @@ export function TeacherCourseBuilder({ course, resources }: TeacherCourseBuilder
 
   function notify(message: string) {
     setToast(message);
+    showToast({
+      description: "Action enregistrée localement pour la démonstration.",
+      title: message,
+      variant: "success"
+    });
   }
 
   function addModule() {

@@ -4,6 +4,7 @@ import { Save } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
+import { useToast } from "@/components/app/ToastProvider";
 import type { CourseLevel, Domain } from "@/types/course";
 import type { TeacherCourseStatus } from "@/types/teaching";
 
@@ -49,6 +50,7 @@ export function TeacherCourseForm({
   const [form, setForm] = useState<TeacherCourseFormValues>(initialValues);
   const [errors, setErrors] = useState<FormErrors>({});
   const [toast, setToast] = useState<string>();
+  const { showToast } = useToast();
 
   function updateField<Field extends keyof TeacherCourseFormValues>(
     field: Field,
@@ -95,6 +97,11 @@ export function TeacherCourseForm({
 
     if (!validateForm()) {
       setToast("Certains champs requis doivent être complétés.");
+      showToast({
+        description: "Vérifiez les champs signalés avant de renvoyer le formulaire.",
+        title: "Formulaire incomplet",
+        variant: "warning"
+      });
       return;
     }
 
@@ -106,11 +113,17 @@ export function TeacherCourseForm({
     };
 
     console.log("[LearnIt demo] teacher course form", payload);
-    setToast(
+    const message =
       mode === "edit"
         ? "Modifications enregistrées en mode démo."
-        : "Formation créée en mode démo."
-    );
+        : "Formation créée en mode démo.";
+
+    setToast(message);
+    showToast({
+      description: "Aucune donnée réelle n'a été persistée.",
+      title: message,
+      variant: "success"
+    });
   }
 
   return (

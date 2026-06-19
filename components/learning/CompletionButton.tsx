@@ -3,6 +3,7 @@
 import { CheckCircle2, Circle } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { useToast } from "@/components/app/ToastProvider";
 import {
   isLessonCompleted,
   recordLessonAccess,
@@ -23,6 +24,7 @@ export function CompletionButton({
   initiallyCompleted = false
 }: CompletionButtonProps) {
   const [isCompleted, setIsCompleted] = useState(initiallyCompleted);
+  const { showToast } = useToast();
 
   useEffect(() => {
     recordLessonAccess(courseSlug, lessonSlug);
@@ -34,6 +36,11 @@ export function CompletionButton({
 
     setLessonCompleted(lessonId, nextValue);
     setIsCompleted(nextValue);
+    showToast({
+      description: "La progression locale est mise à jour dans ce navigateur.",
+      title: nextValue ? "Leçon marquée comme terminée" : "Leçon remise à faire",
+      variant: nextValue ? "success" : "info"
+    });
   }
 
   return (

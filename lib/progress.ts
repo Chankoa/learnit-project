@@ -1,9 +1,9 @@
 import {
-  courseProgress as staticCourseProgress,
-  learnerProfile,
-  learningDeliverables,
-  recentResourceIds
-} from "@/data/progress";
+  listCourseProgress,
+  listLearningDeliverables,
+  listRecentResourceIds
+} from "@/lib/repositories/progressRepository";
+import { getLearningProfile } from "@/lib/repositories/userRepository";
 import {
   getAllCourses,
   getCourseLessons,
@@ -17,7 +17,7 @@ type ProgressSource = {
 };
 
 const staticProgressSource: ProgressSource = {
-  getProgress: () => staticCourseProgress
+  getProgress: () => listCourseProgress()
 };
 
 function getProgressSource() {
@@ -33,7 +33,7 @@ export function getCourseProgress(courseId: string) {
 }
 
 export function getLearnerProfile() {
-  return learnerProfile;
+  return getLearningProfile();
 }
 
 export function getLearnerDashboardData() {
@@ -83,7 +83,7 @@ export function getLearnerDashboardData() {
   const resources = getResources();
 
   return {
-    learner: learnerProfile,
+    learner: getLearningProfile(),
     enrollments,
     currentEnrollment: enrollments[0],
     globalProgress: {
@@ -91,9 +91,9 @@ export function getLearnerDashboardData() {
       totalLessons,
       percentage: totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
     },
-    recentResources: recentResourceIds
+    recentResources: listRecentResourceIds()
       .map((resourceId) => resources.find((resource) => resource.id === resourceId))
       .filter((resource): resource is NonNullable<typeof resource> => Boolean(resource)),
-    deliverables: learningDeliverables
+    deliverables: listLearningDeliverables()
   };
 }

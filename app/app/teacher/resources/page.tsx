@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { FileText, Plus } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
+import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { TeacherResourceForm } from "@/components/app/TeacherResourceForm";
 import {
@@ -61,28 +62,42 @@ export default function TeacherResourcesPage() {
           <FileText size={20} aria-hidden="true" />
         </div>
 
-        <div className="teacher-table">
-          <div className="teacher-table__row teacher-table__row--head">
-            <span>Titre</span>
-            <span>Type</span>
-            <span>Formation liée</span>
-            <span>Leçon liée</span>
-            <span>Statut</span>
-            <span>Date</span>
+        {resourceRows.length > 0 ? (
+          <div className="teacher-table">
+            <div className="teacher-table__row teacher-table__row--head">
+              <span>Titre</span>
+              <span>Type</span>
+              <span>Formation liée</span>
+              <span>Leçon liée</span>
+              <span>Statut</span>
+              <span>Date</span>
+            </div>
+            {resourceRows.map(({ resource, course, lesson }) => (
+              <article className="teacher-table__row" key={resource.id}>
+                <span>{resource.title}</span>
+                <span>{teacherResourceTypeLabels[resource.type]}</span>
+                <span>{course?.title ?? "Formation supprimée"}</span>
+                <span>{lesson?.title ?? "Aucune"}</span>
+                <span className="state-badge" data-state={resource.status}>
+                  {teacherResourceStatusLabels[resource.status]}
+                </span>
+                <span>{formatTeacherDate(resource.createdAt)}</span>
+              </article>
+            ))}
           </div>
-          {resourceRows.map(({ resource, course, lesson }) => (
-            <article className="teacher-table__row" key={resource.id}>
-              <span>{resource.title}</span>
-              <span>{teacherResourceTypeLabels[resource.type]}</span>
-              <span>{course?.title ?? "Formation supprimée"}</span>
-              <span>{lesson?.title ?? "Aucune"}</span>
-              <span className="state-badge" data-state={resource.status}>
-                {teacherResourceStatusLabels[resource.status]}
-              </span>
-              <span>{formatTeacherDate(resource.createdAt)}</span>
-            </article>
-          ))}
-        </div>
+        ) : (
+          <AppEmptyState
+            action={
+              <a className="btn btn-primary" href="#add-resource">
+                <Plus size={17} aria-hidden="true" />
+                Ajouter une ressource
+              </a>
+            }
+            description="Ajoutez un PDF, un template, un exercice ou un lien pour enrichir vos formations."
+            icon={FileText}
+            title="Aucune ressource"
+          />
+        )}
       </section>
     </div>
   );

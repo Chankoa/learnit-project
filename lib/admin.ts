@@ -1,10 +1,16 @@
 import {
-  adminActivities,
-  adminCourses,
-  adminDomains,
-  adminUsers,
-  platformSettings
-} from "@/data/admin";
+  findAdminDomain,
+  getPlatformSettings as getPlatformSettingsFromRepository,
+  listAdminCourses,
+  listAdminDomains
+} from "@/lib/repositories/courseRepository";
+import {
+  listAdminActivities
+} from "@/lib/repositories/progressRepository";
+import {
+  findAdminUser,
+  listAdminUsers
+} from "@/lib/repositories/userRepository";
 import type {
   AdminCourseStatus,
   AdminDomainStatus,
@@ -61,38 +67,38 @@ export function formatAdminDateTime(value: string) {
 }
 
 export function getAdminUsers() {
-  return [...adminUsers].sort(
+  return listAdminUsers().sort(
     (first, second) =>
       new Date(second.lastActivityAt).getTime() - new Date(first.lastActivityAt).getTime()
   );
 }
 
 export function getAdminDomains() {
-  return [...adminDomains].sort((first, second) => first.order - second.order);
+  return listAdminDomains().sort((first, second) => first.order - second.order);
 }
 
 export function getAdminCourses() {
-  return [...adminCourses].sort(
+  return listAdminCourses().sort(
     (first, second) => new Date(second.updatedAt).getTime() - new Date(first.updatedAt).getTime()
   );
 }
 
 export function getAdminActivities() {
-  return [...adminActivities].sort(
+  return listAdminActivities().sort(
     (first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime()
   );
 }
 
 export function getPlatformSettings() {
-  return platformSettings;
+  return getPlatformSettingsFromRepository();
 }
 
 export function getAdminUserById(userId: string) {
-  return adminUsers.find((user) => user.id === userId);
+  return findAdminUser(userId);
 }
 
 export function getAdminDomainById(domainId: string) {
-  return adminDomains.find((domain) => domain.id === domainId);
+  return findAdminDomain(domainId);
 }
 
 export function getAdminCourseRows() {
@@ -133,7 +139,7 @@ export function getFilteredAdminCourseRows(filters: AdminCourseFilters) {
 }
 
 export function getAdminTeachers() {
-  return adminUsers
+  return getAdminUsers()
     .filter((user) => user.role === "teacher")
     .sort((first, second) => first.name.localeCompare(second.name, "fr"));
 }

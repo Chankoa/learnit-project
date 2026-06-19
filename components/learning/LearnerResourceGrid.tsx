@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { AppEmptyState } from "@/components/app/AppEmptyState";
+import { useToast } from "@/components/app/ToastProvider";
 import {
   getFavoriteResourceIds,
   LEARNER_LOCAL_CHANGE_EVENT,
@@ -67,6 +69,7 @@ function ResourceLink({ resource }: { resource: LearnerResource }) {
 
 export function LearnerResourceGrid({ items, favoritesOnly }: LearnerResourceGridProps) {
   const [favoriteResourceIds, setFavoriteResourceIds] = useState<string[]>([]);
+  const { showToast } = useToast();
   const favoriteResourceSet = useMemo(() => new Set(favoriteResourceIds), [favoriteResourceIds]);
 
   useEffect(() => {
@@ -89,7 +92,16 @@ export function LearnerResourceGrid({ items, favoritesOnly }: LearnerResourceGri
   }
 
   function toggleFavorite(resource: LearnerResource) {
-    setResourceFavorite(resource.id, !isFavorite(resource));
+    const nextFavoriteState = !isFavorite(resource);
+
+    setResourceFavorite(resource.id, nextFavoriteState);
+    showToast({
+      description: nextFavoriteState
+        ? "La ressource apparaît dans le filtre Favoris."
+        : "La ressource est retirée de vos favoris locaux.",
+      title: nextFavoriteState ? "Ressource ajoutée aux favoris" : "Ressource retirée des favoris",
+      variant: nextFavoriteState ? "success" : "info"
+    });
   }
 
   const visibleItems = favoritesOnly
@@ -133,11 +145,15 @@ export function LearnerResourceGrid({ items, favoritesOnly }: LearnerResourceGri
           );
         })
       ) : (
-        <div className="learner-resource-empty">
-          <Star size={22} aria-hidden="true" />
-          <h2>Aucun favori pour ces filtres.</h2>
-          <p>Marquez des ressources avec l'étoile pour les retrouver ici.</p>
-        </div>
+        <AppEmptyState
+          description={
+            favoritesOnly
+              ? "Marquez des ressources avec l'étoile pour les retrouver ici."
+              : "Aucune ressource ne correspond aux filtres sélectionnés."
+          }
+          icon={Star}
+          title={favoritesOnly ? "Aucun favori pour ces filtres" : "Aucun résultat"}
+        />
       )}
     </section>
   );

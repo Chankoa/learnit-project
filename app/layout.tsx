@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { ToastProvider } from "@/components/app/ToastProvider";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { createPageMetadata, getSiteUrl } from "@/lib/seo";
 import { getSiteConfig } from "@/lib/site";
@@ -59,7 +60,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <a className="skip-link" href="#main-content">
           Aller au contenu principal
         </a>
-        <SiteShell>{children}</SiteShell>
+        <ToastProvider>
+          <SiteShell>{children}</SiteShell>
+        </ToastProvider>
       </body>
     </html>
   );

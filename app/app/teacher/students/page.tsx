@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Mail, Users } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
+import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import {
   formatTeacherDateTime,
@@ -67,33 +68,41 @@ export default function TeacherStudentsPage() {
           <Users size={20} aria-hidden="true" />
         </div>
 
-        <div className="teacher-table teacher-table--students">
-          <div className="teacher-table__row teacher-table__row--head">
-            <span>Nom</span>
-            <span>Email fictif</span>
-            <span>Formation suivie</span>
-            <span>Progression</span>
-            <span>Dernière activité</span>
-            <span>Statut</span>
-          </div>
-          {studentRows.map(({ student, course }) => (
-            <article className="teacher-table__row" key={student.id}>
-              <span>{student.name}</span>
-              <span>{student.email}</span>
-              <span>{course?.title ?? "Formation supprimée"}</span>
-              <span>
-                <strong>{student.progressPercentage}%</strong>
-                <span className="learning-progress">
-                  <span style={{ width: `${student.progressPercentage}%` }} />
+        {studentRows.length > 0 ? (
+          <div className="teacher-table teacher-table--students">
+            <div className="teacher-table__row teacher-table__row--head">
+              <span>Nom</span>
+              <span>Email fictif</span>
+              <span>Formation suivie</span>
+              <span>Progression</span>
+              <span>Dernière activité</span>
+              <span>Statut</span>
+            </div>
+            {studentRows.map(({ student, course }) => (
+              <article className="teacher-table__row" key={student.id}>
+                <span>{student.name}</span>
+                <span>{student.email}</span>
+                <span>{course?.title ?? "Formation supprimée"}</span>
+                <span>
+                  <strong>{student.progressPercentage}%</strong>
+                  <span className="learning-progress">
+                    <span style={{ width: `${student.progressPercentage}%` }} />
+                  </span>
                 </span>
-              </span>
-              <span>{formatTeacherDateTime(student.lastActivityAt)}</span>
-              <span className="state-badge" data-state={student.status}>
-                {teacherStudentStatusLabels[student.status]}
-              </span>
-            </article>
-          ))}
-        </div>
+                <span>{formatTeacherDateTime(student.lastActivityAt)}</span>
+                <span className="state-badge" data-state={student.status}>
+                  {teacherStudentStatusLabels[student.status]}
+                </span>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <AppEmptyState
+            description="Les apprenants inscrits aux formations de cet enseignant apparaîtront ici."
+            icon={Users}
+            title="Aucun apprenant"
+          />
+        )}
       </section>
     </div>
   );

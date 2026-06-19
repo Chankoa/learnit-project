@@ -3,6 +3,7 @@
 import { Eye, Power, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 
+import { useToast } from "@/components/app/ToastProvider";
 import {
   adminUserRoleLabels,
   adminUserStatusLabels,
@@ -25,12 +26,22 @@ export function AdminUsersTable({ users }: AdminUsersTableProps) {
   const [rows, setRows] = useState(users);
   const [selectedUser, setSelectedUser] = useState<AdminUser | undefined>();
   const [toast, setToast] = useState<string>();
+  const { showToast } = useToast();
+
+  function notify(message: string) {
+    setToast(message);
+    showToast({
+      description: "Action appliquée localement en mode démo.",
+      title: message,
+      variant: "success"
+    });
+  }
 
   function updateRole(userId: string, role: AdminUserRole) {
     setRows((currentRows) =>
       currentRows.map((user) => (user.id === userId ? { ...user, role } : user))
     );
-    setToast("Rôle modifié en mode démo.");
+    notify("Rôle modifié en mode démo.");
   }
 
   function toggleUser(userId: string) {
@@ -38,15 +49,15 @@ export function AdminUsersTable({ users }: AdminUsersTableProps) {
       currentRows.map((user) =>
         user.id === userId
           ? { ...user, status: user.status === "disabled" ? "active" : "disabled" }
-          : user
+        : user
       )
     );
-    setToast("Statut utilisateur modifié en mode démo.");
+    notify("Statut utilisateur modifié en mode démo.");
   }
 
   function showDetails(user: AdminUser) {
     setSelectedUser(user);
-    setToast("Détail utilisateur chargé en mode démo.");
+    notify("Détail utilisateur chargé en mode démo.");
   }
 
   return (

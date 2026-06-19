@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
+import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import {
   certificateStatusLabels,
@@ -91,7 +92,7 @@ export default function LearnerCertificatesPage() {
         </div>
 
         <div className="learner-certificate-grid">
-          {obtainedCertificates.map(({ certificate, course }) => (
+          {obtainedCertificates.length > 0 ? obtainedCertificates.map(({ certificate, course }) => (
             <article className="learner-certificate-card" key={certificate.id}>
               <span className="state-badge" data-state={certificate.status}>
                 {certificateStatusLabels[certificate.status]}
@@ -113,7 +114,13 @@ export default function LearnerCertificatesPage() {
                 </div>
               </dl>
             </article>
-          ))}
+          )) : (
+            <AppEmptyState
+              description="Les certificats obtenus apparaîtront ici dès qu'une formation sera validée."
+              icon={Award}
+              title="Aucun certificat obtenu"
+            />
+          )}
         </div>
       </section>
 
@@ -127,7 +134,7 @@ export default function LearnerCertificatesPage() {
         </div>
 
         <div className="learner-certificate-grid">
-          {eligibleCertificates.map(({ certificate, course }) => (
+          {eligibleCertificates.length > 0 ? eligibleCertificates.map(({ certificate, course }) => (
             <article className="learner-certificate-card" key={certificate.id}>
               <span className="state-badge" data-state={certificate.status}>
                 {certificateStatusLabels[certificate.status]}
@@ -147,7 +154,13 @@ export default function LearnerCertificatesPage() {
                 </small>
               </div>
             </article>
-          ))}
+          )) : (
+            <AppEmptyState
+              description="Aucune formation n'est encore éligible à un certificat dans cet espace."
+              icon={Sparkles}
+              title="Aucune formation éligible"
+            />
+          )}
         </div>
       </section>
 
@@ -161,7 +174,7 @@ export default function LearnerCertificatesPage() {
         </div>
 
         <div className="learner-certificate-grid">
-          {comingSoonCertificates.map(({ certificate, course }) => (
+          {comingSoonCertificates.length > 0 ? comingSoonCertificates.map(({ certificate, course }) => (
             <article className="learner-certificate-card" key={certificate.id}>
               <span className="state-badge" data-state={certificate.status}>
                 {certificateStatusLabels[certificate.status]}
@@ -181,7 +194,13 @@ export default function LearnerCertificatesPage() {
                 </small>
               </div>
             </article>
-          ))}
+          )) : (
+            <AppEmptyState
+              description="Aucun certificat annoncé comme bientôt disponible n'est listé pour l'instant."
+              icon={LockKeyhole}
+              title="Aucun certificat à venir"
+            />
+          )}
         </div>
       </section>
     </div>

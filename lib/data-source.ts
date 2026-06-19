@@ -1,17 +1,14 @@
-import { courses as staticCourses } from "@/data/courses";
-import { lessons as staticLessons } from "@/data/lessons";
-import { modules as staticModules } from "@/data/modules";
-import { resources as staticResources } from "@/data/resources";
+import {
+  findCourse,
+  listCourses,
+  listLessons,
+  listModules,
+  type CourseLookup
+} from "@/lib/repositories/courseRepository";
+import { listResources } from "@/lib/repositories/resourceRepository";
 import type { Course, CourseModule } from "@/types/course";
 import type { Lesson } from "@/types/learning";
 import type { Resource } from "@/types/resource";
-
-export type CourseLookup =
-  | string
-  | {
-      id?: string;
-      slug?: string;
-    };
 
 export type DataSource = {
   getCourses: () => Course[];
@@ -29,24 +26,16 @@ function sortLessons(lessons: Lesson[]) {
   return [...lessons].sort((first, second) => first.order - second.order);
 }
 
-function getLookupValue(lookup: CourseLookup) {
-  return typeof lookup === "string" ? { id: lookup, slug: lookup } : lookup;
-}
-
 function uniqueResources(resources: Resource[]) {
   return Array.from(new Map(resources.map((resource) => [resource.id, resource])).values());
 }
 
 const staticDataSource: DataSource = {
-  getCourses: () => staticCourses,
-  getCourse: (lookup) => {
-    const { id, slug } = getLookupValue(lookup);
-
-    return staticCourses.find((course) => course.id === id || course.slug === slug);
-  },
+  getCourses: () => listCourses(),
+  getCourse: (lookup) => findCourse(lookup),
   getModules: (courseId) => {
     if (!courseId) {
-      return sortModules(staticModules);
+      return sortModules(listModules());
     }
 
     const course = staticDataSource.getCourse({ id: courseId });
@@ -55,7 +44,7 @@ const staticDataSource: DataSource = {
   },
   getLessons: (courseId) => {
     if (!courseId) {
-      return [...staticLessons];
+      return listLessons();
     }
 
     return staticDataSource
@@ -64,7 +53,7 @@ const staticDataSource: DataSource = {
   },
   getResources: (courseId) => {
     if (!courseId) {
-      return [...staticResources];
+      return listResources();
     }
 
     const course = staticDataSource.getCourse({ id: courseId });

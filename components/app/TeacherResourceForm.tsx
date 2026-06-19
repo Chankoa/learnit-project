@@ -3,6 +3,8 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
+
+import { useToast } from "@/components/app/ToastProvider";
 import type { ResourceType } from "@/types/resource";
 import type { TeacherResourceStatus } from "@/types/teaching";
 
@@ -53,6 +55,7 @@ export function TeacherResourceForm({
   });
   const [error, setError] = useState<string>();
   const [toast, setToast] = useState<string>();
+  const { showToast } = useToast();
   const availableLessons = lessons.filter((lesson) => lesson.courseId === form.courseId);
 
   function updateForm(nextForm: Partial<ResourceFormState>) {
@@ -65,16 +68,29 @@ export function TeacherResourceForm({
 
     if (!form.title.trim()) {
       setError("Le titre de la ressource est requis.");
+      showToast({
+        title: "Titre requis",
+        variant: "warning"
+      });
       return;
     }
 
     if (!form.courseId) {
       setError("La formation liée est requise.");
+      showToast({
+        title: "Formation liée requise",
+        variant: "warning"
+      });
       return;
     }
 
     console.log("[LearnIt demo] teacher resource form", form);
     setToast("Ressource ajoutée en mode démo.");
+    showToast({
+      description: "La ressource reste locale à cette démonstration.",
+      title: "Ressource ajoutée",
+      variant: "success"
+    });
     setForm((current) => ({ ...current, title: "", lessonId: "" }));
   }
 

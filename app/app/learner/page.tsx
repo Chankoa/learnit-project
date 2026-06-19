@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
+import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { formatCourseDuration } from "@/components/catalog/CourseCard";
 import { LearnerLocalProgressStrip } from "@/components/learning/LearnerLocalProgressStrip";
@@ -142,7 +143,7 @@ export default function LearnerAppPage() {
           </div>
 
           <div className="learner-list">
-            {dashboard.activeCourses.map((summary) => (
+            {dashboard.activeCourses.length > 0 ? dashboard.activeCourses.map((summary) => (
               <article className="learner-row learner-row--course" key={summary.course.id}>
                 {summary.course.coverImage ? (
                   <div className="learner-row__media">
@@ -169,7 +170,13 @@ export default function LearnerAppPage() {
                   {summary.ctaLabel}
                 </Link>
               </article>
-            ))}
+            )) : (
+              <AppEmptyState
+                description="Aucune formation n'est en cours pour le moment."
+                icon={GraduationCap}
+                title="Aucune formation"
+              />
+            )}
           </div>
         </section>
 
@@ -222,7 +229,7 @@ export default function LearnerAppPage() {
           </div>
 
           <div className="resource-list">
-            {dashboard.recentResources.map((resource) => (
+            {dashboard.recentResources.length > 0 ? dashboard.recentResources.map((resource) => (
               <article key={resource.id}>
                 <span className="learning-resource-icon">
                   <Library size={17} aria-hidden="true" />
@@ -235,7 +242,13 @@ export default function LearnerAppPage() {
                 </div>
                 <span>{learnerResourceTypeLabels[resource.type]}</span>
               </article>
-            ))}
+            )) : (
+              <AppEmptyState
+                description="Les dernières ressources consultées apparaîtront ici."
+                icon={Library}
+                title="Aucune ressource"
+              />
+            )}
           </div>
         </section>
 
@@ -249,7 +262,7 @@ export default function LearnerAppPage() {
           </div>
 
           <div className="deliverable-list">
-            {dashboard.deliverables.map(({ deliverable, course }) => (
+            {dashboard.deliverables.length > 0 ? dashboard.deliverables.map(({ deliverable, course }) => (
               <article key={deliverable.id}>
                 <span className="deliverable-check" data-status={deliverable.status}>
                   {deliverable.status === "submitted" ? (
@@ -267,7 +280,13 @@ export default function LearnerAppPage() {
                   {deliverableStatusLabels[deliverable.status]}
                 </span>
               </article>
-            ))}
+            )) : (
+              <AppEmptyState
+                description="Aucun exercice ou livrable n'est à terminer."
+                icon={FileCheck2}
+                title="Aucun travail en attente"
+              />
+            )}
           </div>
         </section>
       </div>
@@ -285,7 +304,7 @@ export default function LearnerAppPage() {
         </div>
 
         <div className="learner-certificate-strip">
-          {dashboard.certificates.slice(0, 3).map(({ certificate, course }) => (
+          {dashboard.certificates.length > 0 ? dashboard.certificates.slice(0, 3).map(({ certificate, course }) => (
             <article key={certificate.id}>
               <span className="learning-metric-icon learning-metric-icon--green">
                 <Award size={19} aria-hidden="true" />
@@ -298,7 +317,13 @@ export default function LearnerAppPage() {
                 {certificate.currentProgressPercentage}%
               </span>
             </article>
-          ))}
+          )) : (
+            <AppEmptyState
+              description="Les certificats disponibles ou à venir seront listés ici."
+              icon={Award}
+              title="Aucun certificat"
+            />
+          )}
         </div>
       </section>
     </div>
