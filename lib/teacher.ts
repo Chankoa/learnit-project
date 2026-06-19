@@ -14,6 +14,7 @@ import type {
   TeacherCourseStatus,
   TeacherLesson,
   TeacherLessonStatus,
+  TeacherModuleStatus,
   TeacherResource,
   TeacherResourceStatus,
   TeacherStudentStatus
@@ -22,6 +23,12 @@ import type {
 export const teacherCourseStatusLabels: Record<TeacherCourseStatus, string> = {
   draft: "Brouillon",
   published: "Publié"
+};
+
+export const teacherModuleStatusLabels: Record<TeacherModuleStatus, string> = {
+  draft: "Brouillon",
+  published: "Publié",
+  review: "En relecture"
 };
 
 export const teacherLessonStatusLabels: Record<TeacherLessonStatus, string> = {

@@ -7,7 +7,8 @@ import { TeacherCourseBuilder } from "@/components/app/TeacherCourseBuilder";
 import {
   countTeacherLessons,
   getTeacherCourseById,
-  getTeacherCourseStaticParams
+  getTeacherCourseStaticParams,
+  getTeacherResources
 } from "@/lib/teacher";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -51,6 +52,8 @@ export default async function TeacherCourseBuilderPage({
     notFound();
   }
 
+  const resources = getTeacherResources().filter((resource) => resource.courseId === course.id);
+
   return (
     <div className="app-page teacher-page">
       <AppBreadcrumb
@@ -67,7 +70,7 @@ export default async function TeacherCourseBuilderPage({
         description={`${course.modules.length} modules, ${countTeacherLessons(course)} leçons. Les actions modifient uniquement l'affichage local en mode démo.`}
       />
 
-      <TeacherCourseBuilder course={course} />
+      <TeacherCourseBuilder course={course} resources={resources} />
     </div>
   );
 }

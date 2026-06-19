@@ -11,13 +11,19 @@ export type TeacherProfile = {
 
 export type TeacherCourseStatus = "draft" | "published";
 
+export type TeacherModuleStatus = "draft" | "published" | "review";
+
 export type TeacherLessonStatus = "draft" | "published" | "review";
 
 export type TeacherLesson = {
   id: string;
   title: string;
+  description?: string;
   type: LessonType;
   durationMinutes: number;
+  objectives?: string[];
+  content?: string;
+  resourceIds?: string[];
   status: TeacherLessonStatus;
   order: number;
 };
@@ -27,6 +33,8 @@ export type TeacherModule = {
   title: string;
   description: string;
   order: number;
+  durationMinutes?: number;
+  status?: TeacherModuleStatus;
   lessons: TeacherLesson[];
 };
 
