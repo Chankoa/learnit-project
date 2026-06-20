@@ -101,9 +101,9 @@ export default function HomePage() {
                 Explorer les formations
                 <ArrowRight size={17} aria-hidden="true" />
               </Link>
-              <Link className="btn btn-secondary" href="/formations/formation-creation-web">
+              <Link className="btn btn-secondary" href="/app">
                 <PlayCircle size={17} aria-hidden="true" />
-                Accéder à la démo
+                Ouvrir les espaces démo
               </Link>
             </div>
 
@@ -182,7 +182,7 @@ export default function HomePage() {
           <div className="section-heading-row">
             <div>
               <span className="eyebrow w-fit">Parcours recommandé</span>
-              <h2>Commencez par une formation complète.</h2>
+              <h2>Commencez par un parcours structuré.</h2>
             </div>
             <Link className="text-link" href="/formations">
               Voir tout le catalogue

@@ -61,6 +61,13 @@ export const publicNavigation = [
     isActive: (pathname) => pathname.startsWith("/formations")
   },
   {
+    label: "Étude de cas",
+    href: "/case-study",
+    icon: Award,
+    role: "visitor",
+    isActive: (pathname) => pathname === "/case-study"
+  },
+  {
     label: "Domaines",
     href: "/#domaines",
     icon: Compass,

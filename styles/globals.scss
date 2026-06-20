@@ -1555,6 +1555,9 @@ section[id] {
 .case-study-metrics > div,
 .case-section-card,
 .case-layer-card,
+.case-role-card,
+.case-demo-card,
+.case-next-card,
 .case-stack-item,
 .case-portfolio-item {
   border: 1px solid var(--border-soft);
@@ -1588,10 +1591,118 @@ section[id] {
   margin-top: 1.5rem;
 }
 
+.case-role-grid,
+.case-demo-grid,
+.case-next-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.case-role-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.case-demo-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.case-next-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .case-section-card {
   display: grid;
   align-content: start;
   gap: 0.9rem;
+  padding: 1.35rem;
+}
+
+.case-role-card,
+.case-next-card {
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+  padding: 1.25rem;
+}
+
+.case-demo-card {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  min-height: 260px;
+  overflow: hidden;
+}
+
+.case-demo-card__preview {
+  display: grid;
+  align-content: space-between;
+  gap: 1.25rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 22%, transparent), transparent 44%),
+    var(--learnit-ink-950);
+  padding: 1.25rem;
+  color: white;
+}
+
+.case-demo-card__preview > div:first-child {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.case-demo-card__preview span {
+  color: var(--learnit-slate-300);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-extrabold);
+  text-transform: uppercase;
+}
+
+.case-demo-card__preview strong {
+  color: white;
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-black);
+}
+
+.case-demo-card__bars {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.case-demo-card__bars span {
+  display: block;
+  height: 0.55rem;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.case-demo-card__bars span:nth-child(2) {
+  width: 76%;
+}
+
+.case-demo-card__bars span:nth-child(3) {
+  width: 52%;
+}
+
+.case-demo-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.case-demo-card__chips span {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.38rem 0.5rem;
+  color: white;
+  font-size: 0.65rem;
+}
+
+.case-demo-card__content {
+  display: grid;
+  align-content: center;
+  gap: 0.85rem;
   padding: 1.35rem;
 }
 
@@ -1604,6 +1715,9 @@ section[id] {
 
 .case-section-card h3,
 .case-layer-card h3,
+.case-role-card h3,
+.case-demo-card h3,
+.case-next-card h3,
 .case-portfolio-item h3 {
   color: var(--text-strong);
   font-size: var(--text-lg);
@@ -1613,13 +1727,17 @@ section[id] {
 
 .case-section-card > p:not(.case-section-card__eyebrow),
 .case-layer-card p,
+.case-role-card p,
+.case-demo-card p,
+.case-next-card p,
 .case-portfolio-item p {
   color: var(--text-muted);
   font-size: var(--text-sm);
   line-height: var(--leading-relaxed);
 }
 
-.case-section-card ul {
+.case-section-card ul,
+.case-role-card ul {
   display: grid;
   gap: 0.55rem;
   margin: 0;
@@ -1627,7 +1745,8 @@ section[id] {
   list-style: none;
 }
 
-.case-section-card li {
+.case-section-card li,
+.case-role-card li {
   display: flex;
   align-items: center;
   gap: 0.55rem;
@@ -1637,9 +1756,14 @@ section[id] {
 }
 
 .case-section-card li svg,
+.case-role-card li svg,
 .case-stack-item svg {
   flex: 0 0 auto;
   color: var(--status-success);
+}
+
+.case-next-card > svg {
+  color: var(--accent-primary);
 }
 
 .case-layer-grid {
@@ -2381,6 +2505,8 @@ section[id] {
   }
 
   .case-layer-grid,
+  .case-role-grid,
+  .case-next-grid,
   .demo-doc-grid,
   .demo-backend-grid,
   .case-portfolio-band,
@@ -2438,11 +2564,14 @@ section[id] {
   }
 
   .case-section-grid,
+  .case-demo-grid,
   .case-portfolio-grid {
     grid-template-columns: 1fr;
   }
 
-  .case-layer-grid {
+  .case-layer-grid,
+  .case-role-grid,
+  .case-next-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2566,7 +2695,13 @@ section[id] {
 
   .case-study-metrics,
   .case-layer-grid,
+  .case-role-grid,
+  .case-next-grid,
   .demo-role-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .case-demo-card {
     grid-template-columns: 1fr;
   }
 

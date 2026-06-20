@@ -44,7 +44,7 @@ export default function AdminAppPage() {
         actions={
           <Link className="btn btn-primary" href="/app/admin/courses">
             <GraduationCap size={17} aria-hidden="true" />
-            Gérer les formations
+            Gérer les formations démo
           </Link>
         }
       />

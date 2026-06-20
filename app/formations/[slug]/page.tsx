@@ -14,10 +14,10 @@ import { CourseRecommendations } from "@/components/course/CourseRecommendations
 import { CourseRequirements } from "@/components/course/CourseRequirements";
 import { CourseResources } from "@/components/course/CourseResources";
 import {
+  getCatalogCourseBySlug,
+  getCatalogCourseStaticParams,
   getCourseModules,
   getOtherCatalogCoursesInSameDomain,
-  getPublishedCourseBySlug,
-  getPublishedCourseStaticParams,
   getRelatedCourses
 } from "@/lib/courses";
 import { createPageMetadata } from "@/lib/seo";
@@ -31,12 +31,12 @@ type FormationPageProps = {
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return getPublishedCourseStaticParams();
+  return getCatalogCourseStaticParams();
 }
 
 export async function generateMetadata({ params }: FormationPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const course = getPublishedCourseBySlug(slug);
+  const course = getCatalogCourseBySlug(slug);
 
   if (!course) {
     return {
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: FormationPageProps): Promise<
 
 export default async function FormationPage({ params }: FormationPageProps) {
   const { slug } = await params;
-  const course = getPublishedCourseBySlug(slug);
+  const course = getCatalogCourseBySlug(slug);
 
   if (!course) {
     notFound();

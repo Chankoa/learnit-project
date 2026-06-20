@@ -92,7 +92,7 @@ export function Header() {
           </div>
 
           <ThemeToggle />
-          <Link className="btn btn-primary hidden sm:inline-flex" href="/formations/formation-creation-web">
+          <Link className="btn btn-primary hidden sm:inline-flex" href="/app">
             Accéder à la démo
           </Link>
           <button
@@ -158,7 +158,7 @@ export function Header() {
 
             <Link
               className="btn btn-primary mt-3 w-full"
-              href="/formations/formation-creation-web"
+              href="/app"
               onClick={closeMenu}
             >
               Accéder à la démo

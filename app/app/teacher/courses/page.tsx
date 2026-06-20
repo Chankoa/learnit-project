@@ -47,7 +47,7 @@ export default function TeacherCoursesPage() {
         actions={
           <Link className="btn btn-primary" href="/app/teacher/courses/new">
             <Plus size={17} aria-hidden="true" />
-            Créer une formation
+            Créer une formation démo
           </Link>
         }
       />
@@ -119,7 +119,7 @@ export default function TeacherCoursesPage() {
             action={
               <Link className="btn btn-primary" href="/app/teacher/courses/new">
                 <Plus size={17} aria-hidden="true" />
-                Créer une formation
+                Créer une formation démo
               </Link>
             }
             description="Les formations créées par cet enseignant apparaîtront ici avec leurs modules, leçons et inscrits."

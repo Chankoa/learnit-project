@@ -5,6 +5,7 @@ import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  Compass,
   Database,
   Eye,
   Film,
@@ -13,6 +14,8 @@ import {
   LayoutDashboard,
   Palette,
   Route,
+  ShieldCheck,
+  SquarePen,
   Sparkles,
   Waypoints
 } from "lucide-react";
@@ -147,6 +150,111 @@ const productLayers = [
   }
 ];
 
+const multiRoleSections = [
+  {
+    icon: GraduationCap,
+    title: "Espace apprenant",
+    text:
+      "Un suivi pédagogique centré sur la reprise de parcours, les ressources, les notes personnelles, les favoris et la progression locale.",
+    points: ["dashboard dédié", "progression par parcours", "reprise de leçon", "ressources filtrables"]
+  },
+  {
+    icon: SquarePen,
+    title: "Espace enseignant",
+    text:
+      "Une interface de production pédagogique pour organiser les formations, structurer les modules et préparer les ressources.",
+    points: ["gestion des formations", "Course Builder", "édition module/leçon", "apprenants fictifs"]
+  },
+  {
+    icon: ShieldCheck,
+    title: "Administration",
+    text:
+      "Un espace de supervision pour visualiser les utilisateurs, les domaines, les publications et les paramètres plateforme.",
+    points: ["utilisateurs", "formations", "domaines", "paramètres"]
+  },
+  {
+    icon: Database,
+    title: "Architecture évolutive",
+    text:
+      "Les données sont mockées, mais les repositories préparent une migration vers une vraie auth, une base de progression et un CMS.",
+    points: ["types partagés", "repositories", "permissions", "backend-ready"]
+  }
+];
+
+const demoSurfaces = [
+  {
+    icon: Compass,
+    title: "Hub formations",
+    label: "Catalogue",
+    metric: "4 parcours",
+    text: "Recherche, domaines, fiches formation et accès rapide vers le parcours principal.",
+    items: ["Création web", "WordPress", "AI Filmmaking"]
+  },
+  {
+    icon: LayoutDashboard,
+    title: "Dashboard apprenant",
+    label: "Progression",
+    metric: "68%",
+    text: "Vue synthétique sur les formations en cours, la prochaine leçon, les ressources et certificats.",
+    items: ["Reprendre", "Ressources", "Certificats"]
+  },
+  {
+    icon: Layers3,
+    title: "Course Builder enseignant",
+    label: "Structure",
+    metric: "Modules",
+    text: "Deux colonnes pour piloter les modules, sélectionner une leçon et éditer le contenu.",
+    items: ["Module", "Leçon", "Preview"]
+  },
+  {
+    icon: ShieldCheck,
+    title: "Admin plateforme",
+    label: "Supervision",
+    metric: "Rôles",
+    text: "Tableaux utilisateurs, formations, domaines et paramètres pour cadrer une future V1 SaaS.",
+    items: ["Users", "Courses", "Settings"]
+  }
+];
+
+const nextReasons = [
+  {
+    icon: Route,
+    title: "App Router",
+    text:
+      "La séparation par routes rend les surfaces publiques, apprenant, enseignant et admin faciles à isoler et maintenir."
+  },
+  {
+    icon: Waypoints,
+    title: "Routes dynamiques",
+    text:
+      "Les domaines, formations, curriculums et leçons utilisent des segments dynamiques adaptés à un catalogue évolutif."
+  },
+  {
+    icon: LayoutDashboard,
+    title: "Serveur et client",
+    text:
+      "Les pages lisent les données côté serveur, tandis que les interactions locales restent dans des composants client ciblés."
+  },
+  {
+    icon: BookOpen,
+    title: "MDX pédagogique",
+    text:
+      "Les leçons peuvent évoluer vers des contenus éditoriaux structurés, versionnés et compatibles avec un CMS."
+  },
+  {
+    icon: Palette,
+    title: "Design system",
+    text:
+      "Les tokens SCSS, composants et états communs donnent une base cohérente aux espaces multi-rôles."
+  },
+  {
+    icon: Database,
+    title: "SaaS pédagogique",
+    text:
+      "Les repositories, types et permissions préparent l'auth, la progression réelle et l'administration connectée."
+  }
+];
+
 const stackItems = [
   "Next.js App Router",
   "TypeScript",
@@ -268,13 +376,124 @@ export default function CaseStudyPage() {
       </section>
 
       <section className="section-shell content-section">
+        <div className="section-intro">
+          <div>
+            <span className="eyebrow w-fit">Application multi-rôles</span>
+            <h2>Une même base produit, trois espaces applicatifs distincts.</h2>
+          </div>
+          <p>
+            LearnIt ne se limite pas à une vitrine. Le projet expose déjà les principaux rôles d'une
+            plateforme pédagogique : apprendre, produire les contenus et superviser l'ensemble.
+          </p>
+        </div>
+
+        <div className="case-role-grid">
+          {multiRoleSections.map((section) => {
+            const Icon = section.icon;
+
+            return (
+              <article className="case-role-card" key={section.title}>
+                <span className="icon-badge">
+                  <Icon size={20} aria-hidden="true" />
+                </span>
+                <h3>{section.title}</h3>
+                <p>{section.text}</p>
+                <ul>
+                  {section.points.map((point) => (
+                    <li key={point}>
+                      <CheckCircle2 size={15} aria-hidden="true" />
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="section-shell content-section">
+        <div className="section-intro">
+          <div>
+            <span className="eyebrow w-fit">Blocs de démonstration</span>
+            <h2>Des captures simulées pour présenter rapidement la profondeur produit.</h2>
+          </div>
+          <p>
+            Ces cartes résument les écrans clés à montrer à un prospect ou recruteur : le hub, le
+            suivi apprenant, le builder enseignant et la supervision admin.
+          </p>
+        </div>
+
+        <div className="case-demo-grid">
+          {demoSurfaces.map((surface) => {
+            const Icon = surface.icon;
+
+            return (
+              <article className="case-demo-card" key={surface.title}>
+                <div className="case-demo-card__preview" aria-hidden="true">
+                  <div>
+                    <span>{surface.label}</span>
+                    <strong>{surface.metric}</strong>
+                  </div>
+                  <div className="case-demo-card__bars">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="case-demo-card__chips">
+                    {surface.items.map((item) => (
+                      <span key={item}>{item}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="case-demo-card__content">
+                  <span className="icon-badge">
+                    <Icon size={20} aria-hidden="true" />
+                  </span>
+                  <h3>{surface.title}</h3>
+                  <p>{surface.text}</p>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="section-shell content-section">
+        <div className="section-intro">
+          <div>
+            <span className="eyebrow w-fit">Pourquoi Next.js</span>
+            <h2>Un choix pragmatique pour une plateforme pédagogique évolutive.</h2>
+          </div>
+          <p>
+            Next.js permet de combiner pages publiques, expérience connectée, contenus pédagogiques
+            et futures données SaaS sans multiplier les socles techniques.
+          </p>
+        </div>
+
+        <div className="case-next-grid">
+          {nextReasons.map((reason) => {
+            const Icon = reason.icon;
+
+            return (
+              <article className="case-next-card" key={reason.title}>
+                <Icon size={20} aria-hidden="true" />
+                <h3>{reason.title}</h3>
+                <p>{reason.text}</p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="section-shell content-section">
         <div className="section-heading-row">
           <div>
             <span className="eyebrow w-fit">Stack technique</span>
             <h2>Une base V1 simple, mais déjà remplaçable.</h2>
             <p>
               Le choix technique privilégie la maintenabilité : pas de dépendance prématurée à un back-office,
-              mais une structure pensée pour l'intégrer.
+              mais une structure pensée pour intégrer progressivement authentification, CMS et progression réelle.
             </p>
           </div>
         </div>

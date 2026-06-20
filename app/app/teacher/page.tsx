@@ -45,7 +45,7 @@ export default function TeacherAppPage() {
         actions={
           <Link className="btn btn-primary" href="/app/teacher/courses/new">
             <BookPlus size={17} aria-hidden="true" />
-            Créer une formation
+            Créer une formation démo
           </Link>
         }
       />

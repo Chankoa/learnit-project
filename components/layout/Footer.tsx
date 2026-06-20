@@ -27,22 +27,22 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link className="transition hover:text-white" href="/case-study">
-                  Étude de cas
-                </Link>
-              </li>
             </ul>
           </div>
 
           <div>
             <h2 className="text-sm font-extrabold uppercase text-white">Démo</h2>
             <p className="mt-4 text-sm text-slate-300">
-              Accédez à une expérience courte pour explorer le parcours LearnIt.
+              Accédez aux espaces multi-rôles ou consultez les limites du mode démonstration.
             </p>
-            <Link className="btn btn-primary mt-5 w-full sm:w-auto" href="/formations/formation-creation-web">
-              Accéder à la démo
-            </Link>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <Link className="btn btn-primary w-full sm:w-auto" href="/app">
+                Accéder à la démo
+              </Link>
+              <Link className="btn btn-secondary w-full sm:w-auto" href="/demo">
+                Limites démo
+              </Link>
+            </div>
           </div>
         </div>
       </div>
