@@ -65,11 +65,11 @@ export function LessonEditor({
         <div className="teacher-builder-editor__actions">
           <button className="btn btn-secondary" type="button" onClick={onPreview}>
             <Eye size={16} aria-hidden="true" />
-            Prévisualiser
+            Prévisualiser la démo
           </button>
           <button className="btn btn-primary" type="button" onClick={onSave}>
             <Save size={16} aria-hidden="true" />
-            Enregistrer
+            Enregistrer la démo
           </button>
         </div>
       </div>

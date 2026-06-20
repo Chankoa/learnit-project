@@ -87,8 +87,8 @@ export function TeacherResourceForm({
     console.log("[LearnIt demo] teacher resource form", form);
     setToast("Ressource ajoutée en mode démo.");
     showToast({
-      description: "La ressource reste locale à cette démonstration.",
-      title: "Ressource ajoutée",
+      description: "Aucun fichier n'est téléversé ; la ressource est simulée localement.",
+      title: "Ressource ajoutée à la démo",
       variant: "success"
     });
     setForm((current) => ({ ...current, title: "", lessonId: "" }));
@@ -103,7 +103,7 @@ export function TeacherResourceForm({
         </div>
         <button className="btn btn-primary" type="submit">
           <Plus size={17} aria-hidden="true" />
-          Ajouter une ressource
+          Ajouter la ressource démo
         </button>
       </div>
 

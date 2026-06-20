@@ -120,7 +120,7 @@ export function TeacherCourseForm({
 
     setToast(message);
     showToast({
-      description: "Aucune donnée réelle n'a été persistée.",
+      description: "Aucune donnée n'est envoyée à un backend ; la modification reste limitée à cette démonstration.",
       title: message,
       variant: "success"
     });
@@ -281,7 +281,7 @@ export function TeacherCourseForm({
       <div className="teacher-form-actions">
         <button className="btn btn-primary" type="submit">
           <Save size={17} aria-hidden="true" />
-          {mode === "edit" ? "Enregistrer les modifications" : "Créer la formation"}
+          {mode === "edit" ? "Enregistrer la démo" : "Créer la formation démo"}
         </button>
       </div>
     </form>

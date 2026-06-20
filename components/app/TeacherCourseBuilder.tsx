@@ -163,7 +163,7 @@ export function TeacherCourseBuilder({ course, resources }: TeacherCourseBuilder
   function notify(message: string) {
     setToast(message);
     showToast({
-      description: "Action enregistrée localement pour la démonstration.",
+      description: "Modification simulée dans l'interface ; aucun contenu n'est publié ni sauvegardé en base.",
       title: message,
       variant: "success"
     });
@@ -338,7 +338,7 @@ export function TeacherCourseBuilder({ course, resources }: TeacherCourseBuilder
         </div>
         <button className="btn btn-primary" type="button" onClick={addModule}>
           <Plus size={17} aria-hidden="true" />
-          Ajouter module
+          Ajouter module démo
         </button>
       </div>
 
@@ -349,7 +349,7 @@ export function TeacherCourseBuilder({ course, resources }: TeacherCourseBuilder
               <span>Structure</span>
               <h2>Modules et leçons</h2>
             </div>
-            <button aria-label="Ajouter un module" type="button" onClick={addModule}>
+            <button aria-label="Ajouter un module démo" type="button" onClick={addModule}>
               <Plus size={16} aria-hidden="true" />
             </button>
           </div>
@@ -476,7 +476,7 @@ export function TeacherCourseBuilder({ course, resources }: TeacherCourseBuilder
                   onClick={() => addLesson(module.id)}
                 >
                   <FilePlus2 size={17} aria-hidden="true" />
-                  Ajouter une leçon
+                  Ajouter une leçon démo
                 </button>
               </section>
             ))}

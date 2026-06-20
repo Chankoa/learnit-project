@@ -27,7 +27,10 @@ export function AdminCoursesTable({ rows }: AdminCoursesTableProps) {
   const [toast, setToast] = useState<string>();
   const { showToast } = useToast();
 
-  function notify(message: string, description = "Action appliquée localement en mode démo.") {
+  function notify(
+    message: string,
+    description = "Action simulée localement ; aucune formation réelle n'est publiée ou modifiée."
+  ) {
     setToast(message);
     showToast({
       description,
@@ -90,7 +93,7 @@ export function AdminCoursesTable({ rows }: AdminCoursesTableProps) {
                   }
                 >
                   <Eye size={15} aria-hidden="true" />
-                  Prévisualiser
+                  Prévisualiser démo
                 </button>
                 <button
                   type="button"
@@ -103,7 +106,7 @@ export function AdminCoursesTable({ rows }: AdminCoursesTableProps) {
                   }
                 >
                   <Send size={15} aria-hidden="true" />
-                  Publier
+                  Publier démo
                 </button>
                 <button
                   type="button"
@@ -116,7 +119,7 @@ export function AdminCoursesTable({ rows }: AdminCoursesTableProps) {
                   }
                 >
                   <XCircle size={15} aria-hidden="true" />
-                  Dépublier
+                  Dépublier démo
                 </button>
                 <button
                   type="button"
@@ -129,7 +132,7 @@ export function AdminCoursesTable({ rows }: AdminCoursesTableProps) {
                   }
                 >
                   <Archive size={15} aria-hidden="true" />
-                  Archiver
+                  Archiver démo
                 </button>
               </span>
             </article>

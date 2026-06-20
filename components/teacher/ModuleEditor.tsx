@@ -25,7 +25,7 @@ export function ModuleEditor({ module, onChange, onSave }: ModuleEditorProps) {
         </div>
         <button className="btn btn-secondary" type="button" onClick={onSave}>
           <Save size={16} aria-hidden="true" />
-          Enregistrer
+          Enregistrer la démo
         </button>
       </div>
 

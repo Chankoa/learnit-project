@@ -21,8 +21,8 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
     console.log("[LearnIt demo] admin settings", form);
     setToast("Paramètres enregistrés en mode démo.");
     showToast({
-      description: "Ces paramètres ne modifient pas encore une base de données.",
-      title: "Paramètres enregistrés",
+      description: "Ces paramètres sont modifiés uniquement dans cette session de démonstration.",
+      title: "Paramètres enregistrés en démo",
       variant: "success"
     });
   }
@@ -287,7 +287,7 @@ export function AdminSettingsForm({ settings }: AdminSettingsFormProps) {
       <div className="teacher-form-actions">
         <button className="btn btn-primary" type="submit">
           <Save size={17} aria-hidden="true" />
-          Enregistrer les paramètres
+          Enregistrer la démo
         </button>
       </div>
     </form>

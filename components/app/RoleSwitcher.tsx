@@ -24,7 +24,7 @@ export function RoleSwitcher({ variant = "default" }: RoleSwitcherProps) {
     setSelectedRole(role);
     storeDemoRole(role);
     showToast({
-      description: `Rôle actif : ${option?.label ?? role}.`,
+      description: `Rôle actif localement : ${option?.label ?? role}. Aucun compte réel n'est connecté.`,
       title: "Rôle de démonstration modifié",
       variant: "info"
     });

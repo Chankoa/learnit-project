@@ -10,6 +10,7 @@ import { AppNavItem } from "@/components/app/AppNavItem";
 import { AppSidebar } from "@/components/app/AppSidebar";
 import { AppTopbar } from "@/components/app/AppTopbar";
 import { RoleSwitcher } from "@/components/app/RoleSwitcher";
+import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import type { ApplicationRole, NavigationItem } from "@/lib/navigation";
 
@@ -81,6 +82,7 @@ export function AppShell({
         ) : null}
 
         <main className="app-main" id="main-content">
+          <DemoModeBanner />
           {children}
         </main>
       </div>

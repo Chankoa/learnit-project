@@ -32,7 +32,10 @@ export function AdminDomainsManager({ domains }: AdminDomainsManagerProps) {
   function notify(message: string, variant: "success" | "warning" = "success") {
     setToast(message);
     showToast({
-      description: variant === "success" ? "Action appliquée localement en mode démo." : undefined,
+      description:
+        variant === "success"
+          ? "Action simulée localement ; aucun domaine réel n'est créé ou modifié."
+          : undefined,
       title: message,
       variant
     });
@@ -124,7 +127,7 @@ export function AdminDomainsManager({ domains }: AdminDomainsManagerProps) {
         </label>
         <button className="btn btn-primary" type="submit">
           <Plus size={17} aria-hidden="true" />
-          Créer domaine
+          Créer domaine démo
         </button>
       </form>
 
@@ -147,7 +150,7 @@ export function AdminDomainsManager({ domains }: AdminDomainsManagerProps) {
                 />
                 <button type="button" onClick={() => saveEdit(domain.id)}>
                   <CheckCircle2 size={16} aria-hidden="true" />
-                  Enregistrer
+                  Enregistrer démo
                 </button>
               </div>
             ) : (

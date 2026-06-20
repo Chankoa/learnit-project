@@ -31,7 +31,7 @@ export function AdminUsersTable({ users }: AdminUsersTableProps) {
   function notify(message: string) {
     setToast(message);
     showToast({
-      description: "Action appliquée localement en mode démo.",
+      description: "Action simulée localement ; aucun compte réel n'est modifié.",
       title: message,
       variant: "success"
     });

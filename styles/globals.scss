@@ -825,6 +825,148 @@ section[id] {
   padding: 1.25rem;
 }
 
+.demo-doc-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr);
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.demo-doc-hero__content {
+  max-width: 720px;
+}
+
+.demo-doc-hero h1 {
+  margin-top: var(--space-4);
+  color: var(--text-strong);
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0;
+}
+
+.demo-doc-hero p {
+  margin-top: var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+}
+
+.demo-doc-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.demo-doc-hero__media {
+  position: relative;
+  min-height: 420px;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+  box-shadow: var(--shadow-md);
+}
+
+.demo-doc-hero__media img {
+  object-fit: cover;
+}
+
+.demo-doc-grid,
+.demo-backend-grid,
+.demo-role-grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.demo-doc-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.demo-backend-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.demo-role-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.demo-doc-panel,
+.demo-backend-card,
+.demo-role-card,
+.demo-warning-band {
+  min-width: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+}
+
+.demo-doc-panel,
+.demo-backend-card,
+.demo-role-card {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.demo-doc-panel h2,
+.demo-backend-card h3,
+.demo-role-card h3,
+.demo-warning-band h2 {
+  color: var(--text-strong);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-black);
+}
+
+.demo-doc-panel ul {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.demo-doc-panel li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.demo-doc-panel li svg {
+  margin-top: 0.15rem;
+  color: var(--accent-primary);
+}
+
+.demo-backend-card p,
+.demo-role-card p,
+.demo-warning-band p {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.demo-role-card svg {
+  color: var(--accent-primary);
+}
+
+.demo-warning-band {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+  border-color: color-mix(in srgb, var(--status-warning) 26%, var(--border-soft));
+  background: color-mix(in srgb, var(--status-warning) 8%, var(--surface-card));
+  padding: var(--space-5);
+}
+
+.demo-warning-band > svg {
+  color: var(--status-warning);
+}
+
 .icon-badge--cyan {
   background: color-mix(in srgb, var(--accent-tertiary) 15%, transparent);
   color: var(--accent-tertiary);
@@ -2221,11 +2363,13 @@ section[id] {
     grid-template-columns: 1fr;
   }
 
+  .demo-doc-hero,
   .domain-hero,
   .course-hero {
     grid-template-columns: 1fr;
   }
 
+  .demo-doc-hero__media,
   .domain-hero__media,
   .course-hero__media {
     min-height: 360px;
@@ -2237,11 +2381,17 @@ section[id] {
   }
 
   .case-layer-grid,
+  .demo-doc-grid,
+  .demo-backend-grid,
   .case-portfolio-band,
   .app-space-grid,
   .role-switcher,
   .app-role-summary {
     grid-template-columns: 1fr;
+  }
+
+  .demo-role-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .role-switcher__options {
@@ -2296,6 +2446,11 @@ section[id] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .demo-doc-hero__actions,
+  .demo-doc-hero__actions .btn {
+    width: 100%;
+  }
+
   .app-role-hero__panel {
     grid-template-columns: 1fr;
   }
@@ -2324,6 +2479,7 @@ section[id] {
 
   .hub-hero__content,
   .formations-hero__content,
+  .demo-doc-hero__content,
   .domain-hero__content,
   .course-hero__content,
   .featured-course__content {
@@ -2388,11 +2544,13 @@ section[id] {
   }
 
   .formations-hero h1,
+  .demo-doc-hero h1,
   .domain-hero h1,
   .course-hero h1 {
     font-size: 2.35rem;
   }
 
+  .demo-doc-hero__media,
   .domain-hero__media,
   .course-hero__media {
     min-height: 270px;
@@ -2407,7 +2565,12 @@ section[id] {
   }
 
   .case-study-metrics,
-  .case-layer-grid {
+  .case-layer-grid,
+  .demo-role-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-warning-band {
     grid-template-columns: 1fr;
   }
 
