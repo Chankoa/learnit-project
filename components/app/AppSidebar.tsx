@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
 
 import { AppNavItem } from "@/components/app/AppNavItem";
 import { RoleSwitcher } from "@/components/app/RoleSwitcher";
@@ -40,6 +40,12 @@ export function AppSidebar({ role, title, navigationItems, pathname }: AppSideba
 
       <div className="app-sidebar__tools">
         <RoleSwitcher variant="compact" />
+        {role !== "visitor" ? (
+          <Link className="app-sidebar__back" href="/logout">
+            <LogOut size={16} aria-hidden="true" />
+            Déconnexion
+          </Link>
+        ) : null}
         <Link className="app-sidebar__back" href="/">
           <ArrowLeft size={16} aria-hidden="true" />
           Retour au site public

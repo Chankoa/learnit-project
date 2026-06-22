@@ -59,20 +59,25 @@ This avoids breaking demos while tables, RLS policies and auth flows are introdu
 
 ## Auth migration
 
-Sprint 27 should introduce real auth pages:
+Sprint 27 introduces real auth pages:
 
 - sign in
 - sign up
 - sign out
-- password reset if needed
+- auth callback
 
-After auth exists, role resolution should use:
+Role resolution now uses:
 
 1. Supabase Auth session.
 2. `profiles.role`.
-3. Demo role only when `NEXT_PUBLIC_DEMO_MODE=true` and no session exists.
+3. Demo role only for the visible RoleSwitcher when `NEXT_PUBLIC_DEMO_MODE=true`.
 
 Authorization must be checked server-side for protected data. Client UI guards are useful for UX but are not security boundaries.
+
+The app now uses two layers:
+
+- `proxy.ts` redirects unauthenticated requests before protected app routes render.
+- role layouts call `requireRole()` or `requireAdmin()` again as defense in depth.
 
 ## Row Level Security outline
 
@@ -98,10 +103,29 @@ Keep these deployment constraints:
 
 ## Current Sprint 26 scope
 
-Completed scope for this phase:
+Completed scope for the first Supabase phase:
 
 - install Supabase client packages.
 - add browser and server client factories.
 - document setup and migration strategy.
 - keep mock repositories untouched.
 - keep the app buildable without real Supabase credentials.
+
+## Current Sprint 27-29 scope
+
+Implemented in this phase:
+
+- `/login`, `/register`, `/logout` and `/auth/callback`
+- `getCurrentUser()`, `getCurrentProfile()`, `requireAuth()`, `requireRole()` and `requireAdmin()`
+- server-side protection for `/app/learner`, `/app/teacher` and `/app/admin`
+- targeted `proxy.ts` protection for direct refreshes on protected routes
+- `/access-denied` for authenticated users without the right role
+- SQL migrations for `profiles` and the minimal LMS schema
+- seed script for the current mock formations
+
+Still intentionally deferred:
+
+- replacing course, progress, note and favorite repositories with Supabase reads/writes
+- password reset flow
+- admin UI for changing user roles
+- file upload UI backed by Supabase Storage

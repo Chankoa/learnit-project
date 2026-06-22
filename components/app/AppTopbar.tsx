@@ -1,4 +1,4 @@
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import Link from "next/link";
 
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -39,6 +39,12 @@ export function AppTopbar({ role, title, isMenuOpen, onMenuToggle }: AppTopbarPr
 
       <div className="app-topbar__actions">
         <ThemeToggle />
+        {role !== "visitor" ? (
+          <Link className="app-topbar__public-link" href="/logout">
+            <LogOut size={15} aria-hidden="true" />
+            Sortir
+          </Link>
+        ) : null}
         <Link className="app-topbar__public-link" href="/">
           Site public
         </Link>

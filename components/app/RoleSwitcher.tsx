@@ -13,10 +13,15 @@ type RoleSwitcherProps = {
 export function RoleSwitcher({ variant = "default" }: RoleSwitcherProps) {
   const [selectedRole, setSelectedRole] = useState<ApplicationRole>("visitor");
   const { showToast } = useToast();
+  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
   useEffect(() => {
     setSelectedRole(getDemoRoleFromStorage());
   }, []);
+
+  if (!isDemoMode) {
+    return null;
+  }
 
   function handleRoleChange(role: ApplicationRole) {
     const option = roleSwitcherOptions.find((item) => item.role === role);
@@ -35,7 +40,7 @@ export function RoleSwitcher({ variant = "default" }: RoleSwitcherProps) {
       <div>
         <span className="eyebrow w-fit">Mode démo</span>
         <h2>Basculer fictivement de rôle.</h2>
-        <p>Ce choix est local au navigateur et prépare l'arrivée d'une authentification réelle.</p>
+        <p>Ce choix reste local et ne remplace pas les permissions du profil connecté.</p>
       </div>
 
       <div className="role-switcher__options" role="group" aria-label="Rôle actif">

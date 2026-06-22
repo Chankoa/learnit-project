@@ -17,6 +17,10 @@ function getSupabaseConfig() {
   };
 }
 
+export function isSupabaseConfigured() {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
 export async function createClient() {
   const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig();
   const cookieStore = await cookies();
@@ -37,4 +41,12 @@ export async function createClient() {
       }
     }
   });
+}
+
+export async function createOptionalClient() {
+  if (!isSupabaseConfigured()) {
+    return null;
+  }
+
+  return createClient();
 }

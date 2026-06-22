@@ -1,12 +1,16 @@
 import type { ReactNode } from "react";
 
 import { AppShellFrame } from "@/components/app/AppShellFrame";
-import { RoleGuard } from "@/components/auth/RoleGuard";
+import { requireRole } from "@/lib/auth/server";
 
-export default function LearnerAppLayout({ children }: Readonly<{ children: ReactNode }>) {
+export const dynamic = "force-dynamic";
+
+export default async function LearnerAppLayout({ children }: Readonly<{ children: ReactNode }>) {
+  await requireRole("learner", "/app/learner");
+
   return (
     <AppShellFrame role="learner" title="Espace apprenant">
-      <RoleGuard area="learner">{children}</RoleGuard>
+      {children}
     </AppShellFrame>
   );
 }

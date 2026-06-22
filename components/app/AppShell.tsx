@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -74,6 +74,12 @@ export function AppShell({
               ))}
             </nav>
             <RoleSwitcher variant="compact" />
+            {role !== "visitor" ? (
+              <Link className="app-mobile-drawer__back" href="/logout" onClick={closeMobileMenu}>
+                <LogOut size={16} aria-hidden="true" />
+                Déconnexion
+              </Link>
+            ) : null}
             <Link className="app-mobile-drawer__back" href="/" onClick={closeMobileMenu}>
               <ArrowLeft size={16} aria-hidden="true" />
               Retour au site public
