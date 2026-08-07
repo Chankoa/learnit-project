@@ -133,6 +133,23 @@ Implemented read-only LMS access when `NEXT_PUBLIC_DATA_SOURCE=supabase`:
 
 Enrollments, progress, notes, favorites, certificates, teacher CRUD and the `/learn` progression routes remain mock/local until their dedicated migration sprints.
 
+## Learner state migration
+
+The learner state is now persisted when the application is configured for Supabase:
+
+- `lib/repositories/supabase/learningRepository.ts` reads and writes `enrollments`, `lesson_progress`, `notes` and `favorites` with the authenticated server-side Supabase client.
+- `lib/learning-service.ts` is the sole business layer for learner enrollment, progression, resume targets, totals, percentages, learning time and resource access.
+- `/learn`, `/app/learner`, `/app/learner/courses`, `/app/learner/progress` and `/app/learner/resources` use this service rather than localStorage mocks.
+- Client controls use Server Actions from `app/learn/actions.ts`; a client-provided user identifier is never trusted.
+
+The existing RLS policies on these tables (`user_id = auth.uid()`) remain the authorization boundary. The service role key is not used for learner state.
+
+Learning time is incremented in whole minutes when a learner leaves a lesson, and each recorded increment is capped at 120 minutes. Percentages are calculated in the service from completed lessons and are not persisted separately.
+
+Resources marked `free` are visible to every learner; `enrolled` resources require an enrollment; `premium` resources are excluded. The current Supabase seed has no resource inserts, so the resource view stays empty until resources are seeded.
+
+Certificates and deliverables remain out of scope and render as empty states. The legacy `/dashboard` route redirects to `/app/learner` so it cannot display an old local-progress view.
+
 Still intentionally deferred:
 
 - replacing course, progress, note and favorite repositories with Supabase reads/writes

@@ -11,7 +11,7 @@ import {
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
-import { formatLearningTime, getLearnerCourseSummaries } from "@/lib/learner";
+import { getLearnerDashboard } from "@/lib/learning-service";
 import { createPageMetadata } from "@/lib/seo";
 import type { LearnerEnrollmentStatus } from "@/types/learning";
 
@@ -44,8 +44,13 @@ const courseGroups = [
   description: string;
 }>;
 
-export default function LearnerCoursesPage() {
-  const courses = getLearnerCourseSummaries();
+function formatLearningTime(minutes: number) {
+  return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+}
+
+export default async function LearnerCoursesPage() {
+  const dashboard = await getLearnerDashboard();
+  const courses = dashboard.courses;
 
   return (
     <div className="app-page learner-page">
@@ -63,7 +68,7 @@ export default function LearnerCoursesPage() {
       />
 
       {courseGroups.map((group) => {
-        const groupCourses = courses.filter((course) => course.status === group.status);
+        const groupCourses = courses.filter((course) => course.enrollment?.status === group.status);
 
         return (
           <section className="learner-course-section" key={group.status}>
@@ -92,7 +97,7 @@ export default function LearnerCoursesPage() {
                   <div className="learner-course-card__body">
                     <div className="learner-course-card__topline">
                       <span>{summary.course.domain.name}</span>
-                      <span className="state-badge" data-state={summary.status}>
+                      <span className="state-badge" data-state={summary.enrollment?.status}>
                         {group.title}
                       </span>
                     </div>

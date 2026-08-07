@@ -10,12 +10,9 @@ import {
 } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
+import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
-import {
-  formatLearningTime,
-  getLearnerCourseSummaries,
-  getLearnerGlobalProgress
-} from "@/lib/learner";
+import { getLearnerDashboard } from "@/lib/learning-service";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
@@ -25,22 +22,27 @@ export const metadata: Metadata = createPageMetadata({
   noIndex: true
 });
 
-export default function LearnerProgressPage() {
-  const courses = getLearnerCourseSummaries();
-  const globalProgress = getLearnerGlobalProgress();
+function formatLearningTime(minutes: number) {
+  return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+}
+
+export default async function LearnerProgressPage() {
+  const dashboard = await getLearnerDashboard();
+  const courses = dashboard.courses;
+  const globalProgress = dashboard.globalProgress;
   const completedLessons = courses.flatMap((course) =>
-    course.completedLessons.map((completedLesson) => ({
-      ...completedLesson,
-      course: course.course
-    }))
+    course.modules.flatMap((module) => module.lessons
+      .filter((lesson) => lesson.status === "completed")
+      .map((lesson) => ({ course: course.course, lesson, module })))
   );
   const moduleRows = courses.flatMap((course) =>
     course.modules.map((module) => ({
       course: course.course,
-      ...module
+      module,
+      completedCount: module.lessons.filter((lesson) => lesson.status === "completed").length,
+      totalLessons: module.lessons.length
     }))
   );
-  const exerciseRows = moduleRows.filter((module) => module.totalExerciseCount > 0);
 
   return (
     <div className="app-page learner-page">
@@ -54,7 +56,7 @@ export default function LearnerProgressPage() {
       <AppPageHeader
         eyebrow="Progression"
         title="Suivi pédagogique détaillé"
-        description="Visualisez l'avancement par formation et par module, les leçons terminées, les exercices rendus et le temps d'apprentissage fictif."
+        description="Visualisez l'avancement par formation et par module, les leçons terminées et le temps d'apprentissage enregistré."
       />
 
       <section className="learning-metrics learner-metrics" aria-label="Synthese de progression">
@@ -92,7 +94,7 @@ export default function LearnerProgressPage() {
             <Clock3 size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Temps fictif</small>
+            <small>Temps d'apprentissage</small>
             <strong>{formatLearningTime(globalProgress.learningTimeMinutes)}</strong>
           </div>
         </article>
@@ -133,7 +135,7 @@ export default function LearnerProgressPage() {
           <div className="learning-panel__heading">
             <div>
               <span>Temps d'apprentissage</span>
-              <h2>Repartition fictive</h2>
+              <h2>Répartition enregistrée</h2>
             </div>
             <Clock3 size={20} aria-hidden="true" />
           </div>
@@ -143,7 +145,7 @@ export default function LearnerProgressPage() {
               <article className="learner-time-row" key={summary.course.id}>
                 <div>
                   <h3>{summary.course.title}</h3>
-                  <p>{summary.status === "not-started" ? "Non démarré" : "Activité enregistrée"}</p>
+                  <p>{summary.enrollment?.status === "not-started" ? "Non démarré" : "Activité enregistrée"}</p>
                 </div>
                 <strong>{formatLearningTime(summary.learningTimeMinutes)}</strong>
               </article>
@@ -167,11 +169,10 @@ export default function LearnerProgressPage() {
               <span>{module.course.title}</span>
               <h3>{module.module.title}</h3>
               <div className="learning-progress">
-                <span style={{ width: `${module.percentage}%` }} />
+                <span style={{ width: `${module.totalLessons > 0 ? Math.round((module.completedCount / module.totalLessons) * 100) : 0}%` }} />
               </div>
               <p>
-                {module.completedCount}/{module.totalLessons} leçons ·{" "}
-                {formatLearningTime(module.learningTimeMinutes)}
+                {module.completedCount}/{module.totalLessons} leçons
               </p>
             </article>
           ))}
@@ -189,11 +190,8 @@ export default function LearnerProgressPage() {
           </div>
 
           <div className="learner-list">
-            {completedLessons.map(({ course, lesson, module }) => (
+            {completedLessons.length > 0 ? completedLessons.map(({ course, lesson, module }) => (
               <article className="learner-compact-row" key={`${course.id}-${lesson.id}`}>
-                <span className="learning-metric-icon learning-metric-icon--green">
-                  <CheckCircle2 size={17} aria-hidden="true" />
-                </span>
                 <div>
                   <h3>{lesson.title}</h3>
                   <p>
@@ -201,7 +199,7 @@ export default function LearnerProgressPage() {
                   </p>
                 </div>
               </article>
-            ))}
+            )) : <AppEmptyState description="Les leçons validées apparaîtront ici." icon={BookOpenCheck} title="Aucune leçon terminée" />}
           </div>
         </section>
 
@@ -215,31 +213,7 @@ export default function LearnerProgressPage() {
           </div>
 
           <div className="learner-list">
-            {exerciseRows.map((module) => (
-              <article className="learner-progress-row" key={`exercise-${module.course.id}-${module.module.id}`}>
-                <div>
-                  <h3>{module.module.title}</h3>
-                  <p>{module.course.title}</p>
-                </div>
-                <div>
-                  <strong>
-                    {module.submittedExerciseCount}/{module.totalExerciseCount}
-                  </strong>
-                  <span>exercices rendus</span>
-                  <div className="learning-progress">
-                    <span
-                      style={{
-                        width: `${
-                          module.totalExerciseCount > 0
-                            ? Math.round((module.submittedExerciseCount / module.totalExerciseCount) * 100)
-                            : 0
-                        }%`
-                      }}
-                    />
-                  </div>
-                </div>
-              </article>
-            ))}
+            <AppEmptyState description="Le suivi des exercices sera disponible prochainement." icon={FileCheck2} title="Aucun exercice rendu" />
           </div>
         </section>
       </div>

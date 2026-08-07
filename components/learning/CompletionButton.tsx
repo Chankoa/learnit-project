@@ -1,45 +1,62 @@
 "use client";
 
 import { CheckCircle2, Circle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { useToast } from "@/components/app/ToastProvider";
 import {
-  isLessonCompleted,
-  recordLessonAccess,
-  setLessonCompleted
-} from "@/lib/learner-local-storage";
+  recordLearningTimeAction,
+  setLessonCompletedAction,
+  startLessonAction
+} from "@/app/learn/actions";
+import { useToast } from "@/components/app/ToastProvider";
 
 type CompletionButtonProps = {
+  courseId: string;
   courseSlug: string;
   lessonId: string;
-  lessonSlug: string;
   initiallyCompleted?: boolean;
 };
 
 export function CompletionButton({
+  courseId,
   courseSlug,
   lessonId,
-  lessonSlug,
   initiallyCompleted = false
 }: CompletionButtonProps) {
   const [isCompleted, setIsCompleted] = useState(initiallyCompleted);
+  const startedAt = useRef(Date.now());
+  const router = useRouter();
   const { showToast } = useToast();
 
   useEffect(() => {
-    recordLessonAccess(courseSlug, lessonSlug);
-    setIsCompleted(initiallyCompleted || isLessonCompleted(lessonId));
-  }, [courseSlug, initiallyCompleted, lessonId, lessonSlug]);
+    startLessonAction(courseId, lessonId, courseSlug).catch(() => undefined);
+    setIsCompleted(initiallyCompleted);
+
+    return () => {
+      const elapsedMinutes = Math.floor((Date.now() - startedAt.current) / 60000);
+      if (elapsedMinutes > 0) {
+        recordLearningTimeAction(courseId, lessonId, courseSlug, elapsedMinutes).catch(() => undefined);
+      }
+    };
+  }, [courseId, courseSlug, initiallyCompleted, lessonId]);
 
   function toggleCompletion() {
     const nextValue = !isCompleted;
-
-    setLessonCompleted(lessonId, nextValue);
     setIsCompleted(nextValue);
-    showToast({
-      description: "La progression locale est mise à jour dans ce navigateur.",
-      title: nextValue ? "Leçon marquée comme terminée" : "Leçon remise à faire",
-      variant: nextValue ? "success" : "info"
+    startTransition(async () => {
+      try {
+        await setLessonCompletedAction(courseId, lessonId, courseSlug, nextValue);
+        showToast({
+          description: "Votre progression est enregistrée dans votre compte.",
+          title: nextValue ? "Leçon marquée comme terminée" : "Leçon remise à faire",
+          variant: nextValue ? "success" : "info"
+        });
+        router.refresh();
+      } catch {
+        setIsCompleted(!nextValue);
+        showToast({ title: "Mise à jour impossible", description: "Réessayez dans un instant.", variant: "danger" });
+      }
     });
   }
 

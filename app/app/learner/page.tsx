@@ -5,8 +5,6 @@ import {
   ArrowRight,
   Award,
   BookOpenText,
-  CheckCircle2,
-  Circle,
   Clock3,
   FileCheck2,
   GraduationCap,
@@ -19,19 +17,9 @@ import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { formatCourseDuration } from "@/components/catalog/CourseCard";
-import { LearnerLocalProgressStrip } from "@/components/learning/LearnerLocalProgressStrip";
-import { ResumeCourseButton } from "@/components/learning/ResumeCourseButton";
-import { getCourseLessons } from "@/lib/courses";
 import { getCurrentProfile } from "@/lib/auth/server";
-import {
-  certificateStatusLabels,
-  formatLearnerDate,
-  formatLearningTime,
-  getLearnerDashboardData,
-  learnerResourceTypeLabels
-} from "@/lib/learner";
+import { getLearnerDashboard } from "@/lib/learning-service";
 import { createPageMetadata } from "@/lib/seo";
-import type { DeliverableStatus } from "@/types/learning";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Espace apprenant",
@@ -40,27 +28,14 @@ export const metadata: Metadata = createPageMetadata({
   noIndex: true
 });
 
-const deliverableStatusLabels: Record<DeliverableStatus, string> = {
-  todo: "À faire",
-  "in-progress": "En cours",
-  submitted: "Envoyé"
-};
+function formatLearningTime(minutes: number) {
+  return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+}
 
 export default async function LearnerAppPage() {
-  const dashboard = getLearnerDashboardData();
+  const dashboard = await getLearnerDashboard();
   const profile = await getCurrentProfile();
   const nextLesson = dashboard.nextCourse?.nextLesson ?? dashboard.nextCourse?.currentLesson;
-  const resumeCourses = dashboard.courses.map((summary) => ({
-    id: summary.course.id,
-    slug: summary.course.slug,
-    title: summary.course.title,
-    lessons: getCourseLessons(summary.course.id).map((lesson) => ({
-      id: lesson.id,
-      slug: lesson.slug,
-      title: lesson.title,
-      status: lesson.status
-    }))
-  }));
 
   return (
     <div className="app-page learner-page">
@@ -74,15 +49,12 @@ export default async function LearnerAppPage() {
       <AppPageHeader
         eyebrow="Tableau de bord apprenant"
         title={`Bonjour ${profile?.name ?? "Utilisateur LearnIt"}`}
-        description="Votre suivi pédagogique regroupe la progression, les formations actives, les ressources récentes, les travaux attendus et les certificats."
+        description="Votre suivi pédagogique regroupe la progression, les formations actives et vos ressources favorites."
         actions={
-          <>
-            <ResumeCourseButton courses={resumeCourses} />
-            <Link className="btn btn-secondary" href="/app/learner/courses">
-              <GraduationCap size={17} aria-hidden="true" />
-              Mes formations
-            </Link>
-          </>
+          <Link className="btn btn-secondary" href="/app/learner/courses">
+            <GraduationCap size={17} aria-hidden="true" />
+            Mes formations
+          </Link>
         }
       />
 
@@ -123,13 +95,11 @@ export default async function LearnerAppPage() {
             <Clock3 size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Temps fictif</small>
+            <small>Temps d'apprentissage</small>
             <strong>{formatLearningTime(dashboard.globalProgress.learningTimeMinutes)}</strong>
           </div>
         </article>
       </section>
-
-      <LearnerLocalProgressStrip courses={resumeCourses} />
 
       <div className="dashboard-primary-grid">
         <section className="learning-panel">
@@ -221,8 +191,8 @@ export default async function LearnerAppPage() {
         <section className="learning-panel">
           <div className="learning-panel__heading">
             <div>
-              <span>Ressources récentes</span>
-              <h2>Dernières consultations</h2>
+              <span>Ressources favorites</span>
+              <h2>À retrouver</h2>
             </div>
             <Link className="text-link" href="/app/learner/resources">
               Bibliothèque
@@ -231,22 +201,20 @@ export default async function LearnerAppPage() {
           </div>
 
           <div className="resource-list">
-            {dashboard.recentResources.length > 0 ? dashboard.recentResources.map((resource) => (
+            {dashboard.favoriteResources.length > 0 ? dashboard.favoriteResources.map((resource) => (
               <article key={resource.id}>
                 <span className="learning-resource-icon">
                   <Library size={17} aria-hidden="true" />
                 </span>
                 <div>
                   <h3>{resource.title}</h3>
-                  <p>
-                    {resource.description} Consulté le {formatLearnerDate(resource.lastConsultedAt)}.
-                  </p>
+                  <p>{resource.description}</p>
                 </div>
-                <span>{learnerResourceTypeLabels[resource.type]}</span>
+                <span>{resource.type}</span>
               </article>
             )) : (
               <AppEmptyState
-                description="Les dernières ressources consultées apparaîtront ici."
+                description="Ajoutez des ressources aux favoris pour les retrouver ici."
                 icon={Library}
                 title="Aucune ressource"
               />
@@ -264,31 +232,11 @@ export default async function LearnerAppPage() {
           </div>
 
           <div className="deliverable-list">
-            {dashboard.deliverables.length > 0 ? dashboard.deliverables.map(({ deliverable, course }) => (
-              <article key={deliverable.id}>
-                <span className="deliverable-check" data-status={deliverable.status}>
-                  {deliverable.status === "submitted" ? (
-                    <CheckCircle2 size={18} aria-hidden="true" />
-                  ) : (
-                    <Circle size={18} aria-hidden="true" />
-                  )}
-                </span>
-                <div>
-                  <h3>{deliverable.title}</h3>
-                  <p>{deliverable.description}</p>
-                  <small>{course?.title ?? "Formation"} · {deliverable.dueLabel ?? "À planifier"}</small>
-                </div>
-                <span className="state-badge" data-state={deliverable.status}>
-                  {deliverableStatusLabels[deliverable.status]}
-                </span>
-              </article>
-            )) : (
-              <AppEmptyState
-                description="Aucun exercice ou livrable n'est à terminer."
-                icon={FileCheck2}
-                title="Aucun travail en attente"
-              />
-            )}
+            <AppEmptyState
+              description="Le suivi des livrables sera disponible prochainement."
+              icon={FileCheck2}
+              title="Aucun travail en attente"
+            />
           </div>
         </section>
       </div>
@@ -306,26 +254,11 @@ export default async function LearnerAppPage() {
         </div>
 
         <div className="learner-certificate-strip">
-          {dashboard.certificates.length > 0 ? dashboard.certificates.slice(0, 3).map(({ certificate, course }) => (
-            <article key={certificate.id}>
-              <span className="learning-metric-icon learning-metric-icon--green">
-                <Award size={19} aria-hidden="true" />
-              </span>
-              <div>
-                <h3>{certificate.title}</h3>
-                <p>{course?.title ?? "Formation"} · {certificateStatusLabels[certificate.status]}</p>
-              </div>
-              <span className="state-badge" data-state={certificate.status}>
-                {certificate.currentProgressPercentage}%
-              </span>
-            </article>
-          )) : (
-            <AppEmptyState
-              description="Les certificats disponibles ou à venir seront listés ici."
-              icon={Award}
-              title="Aucun certificat"
-            />
-          )}
+          <AppEmptyState
+            description="Les certificats disponibles ou à venir seront listés ici."
+            icon={Award}
+            title="Aucun certificat"
+          />
         </div>
       </section>
     </div>

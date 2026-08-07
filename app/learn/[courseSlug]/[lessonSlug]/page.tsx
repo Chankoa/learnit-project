@@ -11,11 +11,9 @@ import { LessonNavigation } from "@/components/learning/LessonNavigation";
 import { LessonSidebar } from "@/components/learning/LessonSidebar";
 import { ResourceList } from "@/components/learning/ResourceList";
 import { getLessonMdxComponent } from "@/content/lessons/registry";
-import {
-  getLearningLessonData,
-  getLearningLessonStaticParams
-} from "@/lib/learning";
-import { getLearnerProfile } from "@/lib/progress";
+import { requireRole } from "@/lib/auth/server";
+import { getLessonContent } from "@/lib/lesson-content";
+import { getLearningCourseState, getLessonNote } from "@/lib/learning-service";
 import { createPageMetadata } from "@/lib/seo";
 
 type LessonPageProps = {
@@ -25,23 +23,20 @@ type LessonPageProps = {
   }>;
 };
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return getLearningLessonStaticParams();
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params
 }: LessonPageProps): Promise<Metadata> {
   const { courseSlug, lessonSlug } = await params;
-  const data = getLearningLessonData(courseSlug, lessonSlug);
+  const data = await getLearningCourseState(courseSlug);
+  const lesson = data?.lessons.find((item) => item.slug === lessonSlug);
 
-  return data
+  return data && lesson
     ? createPageMetadata({
-        title: `${data.lesson.title} - ${data.course.title}`,
-        description: data.lesson.description ?? data.course.description,
-        path: `/learn/${data.course.slug}/${data.lesson.slug}`,
+        title: `${lesson.title} - ${data.course.title}`,
+        description: lesson.description ?? data.course.description,
+        path: `/learn/${data.course.slug}/${lesson.slug}`,
         image: data.course.coverImage,
         noIndex: true
       })
@@ -52,24 +47,33 @@ export async function generateMetadata({
 
 export default async function LessonPage({ params }: LessonPageProps) {
   const { courseSlug, lessonSlug } = await params;
-  const data = getLearningLessonData(courseSlug, lessonSlug);
+  const profile = await requireRole("learner", `/learn/${courseSlug}/${lessonSlug}`);
+  const data = await getLearningCourseState(courseSlug);
+  const lesson = data?.lessons.find((item) => item.slug === lessonSlug);
 
-  if (!data) {
+  if (!data || !lesson || !data.enrollment) {
     notFound();
   }
 
   const MdxLesson = getLessonMdxComponent(courseSlug, lessonSlug);
+  const note = await getLessonNote(lesson.id);
+  const module = data.modules.find((item) => item.lessons.some((item) => item.id === lesson.id));
+  const lessonIndex = data.lessons.findIndex((item) => item.id === lesson.id);
+  const initials = profile.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  const learner = { id: profile.id, firstName: profile.name, displayName: profile.name, email: profile.email, initials };
+  const content = getLessonContent(lesson);
 
   return (
     <LearningShell
-      learner={getLearnerProfile()}
+      identity={{ name: profile.name, initials, avatarUrl: profile.avatarUrl }}
+      learner={learner}
       pageTitle={data.course.title}
       variant="lesson"
     >
       <div className="lesson-page-layout">
         <LessonSidebar
           course={data.course}
-          currentLessonId={data.lesson.id}
+            currentLessonId={lesson.id}
           modules={data.modules}
           percentage={data.percentage}
         />
@@ -77,8 +81,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
         <article className="lesson-page">
           <LessonHeader
             course={data.course}
-            lesson={data.lesson}
-            module={data.module}
+            lesson={lesson}
+            module={module}
           />
           {MdxLesson ? (
             <div className="lesson-content lesson-content--mdx">
@@ -86,9 +90,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
             </div>
           ) : (
             <>
-              <LessonContent content={data.content} />
-              <ResourceList resources={data.resources} />
-              <ExerciseBlock exercise={data.content.exercise} />
+              <LessonContent content={content} />
+              <ResourceList resources={lesson.resources ?? module?.resources ?? []} />
+              <ExerciseBlock exercise={content.exercise} />
             </>
           )}
 
@@ -98,19 +102,19 @@ export default async function LessonPage({ params }: LessonPageProps) {
               <h2>Cette leçon est-elle terminée ?</h2>
             </div>
             <CompletionButton
+              courseId={data.course.id}
               courseSlug={data.course.slug}
-              initiallyCompleted={data.lesson.status === "completed"}
-              lessonId={data.lesson.id}
-              lessonSlug={data.lesson.slug}
+              initiallyCompleted={lesson.status === "completed"}
+              lessonId={lesson.id}
             />
           </div>
 
-          <LessonNotes lessonId={data.lesson.id} />
+          <LessonNotes courseSlug={data.course.slug} initialNote={note} lessonId={lesson.id} />
 
           <LessonNavigation
             courseSlug={data.course.slug}
-            nextLesson={data.nextLesson}
-            previousLesson={data.previousLesson}
+            nextLesson={lessonIndex >= 0 ? data.lessons[lessonIndex + 1] : undefined}
+            previousLesson={lessonIndex > 0 ? data.lessons[lessonIndex - 1] : undefined}
           />
         </article>
       </div>

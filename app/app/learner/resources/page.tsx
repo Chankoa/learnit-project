@@ -5,16 +5,9 @@ import { Star } from "lucide-react";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { LearnerResourceGrid } from "@/components/learning/LearnerResourceGrid";
-import {
-  getCourseForLearnerResource,
-  getLearnerResourceCourses,
-  getLearnerResources,
-  getLearnerResourceTypeOptions,
-  learnerResourceTypeLabels,
-  type LearnerResourceFilters
-} from "@/lib/learner";
+import { getLearnerResources } from "@/lib/learning-service";
 import { createPageMetadata } from "@/lib/seo";
-import type { LearnerResourceType } from "@/types/learning";
+import type { ResourceType } from "@/types/resource";
 
 type ResourcesSearchParams = {
   course?: string | string[];
@@ -37,11 +30,13 @@ function getSingleParam(value?: string | string[]) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function isResourceType(value?: string): value is LearnerResourceType {
-  return Boolean(value && value in learnerResourceTypeLabels);
+const resourceTypeLabels: Record<ResourceType, string> = { article: "Article", video: "Vidéo", download: "Téléchargement", template: "Modèle", exercise: "Exercice", link: "Lien", tool: "Outil" };
+
+function isResourceType(value?: string): value is ResourceType {
+  return Boolean(value && value in resourceTypeLabels);
 }
 
-function buildResourceFilterHref(filters: LearnerResourceFilters) {
+function buildResourceFilterHref(filters: { courseId?: string; type?: ResourceType; favoritesOnly?: boolean }) {
   const params = new URLSearchParams();
 
   if (filters.courseId) {
@@ -65,8 +60,9 @@ export default async function LearnerResourcesPage({
   searchParams
 }: LearnerResourcesPageProps) {
   const params = await searchParams;
-  const resourceCourses = getLearnerResourceCourses();
-  const typeOptions = getLearnerResourceTypeOptions();
+  const allResources = await getLearnerResources();
+  const resourceCourses = [...new Map(allResources.map((item) => [item.course.id, item.course])).values()];
+  const typeOptions = [...new Set(allResources.map((item) => item.resource.type))].map((value) => ({ value, label: resourceTypeLabels[value] }));
   const courseParam = getSingleParam(params?.course);
   const typeParam = getSingleParam(params?.type);
   const favoritesOnly = getSingleParam(params?.favorites) === "1";
@@ -74,19 +70,10 @@ export default async function LearnerResourcesPage({
     ? courseParam
     : undefined;
   const selectedType = isResourceType(typeParam) ? typeParam : undefined;
-  const filters = {
-    courseId: selectedCourseId,
-    type: selectedType,
-    favoritesOnly
-  } satisfies LearnerResourceFilters;
-  const resources = getLearnerResources({
-    courseId: filters.courseId,
-    type: filters.type
-  });
-  const resourceItems = resources.map((resource) => ({
-    resource,
-    courseTitle: getCourseForLearnerResource(resource)?.title ?? "Formation"
-  }));
+  const resourceItems = allResources.filter((item) =>
+    (!selectedCourseId || item.course.id === selectedCourseId) &&
+    (!selectedType || item.resource.type === selectedType)
+  );
 
   return (
     <div className="app-page learner-page">

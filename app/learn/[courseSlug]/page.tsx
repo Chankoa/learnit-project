@@ -1,26 +1,14 @@
 import type { Metadata } from "next";
-import {
-  BookOpenText,
-  CheckCircle2,
-  Clock3,
-  Eye,
-  Layers3,
-  LockKeyhole,
-  PlayCircle
-} from "lucide-react";
+import { BookOpenText, CheckCircle2, Clock3, Layers3 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { formatCourseDuration } from "@/components/catalog/CourseCard";
-import { LearningCourseLocalProgress } from "@/components/learning/LearningCourseLocalProgress";
+import { EnrollmentButton } from "@/components/learning/EnrollmentButton";
 import { LearningShell } from "@/components/learning/LearningShell";
-import {
-  getLearningCourseData,
-  getLearningCourseStaticParams
-} from "@/lib/learning";
-import { getLearnerProfile } from "@/lib/progress";
+import { requireRole } from "@/lib/auth/server";
+import { getLearningCourseState } from "@/lib/learning-service";
 import { createPageMetadata } from "@/lib/seo";
-import type { LessonStatus } from "@/types/learning";
 
 type LearningCoursePageProps = {
   params: Promise<{
@@ -28,17 +16,13 @@ type LearningCoursePageProps = {
   }>;
 };
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return getLearningCourseStaticParams();
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params
 }: LearningCoursePageProps): Promise<Metadata> {
   const { courseSlug } = await params;
-  const data = getLearningCourseData(courseSlug);
+  const data = await getLearningCourseState(courseSlug);
 
   return data
     ? createPageMetadata({
@@ -53,44 +37,22 @@ export async function generateMetadata({
       };
 }
 
-function LessonIcon({ status }: { status: LessonStatus }) {
-  const icons = {
-    available: PlayCircle,
-    locked: LockKeyhole,
-    preview: Eye,
-    "in-progress": PlayCircle,
-    completed: CheckCircle2
-  };
-  const Icon = icons[status];
-
-  return <Icon size={17} aria-hidden="true" />;
-}
-
 export default async function LearningCoursePage({
   params
 }: LearningCoursePageProps) {
   const { courseSlug } = await params;
-  const data = getLearningCourseData(courseSlug);
+  const profile = await requireRole("learner", `/learn/${courseSlug}`);
+  const data = await getLearningCourseState(courseSlug);
 
   if (!data) {
     notFound();
   }
 
-  const learner = getLearnerProfile();
-  const resumeCourse = {
-    id: data.course.id,
-    slug: data.course.slug,
-    title: data.course.title,
-    lessons: data.lessons.map((lesson) => ({
-      id: lesson.id,
-      slug: lesson.slug,
-      title: lesson.title,
-      status: lesson.status
-    }))
-  };
+  const initials = profile.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  const learner = { id: profile.id, firstName: profile.name, displayName: profile.name, email: profile.email, initials };
 
   return (
-    <LearningShell learner={learner} pageTitle="Mon parcours">
+    <LearningShell identity={{ name: profile.name, initials, avatarUrl: profile.avatarUrl }} learner={learner} pageTitle="Mon parcours">
       <div className="learning-course-page">
         <section className="learning-course-hero">
           <div>
@@ -99,7 +61,20 @@ export default async function LearningCoursePage({
             <p>{data.course.subtitle ?? data.course.description}</p>
           </div>
 
-          <LearningCourseLocalProgress course={resumeCourse} />
+          {data.enrollment ? (
+            <section className="learning-local-progress" aria-label="Progression de la formation">
+              <div><span>Progression</span><strong>{data.percentage}%</strong></div>
+              <div className="learning-progress"><span style={{ width: `${data.percentage}%` }} /></div>
+              <p>{data.completedCount}/{data.totalLessons} leçons terminées.</p>
+              {data.resumeLesson ? <Link className="btn btn-primary" href={`/learn/${data.course.slug}/${data.resumeLesson.slug}`}>Continuer</Link> : null}
+            </section>
+          ) : (
+            <section className="learning-local-progress" aria-label="Inscription à la formation">
+              <div><span>Formation</span><strong>Prêt à commencer</strong></div>
+              <p>Inscrivez-vous pour enregistrer votre progression et vos notes.</p>
+              <EnrollmentButton courseId={data.course.id} courseSlug={data.course.slug} />
+            </section>
+          )}
         </section>
 
         <section className="learning-metrics" aria-label="Résumé de la formation">
@@ -166,7 +141,7 @@ export default async function LearningCoursePage({
                     const content = (
                       <>
                         <span data-status={status}>
-                          <LessonIcon status={status} />
+                          {status === "completed" ? <CheckCircle2 size={17} aria-hidden="true" /> : <BookOpenText size={17} aria-hidden="true" />}
                         </span>
                         <div>
                           <strong>{lesson.title}</strong>

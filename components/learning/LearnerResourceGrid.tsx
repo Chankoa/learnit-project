@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowUpRight,
   BookOpenCheck,
@@ -10,41 +11,36 @@ import {
   Library,
   Star
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useState, useTransition } from "react";
 
+import { setResourceFavoriteAction } from "@/app/learn/actions";
 import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { useToast } from "@/components/app/ToastProvider";
-import {
-  getFavoriteResourceIds,
-  LEARNER_LOCAL_CHANGE_EVENT,
-  setResourceFavorite
-} from "@/lib/learner-local-storage";
-import { learnerResourceTypeLabels } from "@/lib/learner";
-import type { LearnerResource, LearnerResourceType } from "@/types/learning";
-
-type LearnerResourceGridItem = {
-  resource: LearnerResource;
-  courseTitle: string;
-};
+import type { LearnerResourceItem } from "@/lib/learning-service";
+import type { Resource, ResourceType } from "@/types/resource";
 
 type LearnerResourceGridProps = {
-  items: LearnerResourceGridItem[];
+  items: LearnerResourceItem[];
   favoritesOnly: boolean;
 };
 
-function getResourceIcon(type: LearnerResourceType) {
+const resourceTypeLabels: Record<ResourceType, string> = { article: "Article", video: "Vidéo", download: "Téléchargement", template: "Modèle", exercise: "Exercice", link: "Lien", tool: "Outil" };
+
+function getResourceIcon(type: ResourceType) {
   const icons = {
-    pdf: FileText,
+    article: FileText,
+    video: Library,
+    download: FileText,
     template: Library,
     exercise: BookOpenCheck,
-    "external-link": ExternalLink,
-    checklist: ClipboardCheck
+    link: ExternalLink,
+    tool: ClipboardCheck
   };
 
   return icons[type];
 }
 
-function ResourceLink({ resource }: { resource: LearnerResource }) {
+function ResourceLink({ resource }: { resource: Resource }) {
   const content = (
     <>
       Ouvrir
@@ -68,39 +64,35 @@ function ResourceLink({ resource }: { resource: LearnerResource }) {
 }
 
 export function LearnerResourceGrid({ items, favoritesOnly }: LearnerResourceGridProps) {
-  const [favoriteResourceIds, setFavoriteResourceIds] = useState<string[]>([]);
+  const [favoriteResourceIds, setFavoriteResourceIds] = useState(() => new Set(items.filter((item) => item.favorite).map((item) => item.resource.id)));
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const { showToast } = useToast();
-  const favoriteResourceSet = useMemo(() => new Set(favoriteResourceIds), [favoriteResourceIds]);
 
-  useEffect(() => {
-    function syncFavorites() {
-      setFavoriteResourceIds(getFavoriteResourceIds());
-    }
-
-    syncFavorites();
-    window.addEventListener(LEARNER_LOCAL_CHANGE_EVENT, syncFavorites);
-    window.addEventListener("storage", syncFavorites);
-
-    return () => {
-      window.removeEventListener(LEARNER_LOCAL_CHANGE_EVENT, syncFavorites);
-      window.removeEventListener("storage", syncFavorites);
-    };
-  }, []);
-
-  function isFavorite(resource: LearnerResource) {
-    return resource.favorite || favoriteResourceSet.has(resource.id);
+  function isFavorite(resource: Resource) {
+    return favoriteResourceIds.has(resource.id);
   }
 
-  function toggleFavorite(resource: LearnerResource) {
+  function toggleFavorite(resource: Resource) {
     const nextFavoriteState = !isFavorite(resource);
-
-    setResourceFavorite(resource.id, nextFavoriteState);
-    showToast({
-      description: nextFavoriteState
-        ? "La ressource apparaît dans le filtre Favoris."
-        : "La ressource est retirée de vos favoris locaux.",
-      title: nextFavoriteState ? "Ressource ajoutée aux favoris" : "Ressource retirée des favoris",
-      variant: nextFavoriteState ? "success" : "info"
+    setFavoriteResourceIds((ids) => {
+      const nextIds = new Set(ids);
+      nextFavoriteState ? nextIds.add(resource.id) : nextIds.delete(resource.id);
+      return nextIds;
+    });
+    startTransition(async () => {
+      try {
+        await setResourceFavoriteAction(resource.id, nextFavoriteState);
+        showToast({ description: nextFavoriteState ? "La ressource est enregistrée dans vos favoris." : "La ressource est retirée de vos favoris.", title: nextFavoriteState ? "Ressource ajoutée aux favoris" : "Ressource retirée des favoris", variant: nextFavoriteState ? "success" : "info" });
+        router.refresh();
+      } catch {
+        setFavoriteResourceIds((ids) => {
+          const nextIds = new Set(ids);
+          nextFavoriteState ? nextIds.delete(resource.id) : nextIds.add(resource.id);
+          return nextIds;
+        });
+        showToast({ description: "La modification n'a pas pu être enregistrée.", title: "Favori non modifié", variant: "danger" });
+      }
     });
   }
 
@@ -111,7 +103,7 @@ export function LearnerResourceGrid({ items, favoritesOnly }: LearnerResourceGri
   return (
     <section className="learner-resource-grid" aria-label="Ressources accessibles">
       {visibleItems.length > 0 ? (
-        visibleItems.map(({ resource, courseTitle }) => {
+        visibleItems.map(({ resource, course }) => {
           const Icon = getResourceIcon(resource.type);
           const favorite = isFavorite(resource);
 
@@ -125,6 +117,7 @@ export function LearnerResourceGrid({ items, favoritesOnly }: LearnerResourceGri
                   aria-pressed={favorite}
                   className="learner-favorite-button"
                   data-active={favorite}
+                  disabled={isPending}
                   type="button"
                   onClick={() => toggleFavorite(resource)}
                 >
@@ -133,12 +126,12 @@ export function LearnerResourceGrid({ items, favoritesOnly }: LearnerResourceGri
                 </button>
               </div>
               <div>
-                <span>{learnerResourceTypeLabels[resource.type]}</span>
+                <span>{resourceTypeLabels[resource.type]}</span>
                 <h2>{resource.title}</h2>
                 <p>{resource.description}</p>
               </div>
               <div className="learner-resource-card__footer">
-                <small>{courseTitle}</small>
+                <small>{course.title}</small>
                 <ResourceLink resource={resource} />
               </div>
             </article>

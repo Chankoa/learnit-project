@@ -1,35 +1,40 @@
 "use client";
 
 import { NotebookPen } from "lucide-react";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
-import {
-  getLessonNotes,
-  setLessonNotes
-} from "@/lib/learner-local-storage";
+import { saveLessonNoteAction } from "@/app/learn/actions";
 
 type LessonNotesProps = {
   lessonId: string;
+  courseSlug: string;
+  initialNote: string;
 };
 
-export function LessonNotes({ lessonId }: LessonNotesProps) {
-  const [notes, setNotes] = useState("");
-  const [status, setStatus] = useState("Notes locales");
+export function LessonNotes({ lessonId, courseSlug, initialNote }: LessonNotesProps) {
+  const [notes, setNotes] = useState(initialNote);
+  const [status, setStatus] = useState("Notes enregistrées dans votre compte.");
 
   useEffect(() => {
-    setNotes(getLessonNotes(lessonId));
-    setStatus("Notes locales");
-  }, [lessonId]);
+    setNotes(initialNote);
+  }, [initialNote, lessonId]);
 
   useEffect(() => {
-    setStatus("Enregistrement automatique...");
+    if (notes === initialNote) return;
+    setStatus("Enregistrement...");
     const timeoutId = window.setTimeout(() => {
-      setLessonNotes(lessonId, notes);
-      setStatus("Notes enregistrées automatiquement.");
-    }, 450);
+      startTransition(async () => {
+        try {
+          await saveLessonNoteAction(lessonId, notes, courseSlug);
+          setStatus("Notes enregistrées.");
+        } catch {
+          setStatus("Enregistrement impossible. Réessayez.");
+        }
+      });
+    }, 700);
 
     return () => window.clearTimeout(timeoutId);
-  }, [lessonId, notes]);
+  }, [courseSlug, initialNote, lessonId, notes]);
 
   return (
     <section className="lesson-notes" aria-labelledby="lesson-notes-title">
