@@ -5,13 +5,13 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { AppShellFrame } from "@/components/app/AppShellFrame";
+import { isDemoMode } from "@/lib/config/features";
 import { applicationSpaces } from "@/lib/navigation";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Accès plateforme",
-  description:
-    "Choisissez un espace LearnIt de démonstration : apprenant, enseignant ou administration.",
+  description: "Accédez aux espaces LearnIt pour apprenants, enseignants et administrateurs.",
   path: "/app",
   noIndex: true
 });
@@ -24,7 +24,11 @@ export default function AppAccessPage() {
         <AppPageHeader
           eyebrow="Sélection d'espace"
           title="Choisissez l'espace LearnIt à explorer."
-          description="La plateforme distingue les besoins du visiteur, de l'apprenant, de l'enseignant et de l'administrateur. Ces accès restent des démonstrations en attendant l'authentification."
+          description={
+            isDemoMode
+              ? "La plateforme distingue les besoins du visiteur, de l'apprenant, de l'enseignant et de l'administrateur. Ces accès restent des démonstrations en attendant l'authentification."
+              : "La plateforme distingue les besoins du visiteur, de l'apprenant, de l'enseignant et de l'administrateur. Chaque espace vérifie les droits du profil connecté."
+          }
         />
 
         <section className="app-space-grid" aria-label="Espaces applicatifs disponibles">

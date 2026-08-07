@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { isDemoMode } from "@/lib/config/features";
+
 type AccessDeniedPageProps = {
   searchParams?: Promise<{
     current?: string;
@@ -27,8 +29,9 @@ export default async function AccessDeniedPage({ searchParams }: AccessDeniedPag
           <span className="eyebrow w-fit">Accès refusé</span>
           <h1 id="access-denied-title">Votre compte ne peut pas ouvrir cet espace.</h1>
           <p>
-            Les espaces connectés utilisent désormais le rôle réel du profil Supabase. Le sélecteur de
-            rôle local reste disponible uniquement pour la démonstration.
+            {isDemoMode
+              ? "Les espaces connectés utilisent désormais le rôle réel du profil Supabase. Le sélecteur de rôle local reste disponible uniquement pour la démonstration."
+              : "Les espaces connectés utilisent le rôle réel du profil Supabase."}
           </p>
         </div>
 

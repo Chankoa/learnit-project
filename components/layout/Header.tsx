@@ -12,6 +12,7 @@ import {
   platformAccessNavigation,
   publicNavigation
 } from "@/lib/navigation";
+import { isDemoMode } from "@/lib/config/features";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -58,7 +59,7 @@ export function Header() {
               onClick={() => setIsPlatformMenuOpen((current) => !current)}
             >
               Accès plateforme
-              <span>Démo</span>
+              {isDemoMode ? <span>Démo</span> : null}
               <ChevronDown size={15} aria-hidden="true" />
             </button>
 
@@ -83,7 +84,7 @@ export function Header() {
                     >
                       <Icon size={18} aria-hidden="true" />
                       <span>{item.label}</span>
-                      {item.badge ? <small>{item.badge}</small> : null}
+                      {isDemoMode && item.badge ? <small>{item.badge}</small> : null}
                     </Link>
                   );
                 })}
@@ -133,7 +134,7 @@ export function Header() {
             <div className="mobile-platform-menu">
               <p>
                 Accès plateforme
-                <span>Démo</span>
+                {isDemoMode ? <span>Démo</span> : null}
               </p>
               {platformAccessNavigation.map((item) => {
                 const Icon = item.icon;
@@ -150,7 +151,7 @@ export function Header() {
                   >
                     <Icon size={17} aria-hidden="true" />
                     <span>{item.label}</span>
-                    {item.badge ? <small>{item.badge}</small> : null}
+                    {isDemoMode && item.badge ? <small>{item.badge}</small> : null}
                   </Link>
                 );
               })}

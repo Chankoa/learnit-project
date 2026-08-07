@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { useToast } from "@/components/app/ToastProvider";
 import { getDemoRoleFromStorage, storeDemoRole } from "@/lib/auth/demo-role";
+import { isDemoMode } from "@/lib/config/features";
 import { roleSwitcherOptions, type ApplicationRole } from "@/lib/navigation";
 
 type RoleSwitcherProps = {
@@ -13,7 +14,6 @@ type RoleSwitcherProps = {
 export function RoleSwitcher({ variant = "default" }: RoleSwitcherProps) {
   const [selectedRole, setSelectedRole] = useState<ApplicationRole>("visitor");
   const { showToast } = useToast();
-  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
   useEffect(() => {
     setSelectedRole(getDemoRoleFromStorage());

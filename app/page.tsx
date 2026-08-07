@@ -18,6 +18,7 @@ import { FeaturedCourse } from "@/components/catalog/FeaturedCourse";
 import { getCourseLessonCount } from "@/components/catalog/CourseCard";
 import { CourseCatalog } from "@/components/courses/CourseCatalog";
 import { getCatalogCourses, getFeaturedCourses } from "@/lib/courses";
+import { isDemoMode } from "@/lib/config/features";
 import { getAllDomains } from "@/lib/domains";
 import { createPageMetadata } from "@/lib/seo";
 import type { Course, Domain } from "@/types/course";
@@ -101,10 +102,12 @@ export default function HomePage() {
                 Explorer les formations
                 <ArrowRight size={17} aria-hidden="true" />
               </Link>
-              <Link className="btn btn-secondary" href="/app">
-                <PlayCircle size={17} aria-hidden="true" />
-                Ouvrir les espaces démo
-              </Link>
+              {isDemoMode ? (
+                <Link className="btn btn-secondary" href="/app">
+                  <PlayCircle size={17} aria-hidden="true" />
+                  Ouvrir les espaces démo
+                </Link>
+              ) : null}
             </div>
 
             <div className="hub-stats" aria-label="Chiffres clés du catalogue">

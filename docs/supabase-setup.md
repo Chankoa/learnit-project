@@ -24,18 +24,19 @@ Local development should keep mock data enabled until repositories are migrated:
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
+# Legacy fallback supported temporarily:
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_DATA_SOURCE=mock
 NEXT_PUBLIC_DEMO_MODE=true
 NEXT_PUBLIC_ENABLE_AUTH=true
 NEXT_PUBLIC_ENABLE_ADMIN=true
 ```
 
-Netlify must receive the same public variables in Site configuration > Environment variables.
+Supabase and Vercel now use `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` by preference. `NEXT_PUBLIC_SUPABASE_ANON_KEY` remains supported only as a temporary legacy fallback.
 
-Use `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for new Supabase projects. `NEXT_PUBLIC_SUPABASE_ANON_KEY` remains supported as a legacy fallback.
+The variable names must be identical in `.env.example`, `.env.local`, and Vercel Environment Variables. Their values can differ by environment. Netlify deployments must receive the same public variables in Site configuration > Environment variables.
 
-Do not add a Supabase secret or service role key to public variables. If server-only admin operations become necessary later, use a non-public variable and keep those calls inside Route Handlers or Server Actions.
+Never expose a Supabase `service_role` key through a `NEXT_PUBLIC_*` variable. If server-only admin operations become necessary later, use a non-public variable and keep those calls inside Route Handlers or Server Actions.
 
 ## Supabase project checklist
 

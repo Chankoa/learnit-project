@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { LogoMark } from "@/components/ui/LogoMark";
+import { isDemoMode } from "@/lib/config/features";
 import { publicNavigation } from "@/lib/navigation";
 import { getSiteConfig } from "@/lib/site";
 
@@ -30,20 +31,22 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
-            <h2 className="text-sm font-extrabold uppercase text-white">Démo</h2>
-            <p className="mt-4 text-sm text-slate-300">
-              Accédez aux espaces multi-rôles ou consultez les limites du mode démonstration.
-            </p>
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <Link className="btn btn-primary w-full sm:w-auto" href="/app">
-                Accéder à la démo
-              </Link>
-              <Link className="btn btn-secondary w-full sm:w-auto" href="/demo">
-                Limites démo
-              </Link>
+          {isDemoMode ? (
+            <div>
+              <h2 className="text-sm font-extrabold uppercase text-white">Démo</h2>
+              <p className="mt-4 text-sm text-slate-300">
+                Accédez aux espaces multi-rôles ou consultez les limites du mode démonstration.
+              </p>
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <Link className="btn btn-primary w-full sm:w-auto" href="/app">
+                  Accéder à la démo
+                </Link>
+                <Link className="btn btn-secondary w-full sm:w-auto" href="/demo">
+                  Limites démo
+                </Link>
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
       </div>
 
