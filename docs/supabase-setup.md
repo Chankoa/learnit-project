@@ -23,22 +23,25 @@ Local development should keep mock data enabled until repositories are migrated:
 ```env
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_DATA_SOURCE=mock
 NEXT_PUBLIC_DEMO_MODE=true
-NEXT_PUBLIC_ENABLE_AUTH=false
+NEXT_PUBLIC_ENABLE_AUTH=true
 NEXT_PUBLIC_ENABLE_ADMIN=true
 ```
 
 Netlify must receive the same public variables in Site configuration > Environment variables.
 
-Do not add a Supabase service role key to public variables. If server-only admin operations become necessary later, use a non-public variable and keep those calls inside Route Handlers or Server Actions.
+Use `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for new Supabase projects. `NEXT_PUBLIC_SUPABASE_ANON_KEY` remains supported as a legacy fallback.
+
+Do not add a Supabase secret or service role key to public variables. If server-only admin operations become necessary later, use a non-public variable and keep those calls inside Route Handlers or Server Actions.
 
 ## Supabase project checklist
 
 1. Create a Supabase project for LearnIt V1.
 2. Copy the project URL into `NEXT_PUBLIC_SUPABASE_URL`.
-3. Copy the anon or publishable client key into `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+3. Copy the publishable key into `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 4. Set `NEXT_PUBLIC_ENABLE_AUTH=true` when login/register should be exposed in production.
 5. Keep `NEXT_PUBLIC_DATA_SOURCE=mock` until a repository is explicitly migrated.
 6. Apply the SQL migrations in `supabase/migrations`.

@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import type { ProfileRole } from "@/lib/auth/server";
+import { getSupabaseKey, isSupabaseConfigured } from "@/lib/supabase/config";
 
 type ProtectedRoute = {
   prefix: string;
@@ -17,10 +18,6 @@ const protectedRoutes = [
 
 function getRequiredRole(pathname: string) {
   return protectedRoutes.find((route) => pathname === route.prefix || pathname.startsWith(`${route.prefix}/`))?.role;
-}
-
-function isSupabaseConfigured() {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
 function redirectToLogin(request: NextRequest) {
@@ -67,7 +64,7 @@ export async function proxy(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getSupabaseKey()!,
     {
       cookies: {
         getAll() {
