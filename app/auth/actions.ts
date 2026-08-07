@@ -6,20 +6,12 @@ import { revalidatePath } from "next/cache";
 import { getSiteUrl } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createOptionalClient, isSupabaseConfigured } from "@/lib/supabase/server";
-import type { ProfileRole } from "@/lib/auth/server";
+import { getCurrentProfile, getProfileHomePath, type ProfileRole } from "@/lib/auth/server";
 
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
 
   return typeof value === "string" ? value.trim() : "";
-}
-
-function getSafeNextPath(value: string | null | undefined, fallback = "/app/learner") {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return fallback;
-  }
-
-  return value;
 }
 
 function getAuthRedirectUrl(nextPath: string) {
@@ -42,8 +34,6 @@ function getRequestedRole(formData: FormData): ProfileRole {
 }
 
 export async function loginAction(formData: FormData) {
-  const nextPath = getSafeNextPath(getString(formData, "next"));
-
   if (!isSupabaseConfigured()) {
     redirectWithMessage("/login", "error", "Supabase n'est pas encore configuré pour ce déploiement.");
   }
@@ -67,15 +57,26 @@ export async function loginAction(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage("/login", "error", "Connexion impossible. Vérifiez vos identifiants.");
+    if (error.code === "email_not_confirmed") {
+      redirectWithMessage("/login", "error", "Votre compte n'est pas confirmé. Vérifiez l'email de confirmation envoyé par LearnIt.");
+    }
+
+    redirectWithMessage("/login", "error", "Identifiants invalides. Vérifiez votre email et votre mot de passe.");
+  }
+
+  const profile = await getCurrentProfile();
+
+  if (!profile || profile.status !== "active") {
+    await supabase.auth.signOut();
+    redirectWithMessage("/login", "error", "Accès refusé : ce compte n'est pas autorisé à accéder à la plateforme.");
   }
 
   revalidatePath("/", "layout");
-  redirect(nextPath);
+  redirect(getProfileHomePath(profile.role));
 }
 
 export async function registerAction(formData: FormData) {
-  const nextPath = getSafeNextPath(getString(formData, "next"));
+  const nextPath = "/app/learner";
 
   if (!isSupabaseConfigured()) {
     redirectWithMessage("/register", "error", "Supabase n'est pas encore configuré pour ce déploiement.");

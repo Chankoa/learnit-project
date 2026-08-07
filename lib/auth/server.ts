@@ -46,11 +46,19 @@ function canAccessRole(profileRole: ProfileRole, requiredRole: UserRole) {
     return true;
   }
 
-  if (profileRole === "admin") {
-    return true;
-  }
-
   return profileRole === requiredRole;
+}
+
+export function getProfileHomePath(role: ProfileRole) {
+  switch (role) {
+    case "teacher":
+      return "/app/teacher";
+    case "admin":
+      return "/app/admin";
+    case "learner":
+    default:
+      return "/app/learner";
+  }
 }
 
 function mapProfile(rawProfile: RawProfile, user: SupabaseUser): CurrentProfile | null {

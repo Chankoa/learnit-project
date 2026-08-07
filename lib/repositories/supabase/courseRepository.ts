@@ -37,6 +37,10 @@ type CourseRow = {
   domains: DomainRow | null;
 };
 
+type CourseRowWithDomainRelation = Omit<CourseRow, "domains"> & {
+  domains: DomainRow | DomainRow[] | null;
+};
+
 type ModuleRow = {
   id: string;
   course_id: string;
@@ -182,9 +186,10 @@ export async function getCourses(lookup?: CourseLookup): Promise<Course[]> {
     throw new Error(`Unable to read LMS courses: ${courseError.message}`);
   }
 
-  const courseRows = (courseData as unknown as Array<Omit<CourseRow, "domains"> & { domains: DomainRow[] | null }>).map(
-    (course) => ({ ...course, domains: course.domains?.[0] ?? null })
-  );
+  const courseRows = (courseData as unknown as CourseRowWithDomainRelation[]).map((course) => ({
+    ...course,
+    domains: Array.isArray(course.domains) ? course.domains[0] ?? null : course.domains
+  }));
 
   if (courseRows.length === 0) {
     return [];

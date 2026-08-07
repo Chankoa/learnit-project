@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { loginAction } from "@/app/auth/actions";
+import { LoginForm } from "@/components/auth/LoginForm";
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -39,20 +39,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         {params?.error ? <p className="auth-alert" role="alert">{params.error}</p> : null}
         {params?.message ? <p className="auth-alert auth-alert--success">{params.message}</p> : null}
 
-        <form action={loginAction} className="auth-form">
-          <input name="next" type="hidden" value={nextPath} />
-          <label>
-            <span>Email</span>
-            <input name="email" type="email" autoComplete="email" required />
-          </label>
-          <label>
-            <span>Mot de passe</span>
-            <input name="password" type="password" autoComplete="current-password" required />
-          </label>
-          <button className="btn btn-primary" type="submit">
-            Se connecter
-          </button>
-        </form>
+        <LoginForm nextPath={nextPath} />
 
         <p className="auth-card__footer">
           Pas encore de compte ? <Link href={`/register?next=${encodeURIComponent(nextPath)}`}>Créer un compte</Link>
