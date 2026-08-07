@@ -123,6 +123,16 @@ Implemented in this phase:
 - SQL migrations for `profiles` and the minimal LMS schema
 - seed script for the current mock formations
 
+## Current Sprint 4 scope
+
+Implemented read-only LMS access when `NEXT_PUBLIC_DATA_SOURCE=supabase`:
+
+- public home catalogue, catalogue, domain, course and curriculum pages read `domains`, `courses`, `course_modules`, `lessons` and `resources` through server-side Supabase repositories
+- database rows are mapped to the existing application types before reaching UI components
+- mock remains the explicit source when `NEXT_PUBLIC_DATA_SOURCE=mock`
+
+Enrollments, progress, notes, favorites, certificates, teacher CRUD and the `/learn` progression routes remain mock/local until their dedicated migration sprints.
+
 Still intentionally deferred:
 
 - replacing course, progress, note and favorite repositories with Supabase reads/writes

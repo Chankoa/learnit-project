@@ -50,6 +50,10 @@ Account deletion is a Server Action. It verifies the active Supabase session and
 
 The existing schema handles dependent profile data without a new migration: deleting `auth.users` cascades to `profiles`, then to `enrollments`, `lesson_progress`, `notes`, and `favorites`. `courses.teacher_id` and `resources.created_by` are set to `NULL`; course, module, lesson, resource, and domain records are retained. Review these retention rules before deleting production accounts.
 
+## LMS read layer
+
+When `NEXT_PUBLIC_DATA_SOURCE=supabase`, the public catalogue, domain, course and curriculum pages read LMS content from Supabase with the publishable key and RLS. See `docs/lms-read-layer.md` for backend selection, mapper coverage, and the current resource seed limitation.
+
 ## Supabase project checklist
 
 1. Create a Supabase project for LearnIt V1.

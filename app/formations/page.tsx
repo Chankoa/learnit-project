@@ -4,8 +4,7 @@ import { ArrowRight, BookOpen, Layers3, Search } from "lucide-react";
 
 import { getCourseLessonCount } from "@/components/catalog/CourseCard";
 import { CourseCatalog } from "@/components/courses/CourseCatalog";
-import { getCatalogCourses } from "@/lib/courses";
-import { getAllDomains } from "@/lib/domains";
+import { getLmsCatalog, getLmsDataSource } from "@/lib/lms";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
@@ -15,9 +14,10 @@ export const metadata: Metadata = createPageMetadata({
   path: "/formations"
 });
 
-export default function FormationsPage() {
-  const courses = getCatalogCourses();
-  const domains = getAllDomains();
+export const dynamic = "force-dynamic";
+
+export default async function FormationsPage() {
+  const [courses, domains] = await Promise.all([getLmsCatalog(), getLmsDataSource().getDomains()]);
   const totalModules = courses.reduce((total, course) => total + course.modules.length, 0);
   const totalLessons = courses.reduce((total, course) => total + getCourseLessonCount(course), 0);
 

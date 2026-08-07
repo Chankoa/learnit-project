@@ -17,9 +17,8 @@ import {
 import { FeaturedCourse } from "@/components/catalog/FeaturedCourse";
 import { getCourseLessonCount } from "@/components/catalog/CourseCard";
 import { CourseCatalog } from "@/components/courses/CourseCatalog";
-import { getCatalogCourses, getFeaturedCourses } from "@/lib/courses";
 import { isDemoMode } from "@/lib/config/features";
-import { getAllDomains } from "@/lib/domains";
+import { getLmsCatalog, getLmsDataSource } from "@/lib/lms";
 import { createPageMetadata } from "@/lib/seo";
 import type { Course, Domain } from "@/types/course";
 
@@ -68,10 +67,14 @@ function DomainCard({ domain }: { domain: Domain }) {
   );
 }
 
-export default function HomePage() {
-  const domains = getAllDomains();
-  const catalogCourses = getCatalogCourses();
-  const featuredCourses = getFeaturedCourses();
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const [domains, catalogCourses] = await Promise.all([
+    getLmsDataSource().getDomains(),
+    getLmsCatalog()
+  ]);
+  const featuredCourses = catalogCourses.filter((course) => course.featured);
   const featuredCourse = featuredCourses[0] ?? catalogCourses[0];
   const totalModules = catalogCourses.reduce((total, course) => total + course.modules.length, 0);
   const totalLessons = getTotalLessons(catalogCourses);

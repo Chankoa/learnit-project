@@ -5,8 +5,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Clapperboard, Code2, Layers } from "lu
 import { notFound } from "next/navigation";
 
 import { CourseGrid } from "@/components/catalog/CourseGrid";
-import { getCatalogCoursesByDomain } from "@/lib/courses";
-import { getDomainBySlug, getDomainStaticParams } from "@/lib/domains";
+import { getLmsCatalog, getLmsDataSource } from "@/lib/lms";
 import { createPageMetadata } from "@/lib/seo";
 
 type DomainPageProps = {
@@ -15,13 +14,11 @@ type DomainPageProps = {
   }>;
 };
 
-export function generateStaticParams() {
-  return getDomainStaticParams();
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: DomainPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const domain = getDomainBySlug(slug);
+  const domain = (await getLmsDataSource().getDomains()).find((item) => item.slug === slug);
 
   if (!domain) {
     return {
@@ -41,13 +38,14 @@ export async function generateMetadata({ params }: DomainPageProps): Promise<Met
 
 export default async function DomainPage({ params }: DomainPageProps) {
   const { slug } = await params;
-  const domain = getDomainBySlug(slug);
+  const [domains, courses] = await Promise.all([getLmsDataSource().getDomains(), getLmsCatalog()]);
+  const domain = domains.find((item) => item.slug === slug);
 
   if (!domain) {
     notFound();
   }
 
-  const domainCourses = getCatalogCoursesByDomain(domain.id);
+  const domainCourses = courses.filter((course) => course.domain.id === domain.id);
   const totalModules = domainCourses.reduce((total, course) => total + course.modules.length, 0);
   const totalLessons = domainCourses.reduce(
     (total, course) => total + course.modules.reduce((lessonTotal, module) => lessonTotal + module.lessons.length, 0),

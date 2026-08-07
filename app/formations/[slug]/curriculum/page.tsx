@@ -6,13 +6,9 @@ import { notFound } from "next/navigation";
 import { CourseCurriculum } from "@/components/course/CourseCurriculum";
 import { CourseRecommendations } from "@/components/course/CourseRecommendations";
 import {
-  getCatalogCourseBySlug,
-  getCatalogCourseStaticParams,
-  getCourseLessons,
-  getCourseModules,
-  getOtherCatalogCoursesInSameDomain,
-  getRelatedCourses
-} from "@/lib/courses";
+  getLmsCatalog,
+  getLmsCatalogCourse
+} from "@/lib/lms";
 import { createPageMetadata } from "@/lib/seo";
 
 type CurriculumPageProps = {
@@ -21,15 +17,11 @@ type CurriculumPageProps = {
   }>;
 };
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return getCatalogCourseStaticParams();
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: CurriculumPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const course = getCatalogCourseBySlug(slug);
+  const course = await getLmsCatalogCourse(slug);
 
   if (!course) {
     return {
@@ -47,20 +39,22 @@ export async function generateMetadata({ params }: CurriculumPageProps): Promise
 
 export default async function CurriculumPage({ params }: CurriculumPageProps) {
   const { slug } = await params;
-  const course = getCatalogCourseBySlug(slug);
+  const [course, catalogCourses] = await Promise.all([getLmsCatalogCourse(slug), getLmsCatalog()]);
 
   if (!course) {
     notFound();
   }
 
-  const modules = getCourseModules(course.id);
-  const lessons = getCourseLessons(course.id);
+  const modules = course.modules;
+  const lessons = modules.flatMap((module) => module.lessons);
   const hasFullCoursePage = course.status === "published" && course.availability === "complete";
   const backHref = hasFullCoursePage ? `/formations/${course.slug}` : `/domaines/${course.domain.slug}`;
-  const domainCourses = getOtherCatalogCoursesInSameDomain(course.id, 2);
+  const domainCourses = catalogCourses
+    .filter((candidate) => candidate.domain.id === course.domain.id && candidate.id !== course.id)
+    .slice(0, 2);
   const domainCourseIds = new Set(domainCourses.map((domainCourse) => domainCourse.id));
-  const relatedCourses = getRelatedCourses(course.id, 3)
-    .filter((relatedCourse) => !domainCourseIds.has(relatedCourse.id))
+  const relatedCourses = catalogCourses
+    .filter((candidate) => candidate.id !== course.id && !domainCourseIds.has(candidate.id))
     .slice(0, 2);
 
   return (
