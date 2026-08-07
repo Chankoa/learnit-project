@@ -63,7 +63,7 @@ function mapProfile(rawProfile: RawProfile, user: SupabaseUser): CurrentProfile 
   return {
     id: rawProfile.id,
     userId: rawProfile.id,
-    email: rawProfile.email ?? user.email ?? "",
+    email: user.email ?? rawProfile.email ?? "",
     name: rawProfile.name ?? user.email ?? "Utilisateur LearnIt",
     avatarUrl: rawProfile.avatar_url ?? undefined,
     role,

@@ -12,6 +12,7 @@ import {
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
+import { getCurrentProfile } from "@/lib/auth/server";
 import {
   formatTeacherDateTime,
   getTeacherDashboardData,
@@ -26,8 +27,9 @@ export const metadata: Metadata = createPageMetadata({
   noIndex: true
 });
 
-export default function TeacherAppPage() {
+export default async function TeacherAppPage() {
   const dashboard = getTeacherDashboardData();
+  const profile = await getCurrentProfile();
 
   return (
     <div className="app-page teacher-page">
@@ -40,7 +42,7 @@ export default function TeacherAppPage() {
 
       <AppPageHeader
         eyebrow="Tableau de bord enseignant"
-        title={`Bonjour ${dashboard.teacher.firstName}`}
+        title={`Bonjour ${profile?.name ?? "Utilisateur LearnIt"}`}
         description="Pilotez vos formations, surveillez les brouillons, suivez les ressources publiées et gardez un œil sur les apprenants inscrits."
         actions={
           <Link className="btn btn-primary" href="/app/teacher/courses/new">

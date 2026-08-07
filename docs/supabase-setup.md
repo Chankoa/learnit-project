@@ -26,6 +26,8 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 # Legacy fallback supported temporarily:
 # NEXT_PUBLIC_SUPABASE_ANON_KEY=
+# Server-only. Never expose with NEXT_PUBLIC_*.
+SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_DATA_SOURCE=mock
 NEXT_PUBLIC_DEMO_MODE=true
 NEXT_PUBLIC_ENABLE_AUTH=true
@@ -36,7 +38,17 @@ Supabase and Vercel now use `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` by preference
 
 The variable names must be identical in `.env.example`, `.env.local`, and Vercel Environment Variables. Their values can differ by environment. Netlify deployments must receive the same public variables in Site configuration > Environment variables.
 
-Never expose a Supabase `service_role` key through a `NEXT_PUBLIC_*` variable. If server-only admin operations become necessary later, use a non-public variable and keep those calls inside Route Handlers or Server Actions.
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is the public key used by browser and session-aware server clients. `SUPABASE_SERVICE_ROLE_KEY` is server-only and is used solely by `lib/supabase/admin.ts` for sensitive operations such as account deletion. Never expose a Supabase `service_role` key through a `NEXT_PUBLIC_*` variable, include it in client-side code, or log it.
+
+## Account management and deletion
+
+`/app/profile` lets an authenticated user update only `profiles.name` and `profiles.avatar_url`. Email and password changes go through Supabase Auth with `auth.updateUser`; the displayed email is read from `auth.users`, which remains the source of truth after email confirmation. The `202608070002_sync_profile_email.sql` trigger synchronizes `profiles.email` only after Auth applies the change. Roles and statuses are read-only in the UI and remain protected by the `profiles` RLS column privileges.
+
+Public registration can create only learner or teacher profiles. Admin profiles must be provisioned by a trusted server-side workflow; the `202608070001_prevent_admin_self_assignment.sql` migration prevents an `admin` value in Auth user metadata from becoming a profile role.
+
+Account deletion is a Server Action. It verifies the active Supabase session and that the submitted user ID matches that session before using the server-only admin client to call `auth.admin.deleteUser`. The operation requires `SUPABASE_SERVICE_ROLE_KEY` and fails safely when it is absent.
+
+The existing schema handles dependent profile data without a new migration: deleting `auth.users` cascades to `profiles`, then to `enrollments`, `lesson_progress`, `notes`, and `favorites`. `courses.teacher_id` and `resources.created_by` are set to `NULL`; course, module, lesson, resource, and domain records are retained. Review these retention rules before deleting production accounts.
 
 ## Supabase project checklist
 

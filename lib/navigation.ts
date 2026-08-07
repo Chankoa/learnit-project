@@ -135,10 +135,10 @@ export const learnerNavigation = [
   },
   {
     label: "Profil",
-    href: "/app/learner#profil",
+    href: "/app/profile",
     icon: UserCircle,
     role: "learner",
-    isActive: inactiveAnchor
+    isActive: (pathname) => pathname === "/app/profile"
   }
 ] satisfies NavigationItem[];
 
@@ -188,6 +188,13 @@ export const teacherNavigation = [
     icon: Users,
     role: "teacher",
     isActive: (pathname) => pathname === "/app/teacher/students"
+  },
+  {
+    label: "Profil",
+    href: "/app/profile",
+    icon: UserCircle,
+    role: "teacher",
+    isActive: (pathname) => pathname === "/app/profile"
   }
 ] satisfies NavigationItem[];
 
@@ -233,6 +240,13 @@ export const adminNavigation = [
     icon: Settings,
     role: "admin",
     isActive: (pathname) => pathname === "/app/admin/settings"
+  },
+  {
+    label: "Profil",
+    href: "/app/profile",
+    icon: UserCircle,
+    role: "admin",
+    isActive: (pathname) => pathname === "/app/profile"
   }
 ] satisfies NavigationItem[];
 

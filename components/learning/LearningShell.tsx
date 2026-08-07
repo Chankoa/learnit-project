@@ -18,6 +18,11 @@ import type { ReactNode } from "react";
 type LearningShellProps = {
   children: ReactNode;
   learner: LearnerProfile;
+  identity?: {
+    name: string;
+    initials: string;
+    avatarUrl?: string;
+  };
   pageTitle: string;
   variant?: "default" | "lesson";
 };
@@ -25,6 +30,7 @@ type LearningShellProps = {
 export function LearningShell({
   children,
   learner,
+  identity,
   pageTitle,
   variant = "default"
 }: LearningShellProps) {
@@ -63,9 +69,9 @@ export function LearningShell({
             Retour au site
           </Link>
           <div className="learning-profile learning-profile--sidebar">
-            <span>{learner.initials}</span>
+            <span>{identity?.avatarUrl ? <img alt="" src={identity.avatarUrl} /> : identity?.initials ?? learner.initials}</span>
             <div>
-              <strong>{learner.displayName}</strong>
+              <strong>{identity?.name ?? learner.displayName}</strong>
               <small>Compte apprenant</small>
             </div>
           </div>
@@ -98,9 +104,9 @@ export function LearningShell({
           <div className="learning-header__actions">
             <ThemeToggle />
             <div className="learning-profile">
-              <span>{learner.initials}</span>
+              <span>{identity?.avatarUrl ? <img alt="" src={identity.avatarUrl} /> : identity?.initials ?? learner.initials}</span>
               <div>
-                <strong>{learner.firstName}</strong>
+                <strong>{identity?.name ?? learner.firstName}</strong>
                 <small>Apprenant</small>
               </div>
             </div>

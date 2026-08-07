@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { getSiteUrl } from "@/lib/seo";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createOptionalClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { ProfileRole } from "@/lib/auth/server";
 
@@ -37,7 +38,7 @@ function redirectWithMessage(path: string, key: "error" | "message", message: st
 function getRequestedRole(formData: FormData): ProfileRole {
   const role = getString(formData, "role");
 
-  return role === "teacher" || role === "admin" ? role : "learner";
+  return role === "teacher" ? role : "learner";
 }
 
 export async function loginAction(formData: FormData) {
@@ -137,4 +138,133 @@ export async function logoutAction() {
 
   revalidatePath("/", "layout");
   redirect("/login?message=Session déconnectée.");
+}
+
+function redirectToProfile(key: "error" | "message", message: string): never {
+  redirect(`/app/profile?${key}=${encodeURIComponent(message)}`);
+}
+
+async function getAuthenticatedClient() {
+  const supabase = await createOptionalClient();
+
+  if (!supabase) {
+    redirectToProfile("error", "Configuration Supabase manquante.");
+  }
+
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error || !data.user) {
+    redirect("/login?next=%2Fapp%2Fprofile");
+  }
+
+  return { supabase, user: data.user };
+}
+
+export async function updateProfileAction(formData: FormData) {
+  const name = getString(formData, "name");
+  const avatarUrl = getString(formData, "avatarUrl");
+
+  if (!name || name.length > 80) {
+    redirectToProfile("error", "Le nom doit contenir entre 1 et 80 caractères.");
+  }
+
+  if (avatarUrl) {
+    try {
+      const url = new URL(avatarUrl);
+
+      if (url.protocol !== "https:" && url.protocol !== "http:") {
+        throw new Error("Invalid avatar URL protocol");
+      }
+    } catch {
+      redirectToProfile("error", "L'URL de l'avatar doit être une adresse HTTP(S) valide.");
+    }
+  }
+
+  const { supabase, user } = await getAuthenticatedClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ name, avatar_url: avatarUrl || null })
+    .eq("id", user.id);
+
+  if (error) {
+    redirectToProfile("error", "La mise à jour du profil a échoué.");
+  }
+
+  revalidatePath("/app/profile");
+  revalidatePath("/app", "layout");
+  redirectToProfile("message", "Profil mis à jour.");
+}
+
+export async function updateEmailAction(formData: FormData) {
+  const email = getString(formData, "email").toLowerCase();
+
+  if (!email || !email.includes("@")) {
+    redirectToProfile("error", "Saisissez une adresse email valide.");
+  }
+
+  const { supabase } = await getAuthenticatedClient();
+  const { error } = await supabase.auth.updateUser(
+    { email },
+    { emailRedirectTo: getAuthRedirectUrl("/app/profile") }
+  );
+
+  if (error) {
+    redirectToProfile("error", "La modification de l'email a échoué.");
+  }
+
+  revalidatePath("/app/profile");
+  redirectToProfile("message", "Vérifiez votre boîte email pour confirmer cette modification si Supabase le demande.");
+}
+
+export async function updatePasswordAction(formData: FormData) {
+  const password = getString(formData, "password");
+  const passwordConfirmation = getString(formData, "passwordConfirmation");
+
+  if (password.length < 8) {
+    redirectToProfile("error", "Le mot de passe doit contenir au moins 8 caractères.");
+  }
+
+  if (password !== passwordConfirmation) {
+    redirectToProfile("error", "La confirmation du mot de passe ne correspond pas.");
+  }
+
+  const { supabase } = await getAuthenticatedClient();
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    redirectToProfile("error", "La modification du mot de passe a échoué.");
+  }
+
+  redirectToProfile("message", "Mot de passe mis à jour.");
+}
+
+export async function deleteAccountAction(formData: FormData) {
+  const confirmation = getString(formData, "confirmation");
+  const requestedUserId = getString(formData, "userId");
+
+  if (confirmation !== "SUPPRIMER") {
+    redirectToProfile("error", "Saisissez SUPPRIMER pour confirmer la suppression.");
+  }
+
+  const { supabase, user } = await getAuthenticatedClient();
+
+  if (requestedUserId !== user.id) {
+    redirectToProfile("error", "La demande de suppression ne correspond pas à la session active.");
+  }
+
+  const adminClient = createAdminClient();
+
+  if (!adminClient) {
+    redirectToProfile("error", "La suppression de compte n'est pas configurée pour ce déploiement.");
+  }
+
+  const { error } = await adminClient.auth.admin.deleteUser(user.id);
+
+  if (error) {
+    redirectToProfile("error", "La suppression du compte a échoué.");
+  }
+
+  await supabase.auth.signOut();
+  revalidatePath("/", "layout");
+  redirect("/login?message=Compte supprimé définitivement.");
 }

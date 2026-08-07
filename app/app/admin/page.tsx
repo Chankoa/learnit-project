@@ -12,6 +12,7 @@ import {
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
+import { getCurrentProfile } from "@/lib/auth/server";
 import {
   formatAdminDateTime,
   getAdminDashboardData
@@ -25,8 +26,9 @@ export const metadata: Metadata = createPageMetadata({
   noIndex: true
 });
 
-export default function AdminAppPage() {
+export default async function AdminAppPage() {
   const dashboard = getAdminDashboardData();
+  const profile = await getCurrentProfile();
 
   return (
     <div className="app-page admin-page">
@@ -39,7 +41,7 @@ export default function AdminAppPage() {
 
       <AppPageHeader
         eyebrow="Supervision globale"
-        title="Administration LearnIt"
+        title={`Bonjour ${profile?.name ?? "Utilisateur LearnIt"}`}
         description="Suivez l'état de la plateforme, les utilisateurs, les formations, les domaines actifs et les dernières opérations."
         actions={
           <Link className="btn btn-primary" href="/app/admin/courses">

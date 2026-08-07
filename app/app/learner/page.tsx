@@ -22,6 +22,7 @@ import { formatCourseDuration } from "@/components/catalog/CourseCard";
 import { LearnerLocalProgressStrip } from "@/components/learning/LearnerLocalProgressStrip";
 import { ResumeCourseButton } from "@/components/learning/ResumeCourseButton";
 import { getCourseLessons } from "@/lib/courses";
+import { getCurrentProfile } from "@/lib/auth/server";
 import {
   certificateStatusLabels,
   formatLearnerDate,
@@ -45,8 +46,9 @@ const deliverableStatusLabels: Record<DeliverableStatus, string> = {
   submitted: "Envoyé"
 };
 
-export default function LearnerAppPage() {
+export default async function LearnerAppPage() {
   const dashboard = getLearnerDashboardData();
+  const profile = await getCurrentProfile();
   const nextLesson = dashboard.nextCourse?.nextLesson ?? dashboard.nextCourse?.currentLesson;
   const resumeCourses = dashboard.courses.map((summary) => ({
     id: summary.course.id,
@@ -71,7 +73,7 @@ export default function LearnerAppPage() {
 
       <AppPageHeader
         eyebrow="Tableau de bord apprenant"
-        title={`Bonjour ${dashboard.learner.firstName}`}
+        title={`Bonjour ${profile?.name ?? "Utilisateur LearnIt"}`}
         description="Votre suivi pédagogique regroupe la progression, les formations actives, les ressources récentes, les travaux attendus et les certificats."
         actions={
           <>

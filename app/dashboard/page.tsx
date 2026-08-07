@@ -16,6 +16,7 @@ import {
 
 import { formatCourseDuration } from "@/components/catalog/CourseCard";
 import { LearningShell } from "@/components/learning/LearningShell";
+import { getCurrentProfile, requireAuth } from "@/lib/auth/server";
 import { getLearnerDashboardData } from "@/lib/progress";
 import { createPageMetadata } from "@/lib/seo";
 import type { DeliverableStatus } from "@/types/learning";
@@ -42,13 +43,29 @@ function formatLastAccessed(value: string) {
   }).format(new Date(value));
 }
 
-export default function DashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  await requireAuth("/dashboard");
   const dashboard = getLearnerDashboardData();
+  const profile = await getCurrentProfile();
   const currentEnrollment = dashboard.currentEnrollment;
   const nextLesson = currentEnrollment?.nextLesson ?? currentEnrollment?.currentLesson;
+  const profileName = profile?.name ?? "Utilisateur LearnIt";
+  const profileInitials = profileName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 
   return (
-    <LearningShell learner={dashboard.learner} pageTitle="Tableau de bord">
+    <LearningShell
+      identity={{ name: profileName, initials: profileInitials, avatarUrl: profile?.avatarUrl }}
+      learner={dashboard.learner}
+      pageTitle="Tableau de bord"
+    >
       <div className="dashboard-page">
         <section className="dashboard-welcome">
           <div>
@@ -56,7 +73,7 @@ export default function DashboardPage() {
               <Sparkles size={15} aria-hidden="true" />
               Reprendre votre progression
             </span>
-            <h2>Bonjour {dashboard.learner.firstName}, prêt à continuer ?</h2>
+            <h2>Bonjour {profileName}, prêt à continuer ?</h2>
             <p>
               Retrouvez votre formation en cours, les prochaines étapes et les livrables à préparer.
             </p>
