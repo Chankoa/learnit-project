@@ -22,6 +22,7 @@ Local development should keep mock data enabled until repositories are migrated:
 
 ```env
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 # Legacy fallback supported temporarily:
@@ -36,9 +37,24 @@ NEXT_PUBLIC_ENABLE_ADMIN=true
 
 Supabase and Vercel now use `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` by preference. `NEXT_PUBLIC_SUPABASE_ANON_KEY` remains supported only as a temporary legacy fallback.
 
-The variable names must be identical in `.env.example`, `.env.local`, and Vercel Environment Variables. Their values can differ by environment. Netlify deployments must receive the same public variables in Site configuration > Environment variables.
+The variable names must be identical in `.env.example`, `.env.local`, and production environment variables. Their values can differ by environment. Netlify deployments must receive the same public variables in Site configuration > Environment variables.
 
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is the public key used by browser and session-aware server clients. `SUPABASE_SERVICE_ROLE_KEY` is server-only and is used solely by `lib/supabase/admin.ts` for sensitive operations such as account deletion. Never expose a Supabase `service_role` key through a `NEXT_PUBLIC_*` variable, include it in client-side code, or log it.
+
+## Auth URL configuration
+
+Supabase Auth must know the URLs that can receive authentication redirects. Configure these in Supabase Dashboard > Authentication > URL Configuration:
+
+- Site URL, local: `http://localhost:3000`
+- Site URL, production: the canonical Netlify or custom domain URL
+- Redirect URL, local callback: `http://localhost:3000/auth/callback`
+- Redirect URL, production callback: `https://<your-site>.netlify.app/auth/callback`
+- Redirect URL, custom domain callback: `https://<your-domain>/auth/callback`
+- Optional Netlify deploy previews: `https://**--<your-site>.netlify.app/auth/callback`
+
+Do not leave production Auth redirects pointing at localhost. `NEXT_PUBLIC_APP_URL` should be the canonical app URL in production. If it is missing on Netlify, `lib/config/runtime.ts` falls back to Netlify-provided `URL` or `DEPLOY_PRIME_URL` for server-side Auth emails, but the explicit variable remains preferred for stable production callbacks.
+
+The `/auth/callback` route calls `exchangeCodeForSession()` and redirects only to safe relative `next` paths. Failed exchanges are logged as `[auth] callback session exchange failed` without logging tokens.
 
 ## Account management and deletion
 
@@ -64,11 +80,12 @@ When `NEXT_PUBLIC_DATA_SOURCE=supabase`, the public catalogue, domain, course an
 6. Apply the SQL migrations in `supabase/migrations`.
 7. Run `supabase/seed.sql` after at least one teacher or admin profile exists if you want seeded courses to receive a `teacher_id`.
 8. Enable Auth providers for email/password in Supabase Auth settings.
-9. Create Storage buckets before wiring uploads:
+9. Configure Auth Site URL and Redirect URLs for local, Netlify production, and any custom domain.
+10. Create Storage buckets before wiring uploads:
    - `course-covers`
    - `resources`
    - `uploads`
-10. Add or review Row Level Security policies before exposing authenticated data.
+11. Add or review Row Level Security policies before exposing authenticated data.
 
 ## Planned tables
 

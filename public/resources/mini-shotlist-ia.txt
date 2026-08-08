@@ -1,0 +1,10 @@
+Mini shotlist IA
+
+Pour chaque plan :
+
+- intention
+- sujet principal
+- cadrage
+- mouvement camera
+- ambiance visuelle
+- duree cible

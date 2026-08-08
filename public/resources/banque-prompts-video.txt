@@ -1,0 +1,10 @@
+Banque de prompts video
+
+Axes de prompts :
+
+- style visuel
+- mouvement camera
+- lumiere
+- rythme
+- transition
+- contraintes negatives

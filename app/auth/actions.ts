@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-import { getSiteUrl } from "@/lib/seo";
+import { getPublicAppUrl } from "@/lib/config/runtime";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createOptionalClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { getCurrentProfile, getProfileHomePath, type ProfileRole } from "@/lib/auth/server";
@@ -15,7 +15,7 @@ function getString(formData: FormData, key: string) {
 }
 
 function getAuthRedirectUrl(nextPath: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || getSiteUrl();
+  const baseUrl = getPublicAppUrl();
   const callbackUrl = new URL("/auth/callback", baseUrl);
 
   callbackUrl.searchParams.set("next", nextPath);

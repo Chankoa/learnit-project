@@ -23,11 +23,11 @@ export function hasRole(user: PermissionUser, role: UserRole) {
 }
 
 export function canAccessLearnerArea(user: PermissionUser) {
-  return isActiveUser(user) && (user.role === "learner" || user.role === "admin");
+  return hasRole(user, "learner");
 }
 
 export function canAccessTeacherArea(user: PermissionUser) {
-  return isActiveUser(user) && (user.role === "teacher" || user.role === "admin");
+  return hasRole(user, "teacher");
 }
 
 export function canAccessAdminArea(user: PermissionUser) {

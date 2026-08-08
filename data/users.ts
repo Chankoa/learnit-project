@@ -9,7 +9,6 @@ export const users = [
     status: "active",
     createdAt: "2026-01-12T09:30:00.000Z",
     lastActiveAt: "2026-06-18T16:42:00.000Z",
-    avatar: "/images/avatars/camille-renaud.png",
     learnerProfile: {
       userId: "user-learner-camille",
       enrolledCourseIds: ["course-web-creation", "course-prompt-design"],
@@ -46,7 +45,6 @@ export const users = [
     status: "pending",
     createdAt: "2026-05-28T08:10:00.000Z",
     lastActiveAt: "2026-06-15T11:20:00.000Z",
-    avatar: "/images/avatars/jules-martin.png",
     learnerProfile: {
       userId: "user-learner-jules",
       enrolledCourseIds: ["course-ai-filmmaking"],
@@ -65,7 +63,6 @@ export const users = [
     status: "active",
     createdAt: "2025-11-19T10:00:00.000Z",
     lastActiveAt: "2026-06-18T14:32:00.000Z",
-    avatar: "/images/avatars/elise-moreau.png",
     teacherProfile: {
       userId: "user-teacher-elise",
       displayName: "Élise M.",

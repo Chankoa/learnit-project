@@ -49,6 +49,23 @@ function canAccessRole(profileRole: ProfileRole, requiredRole: UserRole) {
   return profileRole === requiredRole;
 }
 
+function getAccessDeniedRedirect(reason: string, nextPath: string, profile?: CurrentProfile, requiredRole?: UserRole) {
+  const searchParams = new URLSearchParams();
+
+  searchParams.set("reason", reason);
+  searchParams.set("next", nextPath);
+
+  if (profile?.role) {
+    searchParams.set("current", profile.role);
+  }
+
+  if (requiredRole && requiredRole !== "visitor") {
+    searchParams.set("required", requiredRole);
+  }
+
+  return `/access-denied?${searchParams.toString()}`;
+}
+
 export function getProfileHomePath(role: ProfileRole) {
   switch (role) {
     case "teacher":
@@ -92,6 +109,7 @@ export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser();
 
   if (error) {
+    console.error("[auth] user lookup failed", error);
     return null;
   }
 
@@ -108,6 +126,10 @@ export async function getCurrentProfile() {
   const { data: userData, error: userError } = await supabase.auth.getUser();
 
   if (userError || !userData.user) {
+    if (userError) {
+      console.error("[auth] profile user lookup failed", userError);
+    }
+
     return null;
   }
 
@@ -118,10 +140,20 @@ export async function getCurrentProfile() {
     .maybeSingle();
 
   if (error || !data) {
+    if (error) {
+      console.error("[auth] profile lookup failed", error);
+    }
+
     return null;
   }
 
-  return mapProfile(data as RawProfile, userData.user);
+  const profile = mapProfile(data as RawProfile, userData.user);
+
+  if (!profile) {
+    console.error("[auth] profile role invalid", { userId: userData.user.id });
+  }
+
+  return profile;
 }
 
 export async function requireAuth(nextPath = "/app/learner") {
@@ -139,16 +171,16 @@ export async function requireRole(requiredRole: UserRole, nextPath = "/app/learn
 
   const profile = await getCurrentProfile();
 
-  if (!profile || profile.status !== "active") {
-    redirect(`/access-denied?reason=profile&next=${encodeURIComponent(nextPath)}`);
+  if (!profile) {
+    redirect(getAccessDeniedRedirect("profile", nextPath));
+  }
+
+  if (profile.status !== "active") {
+    redirect(getAccessDeniedRedirect("status", nextPath, profile, requiredRole));
   }
 
   if (!canAccessRole(profile.role, requiredRole)) {
-    redirect(
-      `/access-denied?required=${encodeURIComponent(requiredRole)}&current=${encodeURIComponent(
-        profile.role
-      )}&next=${encodeURIComponent(nextPath)}`
-    );
+    redirect(getAccessDeniedRedirect("role", nextPath, profile, requiredRole));
   }
 
   return profile;

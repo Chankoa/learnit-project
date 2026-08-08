@@ -1,0 +1,8 @@
+Checklist du brief projet
+
+- Objectif principal du site
+- Public cible
+- Pages attendues
+- Ton editorial
+- Contraintes techniques
+- Critere de validation final

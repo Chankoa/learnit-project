@@ -1,0 +1,10 @@
+Guide du projet final web
+
+Livrables attendus :
+
+- brief synthetique
+- arborescence
+- page responsive
+- controle accessibilite de base
+- lien de deploiement
+- courte note de retrospective

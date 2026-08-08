@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import {
   ArrowRight,
   CheckCircle2,
@@ -15,7 +14,6 @@ import {
 } from "lucide-react";
 
 import { createPageMetadata } from "@/lib/seo";
-import { isDemoMode } from "@/lib/config/features";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Documentation du mode démo",
@@ -79,10 +77,6 @@ const roles = [
 ];
 
 export default function DemoDocumentationPage() {
-  if (!isDemoMode) {
-    notFound();
-  }
-
   return (
     <>
       <section className="section-shell page-hero demo-doc-hero">

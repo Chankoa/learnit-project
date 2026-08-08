@@ -1,0 +1,9 @@
+Starter Next.js LearnIt
+
+Ce support de demonstration liste la structure cible :
+
+- App Router
+- TypeScript
+- composants UI reutilisables
+- routes publiques et connectees
+- preparation Netlify

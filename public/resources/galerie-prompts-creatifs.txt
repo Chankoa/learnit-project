@@ -1,0 +1,9 @@
+Galerie d'inspiration prompts
+
+Comparer chaque prompt avec :
+
+- intention creative
+- niveau de precision
+- contraintes ajoutees
+- resultat attendu
+- iteration suivante

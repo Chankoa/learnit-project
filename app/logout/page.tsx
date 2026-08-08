@@ -24,7 +24,7 @@ export default function LogoutPage() {
         </form>
 
         <p className="auth-card__footer">
-          <Link href="/app/learner">Retour à l'espace apprenant</Link>
+          <Link href="/app">Retour à mon espace</Link>
         </p>
       </section>
     </main>

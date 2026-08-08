@@ -1,0 +1,8 @@
+Checklist mise en ligne
+
+- Build local valide
+- Routes critiques testees
+- Images et ressources presentes
+- Meta titres et descriptions relus
+- Variables d'environnement configurees
+- Aucun redirect SPA catch-all

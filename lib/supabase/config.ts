@@ -22,6 +22,10 @@ export function getSupabaseConfig() {
   };
 }
 
+export function assertSupabaseConfig() {
+  return getSupabaseConfig();
+}
+
 export function isSupabaseConfigured() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && getSupabaseKey());
 }

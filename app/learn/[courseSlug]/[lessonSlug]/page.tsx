@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { CompletionButton } from "@/components/learning/CompletionButton";
 import { ExerciseBlock } from "@/components/learning/ExerciseBlock";
@@ -51,8 +51,16 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const data = await getLearningCourseState(courseSlug);
   const lesson = data?.lessons.find((item) => item.slug === lessonSlug);
 
-  if (!data || !lesson || !data.enrollment) {
+  if (!data || !lesson) {
     notFound();
+  }
+
+  if (!data.enrollment) {
+    redirect(
+      `/access-denied?reason=resource&current=${encodeURIComponent(profile.role)}&next=${encodeURIComponent(
+        `/learn/${courseSlug}/${lessonSlug}`
+      )}`
+    );
   }
 
   const MdxLesson = getLessonMdxComponent(courseSlug, lessonSlug);

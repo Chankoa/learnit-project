@@ -3,21 +3,22 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import type { ProfileRole } from "@/lib/auth/server";
-import { getSupabaseKey, isSupabaseConfigured } from "@/lib/supabase/config";
+import { getSupabaseConfig, isSupabaseConfigured } from "@/lib/supabase/config";
 
 type ProtectedRoute = {
   prefix: string;
-  role: ProfileRole;
+  role?: ProfileRole;
 };
 
 const protectedRoutes = [
+  { prefix: "/app/profile" },
   { prefix: "/app/learner", role: "learner" },
   { prefix: "/app/teacher", role: "teacher" },
   { prefix: "/app/admin", role: "admin" }
 ] satisfies ProtectedRoute[];
 
-function getRequiredRole(pathname: string) {
-  return protectedRoutes.find((route) => pathname === route.prefix || pathname.startsWith(`${route.prefix}/`))?.role;
+function getProtectedRoute(pathname: string) {
+  return protectedRoutes.find((route) => pathname === route.prefix || pathname.startsWith(`${route.prefix}/`));
 }
 
 function redirectToLogin(request: NextRequest) {
@@ -27,10 +28,25 @@ function redirectToLogin(request: NextRequest) {
   return NextResponse.redirect(loginUrl);
 }
 
-function redirectToAccessDenied(request: NextRequest, requiredRole: ProfileRole, currentRole?: string) {
+function redirectToAccessDenied(
+  request: NextRequest,
+  {
+    currentRole,
+    reason,
+    requiredRole
+  }: {
+    currentRole?: string;
+    reason: "profile" | "role" | "status";
+    requiredRole?: ProfileRole;
+  }
+) {
   const accessDeniedUrl = new URL("/access-denied", request.url);
-  accessDeniedUrl.searchParams.set("required", requiredRole);
+  accessDeniedUrl.searchParams.set("reason", reason);
   accessDeniedUrl.searchParams.set("next", request.nextUrl.pathname);
+
+  if (requiredRole) {
+    accessDeniedUrl.searchParams.set("required", requiredRole);
+  }
 
   if (currentRole) {
     accessDeniedUrl.searchParams.set("current", currentRole);
@@ -39,8 +55,8 @@ function redirectToAccessDenied(request: NextRequest, requiredRole: ProfileRole,
   return NextResponse.redirect(accessDeniedUrl);
 }
 
-function canAccess(requiredRole: ProfileRole, currentRole: string | null | undefined) {
-  if (currentRole === "admin") {
+function canAccess(requiredRole: ProfileRole | undefined, currentRole: string | null | undefined) {
+  if (!requiredRole) {
     return true;
   }
 
@@ -48,9 +64,9 @@ function canAccess(requiredRole: ProfileRole, currentRole: string | null | undef
 }
 
 export async function proxy(request: NextRequest) {
-  const requiredRole = getRequiredRole(request.nextUrl.pathname);
+  const protectedRoute = getProtectedRoute(request.nextUrl.pathname);
 
-  if (!requiredRole) {
+  if (!protectedRoute) {
     return NextResponse.next();
   }
 
@@ -58,38 +74,39 @@ export async function proxy(request: NextRequest) {
     return redirectToLogin(request);
   }
 
+  const { supabaseKey, supabaseUrl } = getSupabaseConfig();
   let response = NextResponse.next({
     request
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    getSupabaseKey()!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value);
-          });
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value);
+        });
 
-          response = NextResponse.next({
-            request
-          });
+        response = NextResponse.next({
+          request
+        });
 
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
-        }
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
       }
     }
-  );
+  });
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
 
   if (userError || !userData.user) {
+    if (userError) {
+      console.error("[auth] proxy user lookup failed", userError);
+    }
+
     return redirectToLogin(request);
   }
 
@@ -99,17 +116,34 @@ export async function proxy(request: NextRequest) {
     .eq("id", userData.user.id)
     .maybeSingle();
 
-  if (profileError || !profile || profile.status !== "active") {
-    return redirectToAccessDenied(request, requiredRole);
+  if (profileError) {
+    console.error("[auth] proxy profile lookup failed", profileError);
+    return redirectToAccessDenied(request, { reason: "profile", requiredRole: protectedRoute.role });
   }
 
-  if (!canAccess(requiredRole, profile.role)) {
-    return redirectToAccessDenied(request, requiredRole, profile.role ?? undefined);
+  if (!profile) {
+    return redirectToAccessDenied(request, { reason: "profile", requiredRole: protectedRoute.role });
+  }
+
+  if (profile.status !== "active") {
+    return redirectToAccessDenied(request, {
+      currentRole: profile.role ?? undefined,
+      reason: "status",
+      requiredRole: protectedRoute.role
+    });
+  }
+
+  if (!canAccess(protectedRoute.role, profile.role)) {
+    return redirectToAccessDenied(request, {
+      currentRole: profile.role ?? undefined,
+      reason: "role",
+      requiredRole: protectedRoute.role
+    });
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/app/learner/:path*", "/app/teacher/:path*", "/app/admin/:path*"]
+  matcher: ["/app/profile", "/app/learner/:path*", "/app/teacher/:path*", "/app/admin/:path*"]
 };

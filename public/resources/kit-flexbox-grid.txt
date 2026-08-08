@@ -1,0 +1,8 @@
+Kit Flexbox et Grid
+
+Exercices proposes :
+
+- Creer une grille responsive de cartes
+- Aligner une barre d'actions
+- Gerer une mise en page deux colonnes
+- Tester les ruptures mobile et desktop

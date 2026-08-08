@@ -25,6 +25,8 @@ export async function GET(request: Request) {
       if (!error) {
         return NextResponse.redirect(redirectUrl);
       }
+
+      console.error("[auth] callback session exchange failed", error);
     }
   }
 

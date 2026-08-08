@@ -1,0 +1,9 @@
+Memo HTML essentiel
+
+Balises a verifier dans chaque page :
+
+- header, main, section, article, footer
+- h1 unique et hierarchie de titres coherente
+- liens explicites
+- textes alternatifs pour les images utiles
+- formulaires avec labels visibles
