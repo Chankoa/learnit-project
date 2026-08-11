@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { loginAction } from "@/app/auth/actions";
+import { AuthSubmitButton } from "@/components/auth/AuthSubmitButton";
 
 type LoginFormProps = {
   nextPath: string;
@@ -31,9 +32,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         <span>Mot de passe</span>
         <input name="password" type="password" autoComplete="new-password" required />
       </label>
-      <button className="btn btn-primary" type="submit">
-        Se connecter
-      </button>
+      <AuthSubmitButton label="Se connecter" pendingLabel="Connexion..." />
     </form>
   );
 }

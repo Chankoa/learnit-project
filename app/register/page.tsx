@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { registerAction } from "@/app/auth/actions";
+import { AuthSubmitButton } from "@/components/auth/AuthSubmitButton";
 import { publicRegistrationRoles } from "@/lib/auth/role-governance";
 
 type RegisterPageProps = {
@@ -62,9 +63,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
               ))}
             </select>
           </label>
-          <button className="btn btn-primary" type="submit">
-            Créer le compte
-          </button>
+          <AuthSubmitButton label="Créer le compte" pendingLabel="Création..." />
         </form>
 
         <p className="auth-card__footer">

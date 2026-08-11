@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import type { AuthError } from "@supabase/supabase-js";
 
 import { getPublicAppUrl } from "@/lib/config/runtime";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -15,6 +16,14 @@ function getString(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function getSafeNextPath(value?: string) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/app";
+  }
+
+  return value;
+}
+
 function getAuthRedirectUrl(nextPath: string) {
   const baseUrl = getPublicAppUrl();
   const callbackUrl = new URL("/auth/callback", baseUrl);
@@ -24,30 +33,99 @@ function getAuthRedirectUrl(nextPath: string) {
   return callbackUrl.toString();
 }
 
+function redirectWithParams(path: string, params: Record<string, string | undefined>): never {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      searchParams.set(key, value);
+    }
+  });
+
+  const query = searchParams.toString();
+
+  redirect(query ? `${path}?${query}` : path);
+}
+
 function redirectWithMessage(path: string, key: "error" | "message", message: string): never {
-  redirect(`${path}?${key}=${encodeURIComponent(message)}`);
+  redirectWithParams(path, { [key]: message });
 }
 
 function getRequestedRole(formData: FormData): ProfileRole {
   return normalizePublicRegistrationRole(getString(formData, "role"));
 }
 
+function getRegistrationNextPath(role: ProfileRole) {
+  return getProfileHomePath(role);
+}
+
+function getAuthErrorDetails(error: AuthError) {
+  return {
+    code: error.code,
+    message: error.message,
+    name: error.name,
+    status: error.status
+  };
+}
+
+function getAuthErrorText(error: AuthError) {
+  return `${error.code ?? ""} ${error.message ?? ""}`.toLowerCase();
+}
+
+function isEmailNotConfirmedError(error: AuthError) {
+  const text = getAuthErrorText(error);
+
+  return error.code === "email_not_confirmed" || text.includes("email not confirmed");
+}
+
+function isRateLimitError(error: AuthError) {
+  const text = getAuthErrorText(error);
+
+  return error.status === 429 || text.includes("rate limit") || text.includes("too many");
+}
+
+function isTemporaryAuthError(error: AuthError) {
+  return typeof error.status === "number" && error.status >= 500;
+}
+
+function isExistingAccountError(error: AuthError) {
+  const text = getAuthErrorText(error);
+
+  return (
+    error.code === "user_already_exists" ||
+    error.code === "email_exists" ||
+    text.includes("already registered") ||
+    text.includes("already exists")
+  );
+}
+
 export async function loginAction(formData: FormData) {
+  const nextPath = getSafeNextPath(getString(formData, "next"));
+
   if (!isSupabaseConfigured()) {
-    redirectWithMessage("/login", "error", "Supabase n'est pas encore configuré pour ce déploiement.");
+    redirectWithParams("/login", {
+      error: "Supabase n'est pas encore configuré pour ce déploiement.",
+      next: nextPath
+    });
   }
 
   const email = getString(formData, "email").toLowerCase();
   const password = getString(formData, "password");
 
   if (!email || !password) {
-    redirectWithMessage("/login", "error", "Email et mot de passe requis.");
+    redirectWithParams("/login", {
+      error: "Email et mot de passe requis.",
+      next: nextPath
+    });
   }
 
   const supabase = await createOptionalClient();
 
   if (!supabase) {
-    redirectWithMessage("/login", "error", "Configuration Supabase manquante.");
+    redirectWithParams("/login", {
+      error: "Configuration Supabase manquante.",
+      next: nextPath
+    });
   }
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -56,18 +134,44 @@ export async function loginAction(formData: FormData) {
   });
 
   if (error) {
-    if (error.code === "email_not_confirmed") {
-      redirectWithMessage("/login", "error", "Votre compte n'est pas confirmé. Vérifiez l'email de confirmation envoyé par LearnIt.");
+    console.error("[auth] login failed", getAuthErrorDetails(error));
+
+    if (isEmailNotConfirmedError(error)) {
+      redirectWithParams("/login", {
+        confirmationEmail: email,
+        error: "Votre adresse email n'est pas confirmée. Vous pouvez demander un nouvel email de confirmation.",
+        next: nextPath
+      });
     }
 
-    redirectWithMessage("/login", "error", "Identifiants invalides. Vérifiez votre email et votre mot de passe.");
+    if (isRateLimitError(error)) {
+      redirectWithParams("/login", {
+        error: "Trop de tentatives. Patientez quelques minutes avant de réessayer.",
+        next: nextPath
+      });
+    }
+
+    if (isTemporaryAuthError(error)) {
+      redirectWithParams("/login", {
+        error: "Le service d'authentification est temporairement indisponible. Réessayez dans quelques minutes.",
+        next: nextPath
+      });
+    }
+
+    redirectWithParams("/login", {
+      error: "Identifiants invalides. Vérifiez votre email et votre mot de passe.",
+      next: nextPath
+    });
   }
 
   const profile = await getCurrentProfile();
 
   if (!profile || profile.status !== "active") {
     await supabase.auth.signOut();
-    redirectWithMessage("/login", "error", "Accès refusé : ce compte n'est pas autorisé à accéder à la plateforme.");
+    redirectWithParams("/login", {
+      error: "Accès refusé : ce compte n'est pas autorisé à accéder à la plateforme.",
+      next: nextPath
+    });
   }
 
   revalidatePath("/", "layout");
@@ -75,8 +179,6 @@ export async function loginAction(formData: FormData) {
 }
 
 export async function registerAction(formData: FormData) {
-  const nextPath = "/app/learner";
-
   if (!isSupabaseConfigured()) {
     redirectWithMessage("/register", "error", "Supabase n'est pas encore configuré pour ce déploiement.");
   }
@@ -85,6 +187,7 @@ export async function registerAction(formData: FormData) {
   const email = getString(formData, "email").toLowerCase();
   const password = getString(formData, "password");
   const role = getRequestedRole(formData);
+  const nextPath = getRegistrationNextPath(role);
 
   if (!name || !email || !password) {
     redirectWithMessage("/register", "error", "Nom, email et mot de passe requis.");
@@ -113,6 +216,28 @@ export async function registerAction(formData: FormData) {
   });
 
   if (error) {
+    console.error("[auth] signup failed", getAuthErrorDetails(error));
+
+    if (isExistingAccountError(error)) {
+      redirectWithParams("/login", {
+        confirmationEmail: email,
+        message: "Si cette adresse correspond à un compte en attente de confirmation, vous pouvez demander un nouvel email de confirmation.",
+        next: nextPath
+      });
+    }
+
+    if (isRateLimitError(error)) {
+      redirectWithMessage("/register", "error", "Trop de tentatives. Patientez quelques minutes avant de réessayer.");
+    }
+
+    if (isTemporaryAuthError(error)) {
+      redirectWithMessage(
+        "/register",
+        "error",
+        "Le service d'authentification est temporairement indisponible. Réessayez dans quelques minutes."
+      );
+    }
+
     redirectWithMessage("/register", "error", "Inscription impossible avec ces informations.");
   }
 
@@ -122,11 +247,77 @@ export async function registerAction(formData: FormData) {
     redirect(nextPath);
   }
 
-  redirectWithMessage(
-    "/login",
-    "message",
-    "Compte créé. Confirmez votre email si Supabase l'exige, puis connectez-vous."
-  );
+  redirectWithParams("/login", {
+    confirmationEmail: email,
+    message: "Compte créé. Consultez votre boîte mail pour confirmer votre adresse.",
+    next: nextPath
+  });
+}
+
+export async function resendConfirmationAction(formData: FormData) {
+  const email = getString(formData, "email").toLowerCase();
+  const nextPath = getSafeNextPath(getString(formData, "next"));
+  const neutralMessage =
+    "Si cette adresse correspond à un compte en attente de confirmation, un nouvel email a été envoyé.";
+
+  if (!email || !email.includes("@")) {
+    redirectWithParams("/login", {
+      error: "Saisissez une adresse email valide.",
+      next: nextPath
+    });
+  }
+
+  if (!isSupabaseConfigured()) {
+    redirectWithParams("/login", {
+      confirmationEmail: email,
+      error: "Supabase n'est pas encore configuré pour ce déploiement.",
+      next: nextPath
+    });
+  }
+
+  const supabase = await createOptionalClient();
+
+  if (!supabase) {
+    redirectWithParams("/login", {
+      confirmationEmail: email,
+      error: "Configuration Supabase manquante.",
+      next: nextPath
+    });
+  }
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: getAuthRedirectUrl(nextPath)
+    }
+  });
+
+  if (error) {
+    console.error("[auth] resend signup confirmation failed", getAuthErrorDetails(error));
+
+    if (isRateLimitError(error)) {
+      redirectWithParams("/login", {
+        confirmationEmail: email,
+        error: "Trop de demandes. Patientez quelques minutes avant de renvoyer l'email.",
+        next: nextPath
+      });
+    }
+
+    if (isTemporaryAuthError(error)) {
+      redirectWithParams("/login", {
+        confirmationEmail: email,
+        error: "Le service d'authentification est temporairement indisponible. Réessayez dans quelques minutes.",
+        next: nextPath
+      });
+    }
+  }
+
+  redirectWithParams("/login", {
+    confirmationEmail: email,
+    message: neutralMessage,
+    next: nextPath
+  });
 }
 
 export async function logoutAction() {
