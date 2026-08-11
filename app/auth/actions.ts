@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getPublicAppUrl } from "@/lib/config/runtime";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createOptionalClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { normalizePublicRegistrationRole } from "@/lib/auth/role-governance";
 import { getCurrentProfile, getProfileHomePath, type ProfileRole } from "@/lib/auth/server";
 
 function getString(formData: FormData, key: string) {
@@ -28,9 +29,7 @@ function redirectWithMessage(path: string, key: "error" | "message", message: st
 }
 
 function getRequestedRole(formData: FormData): ProfileRole {
-  const role = getString(formData, "role");
-
-  return role === "teacher" ? role : "learner";
+  return normalizePublicRegistrationRole(getString(formData, "role"));
 }
 
 export async function loginAction(formData: FormData) {

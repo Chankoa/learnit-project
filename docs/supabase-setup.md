@@ -62,6 +62,14 @@ The `/auth/callback` route calls `exchangeCodeForSession()` and redirects only t
 
 Public registration can create only learner or teacher profiles. Admin profiles must be provisioned by a trusted server-side workflow; the `202608070001_prevent_admin_self_assignment.sql` migration prevents an `admin` value in Auth user metadata from becoming a profile role.
 
+Role governance is documented in `docs/admin-bootstrap.md`. The current convention is:
+
+- `learner`: public registration allowed, `status = active`
+- `teacher`: public registration allowed, `status = active` for now
+- `admin`: public registration forbidden; bootstrap or promotion must be done by a trusted Supabase operation
+
+The `20260811070054_tighten_profile_role_governance.sql` migration keeps the trigger behavior idempotent and tightens `profiles` column privileges so authenticated users can update only `name` and `avatar_url`, never `role` or `status`.
+
 Account deletion is a Server Action. It verifies the active Supabase session and that the submitted user ID matches that session before using the server-only admin client to call `auth.admin.deleteUser`. The operation requires `SUPABASE_SERVICE_ROLE_KEY` and fails safely when it is absent.
 
 The existing schema handles dependent profile data without a new migration: deleting `auth.users` cascades to `profiles`, then to `enrollments`, `lesson_progress`, `notes`, and `favorites`. `courses.teacher_id` and `resources.created_by` are set to `NULL`; course, module, lesson, resource, and domain records are retained. Review these retention rules before deleting production accounts.
@@ -117,6 +125,16 @@ The first Supabase schema should mirror the conceptual model in `docs/database-m
   - creates `domains`, `courses`, `course_modules`, `lessons`, `resources`, `enrollments`, `lesson_progress`, `notes` and `favorites`
   - adds publication statuses, slugs, timestamps and relations
   - creates the initial Storage buckets expected by LearnIt
+- `202608070001_prevent_admin_self_assignment.sql`
+  - updates `handle_new_user()` so public metadata can request `teacher`, but `admin` falls back to `learner`
+- `202608070002_sync_profile_email.sql`
+  - synchronizes `profiles.email` after Supabase Auth applies an email change
+- `20260811070054_tighten_profile_role_governance.sql`
+  - reasserts the public registration trigger so `admin` metadata falls back to `learner`
+  - revokes table-level profile updates from `authenticated`
+  - grants profile updates only on `name` and `avatar_url`
+- `supabase/tests/role-governance.sql`
+  - verifies trigger and profile column privileges after migrations are applied
 - `supabase/seed.sql`
   - imports the four current mock courses and their initial modules/lessons
   - keeps the script rerunnable through `on conflict` clauses

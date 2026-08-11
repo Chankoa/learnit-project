@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { registerAction } from "@/app/auth/actions";
+import { publicRegistrationRoles } from "@/lib/auth/role-governance";
 
 type RegisterPageProps = {
   searchParams?: Promise<{
@@ -52,10 +53,13 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
             <input name="password" type="password" autoComplete="new-password" minLength={8} required />
           </label>
           <label>
-            <span>Rôle demandé</span>
+            <span>Type de compte</span>
             <select name="role" defaultValue="learner">
-              <option value="learner">Apprenant</option>
-              <option value="teacher">Enseignant</option>
+              {publicRegistrationRoles.map((role) => (
+                <option key={role.value} value={role.value}>
+                  {role.label}
+                </option>
+              ))}
             </select>
           </label>
           <button className="btn btn-primary" type="submit">

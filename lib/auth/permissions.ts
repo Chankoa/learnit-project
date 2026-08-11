@@ -1,4 +1,5 @@
 import type { User, UserRole } from "@/types/user";
+import { isAdminRole } from "@/lib/auth/role-governance";
 
 export type PermissionUser = Pick<User, "id" | "email" | "role" | "status"> | null | undefined;
 
@@ -39,7 +40,7 @@ export function canManageCourse(user: PermissionUser, course: PermissionCourse |
     return false;
   }
 
-  if (user.role === "admin") {
+  if (isAdminRole(user.role)) {
     return true;
   }
 
@@ -61,5 +62,5 @@ export function canManageCourse(user: PermissionUser, course: PermissionCourse |
 }
 
 export function canPublishCourse(user: PermissionUser) {
-  return isActiveUser(user) && (user.role === "teacher" || user.role === "admin");
+  return isActiveUser(user) && (user.role === "teacher" || isAdminRole(user.role));
 }
