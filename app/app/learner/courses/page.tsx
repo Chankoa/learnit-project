@@ -67,7 +67,14 @@ export default async function LearnerCoursesPage() {
         description="Suivez les formations en cours, retrouvez celles déjà terminées et lancez les parcours non commencés."
       />
 
-      {courseGroups.map((group) => {
+      {courses.length === 0 ? (
+        <AppEmptyState
+          action={<Link className="btn btn-primary" href="/formations">Explorer les formations</Link>}
+          description="Vous n'avez encore commencé aucune formation. Le catalogue vous permet de choisir un parcours et de l'ajouter à votre espace."
+          icon={GraduationCap}
+          title="Aucune formation suivie"
+        />
+      ) : courseGroups.map((group) => {
         const groupCourses = courses.filter((course) => course.enrollment?.status === group.status);
 
         return (

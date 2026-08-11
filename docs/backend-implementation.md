@@ -152,7 +152,6 @@ Certificates and deliverables remain out of scope and render as empty states. Th
 
 Still intentionally deferred:
 
-- replacing course, progress, note and favorite repositories with Supabase reads/writes
 - password reset flow
 - admin UI for changing user roles
 - file upload UI backed by Supabase Storage

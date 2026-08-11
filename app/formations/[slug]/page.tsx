@@ -79,7 +79,7 @@ export default async function FormationPage({ params }: FormationPageProps) {
         domainName={course.domain.name}
         relatedCourses={relatedCourses}
       />
-      <CourseCta />
+      <CourseCta courseSlug={course.slug} />
     </>
   );
 }

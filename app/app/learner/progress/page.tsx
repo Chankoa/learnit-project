@@ -3,11 +3,12 @@ import {
   BookOpenCheck,
   BookOpenText,
   CheckCircle2,
-  Clock3,
   FileCheck2,
+  GraduationCap,
   Layers3,
   TrendingUp
 } from "lucide-react";
+import Link from "next/link";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppEmptyState } from "@/components/app/AppEmptyState";
@@ -30,18 +31,23 @@ export default async function LearnerProgressPage() {
   const dashboard = await getLearnerDashboard();
   const courses = dashboard.courses;
   const globalProgress = dashboard.globalProgress;
+  const completedCourseCount = courses.filter((course) => course.enrollment?.status === "completed").length;
   const completedLessons = courses.flatMap((course) =>
     course.modules.flatMap((module) => module.lessons
       .filter((lesson) => lesson.status === "completed")
       .map((lesson) => ({ course: course.course, lesson, module })))
   );
   const moduleRows = courses.flatMap((course) =>
-    course.modules.map((module) => ({
-      course: course.course,
-      module,
-      completedCount: module.lessons.filter((lesson) => lesson.status === "completed").length,
-      totalLessons: module.lessons.length
-    }))
+    course.modules.map((module) => {
+      const accessibleLessons = module.lessons.filter((lesson) => lesson.status !== "locked");
+
+      return {
+        course: course.course,
+        module,
+        completedCount: accessibleLessons.filter((lesson) => lesson.status === "completed").length,
+        totalLessons: accessibleLessons.length
+      };
+    })
   );
 
   return (
@@ -59,7 +65,16 @@ export default async function LearnerProgressPage() {
         description="Visualisez l'avancement par formation et par module, les leçons terminées et le temps d'apprentissage enregistré."
       />
 
-      <section className="learning-metrics learner-metrics" aria-label="Synthese de progression">
+      {courses.length === 0 ? (
+        <AppEmptyState
+          action={<Link className="btn btn-primary" href="/formations">Explorer les formations</Link>}
+          description="Vous n'avez encore commencé aucune formation. Votre progression apparaîtra dès qu'un parcours sera inscrit."
+          icon={TrendingUp}
+          title="Aucune progression enregistrée"
+        />
+      ) : (
+      <>
+      <section className="learning-metrics learner-metrics" aria-label="Synthèse de progression">
         <article>
           <span className="learning-metric-icon learning-metric-icon--purple">
             <TrendingUp size={19} aria-hidden="true" />
@@ -80,22 +95,20 @@ export default async function LearnerProgressPage() {
         </article>
         <article>
           <span className="learning-metric-icon learning-metric-icon--green">
-            <FileCheck2 size={19} aria-hidden="true" />
+            <GraduationCap size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Exercices rendus</small>
-            <strong>
-              {globalProgress.exercisesSubmitted}/{globalProgress.exercisesTotal}
-            </strong>
+            <small>Formations suivies</small>
+            <strong>{courses.length}</strong>
           </div>
         </article>
         <article>
           <span className="learning-metric-icon learning-metric-icon--amber">
-            <Clock3 size={19} aria-hidden="true" />
+            <BookOpenCheck size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Temps d'apprentissage</small>
-            <strong>{formatLearningTime(globalProgress.learningTimeMinutes)}</strong>
+            <small>Formations terminées</small>
+            <strong>{completedCourseCount}</strong>
           </div>
         </article>
       </section>
@@ -137,7 +150,7 @@ export default async function LearnerProgressPage() {
               <span>Temps d'apprentissage</span>
               <h2>Répartition enregistrée</h2>
             </div>
-            <Clock3 size={20} aria-hidden="true" />
+            <BookOpenText size={20} aria-hidden="true" />
           </div>
 
           <div className="learner-list">
@@ -217,6 +230,8 @@ export default async function LearnerProgressPage() {
           </div>
         </section>
       </div>
+      </>
+      )}
     </div>
   );
 }

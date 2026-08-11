@@ -28,14 +28,12 @@ export const metadata: Metadata = createPageMetadata({
   noIndex: true
 });
 
-function formatLearningTime(minutes: number) {
-  return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
-}
-
 export default async function LearnerAppPage() {
   const dashboard = await getLearnerDashboard();
   const profile = await getCurrentProfile();
   const nextLesson = dashboard.nextCourse?.nextLesson ?? dashboard.nextCourse?.currentLesson;
+  const hasCourses = dashboard.courses.length > 0;
+  const completedCourseCount = dashboard.courses.filter((course) => course.enrollment?.status === "completed").length;
 
   return (
     <div className="app-page learner-page">
@@ -58,48 +56,53 @@ export default async function LearnerAppPage() {
         }
       />
 
-      <section className="learning-metrics learner-metrics" aria-label="Progression globale">
-        <article>
-          <span className="learning-metric-icon learning-metric-icon--purple">
-            <Sparkles size={19} aria-hidden="true" />
-          </span>
-          <div>
-            <small>Progression globale</small>
-            <strong>{dashboard.globalProgress.percentage}%</strong>
-          </div>
-        </article>
-        <article>
-          <span className="learning-metric-icon learning-metric-icon--cyan">
-            <BookOpenText size={19} aria-hidden="true" />
-          </span>
-          <div>
-            <small>Leçons terminées</small>
-            <strong>
-              {dashboard.globalProgress.completedLessons}/{dashboard.globalProgress.totalLessons}
-            </strong>
-          </div>
-        </article>
-        <article>
-          <span className="learning-metric-icon learning-metric-icon--green">
-            <FileCheck2 size={19} aria-hidden="true" />
-          </span>
-          <div>
-            <small>Exercices rendus</small>
-            <strong>
-              {dashboard.globalProgress.exercisesSubmitted}/{dashboard.globalProgress.exercisesTotal}
-            </strong>
-          </div>
-        </article>
-        <article>
-          <span className="learning-metric-icon learning-metric-icon--amber">
-            <Clock3 size={19} aria-hidden="true" />
-          </span>
-          <div>
-            <small>Temps d'apprentissage</small>
-            <strong>{formatLearningTime(dashboard.globalProgress.learningTimeMinutes)}</strong>
-          </div>
-        </article>
-      </section>
+      {hasCourses ? (
+        <section className="learning-metrics learner-metrics" aria-label="Progression globale">
+          <article>
+            <span className="learning-metric-icon learning-metric-icon--purple">
+              <GraduationCap size={19} aria-hidden="true" />
+            </span>
+            <div>
+              <small>Mes formations</small>
+              <strong>{dashboard.courses.length}</strong>
+            </div>
+          </article>
+          <article>
+            <span className="learning-metric-icon learning-metric-icon--cyan">
+              <Sparkles size={19} aria-hidden="true" />
+            </span>
+            <div>
+              <small>Progression</small>
+              <strong>{dashboard.globalProgress.percentage}%</strong>
+            </div>
+          </article>
+          <article>
+            <span className="learning-metric-icon learning-metric-icon--green">
+              <BookOpenText size={19} aria-hidden="true" />
+            </span>
+            <div>
+              <small>Formations en cours</small>
+              <strong>{dashboard.activeCourses.length}</strong>
+            </div>
+          </article>
+          <article>
+            <span className="learning-metric-icon learning-metric-icon--amber">
+              <Award size={19} aria-hidden="true" />
+            </span>
+            <div>
+              <small>Terminées</small>
+              <strong>{completedCourseCount}</strong>
+            </div>
+          </article>
+        </section>
+      ) : (
+        <AppEmptyState
+          action={<Link className="btn btn-primary" href="/formations">Explorer les formations</Link>}
+          description="Vous n'avez encore commencé aucune formation. Explorez le catalogue pour ajouter un parcours à votre espace."
+          icon={GraduationCap}
+          title="Aucune formation commencée"
+        />
+      )}
 
       <div className="dashboard-primary-grid">
         <section className="learning-panel">
@@ -144,9 +147,10 @@ export default async function LearnerAppPage() {
               </article>
             )) : (
               <AppEmptyState
-                description="Aucune formation n'est en cours pour le moment."
+                action={<Link className="btn btn-primary" href="/formations">Explorer les formations</Link>}
+                description="Inscrivez-vous à une formation pour la retrouver ici et reprendre votre progression."
                 icon={GraduationCap}
-                title="Aucune formation"
+                title="Aucune formation en cours"
               />
             )}
           </div>
@@ -182,7 +186,12 @@ export default async function LearnerAppPage() {
               </Link>
             </>
           ) : (
-            <p>Aucune prochaine leçon disponible pour le moment.</p>
+            <AppEmptyState
+              action={<Link className="btn btn-primary" href="/formations">Explorer les formations</Link>}
+              description="Votre prochaine leçon apparaîtra dès qu'une formation sera commencée."
+              icon={PlayCircle}
+              title="Aucune reprise disponible"
+            />
           )}
         </section>
       </div>

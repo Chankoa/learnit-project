@@ -30,11 +30,11 @@ export function CourseHero({ course }: CourseHeroProps) {
           </div>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link className="btn btn-primary" href="#programme">
-              Voir le programme
+            <Link className="btn btn-primary" href={`/learn/${course.slug}`}>
+              Commencer la formation
             </Link>
-            <Link className="btn btn-secondary" href="/formations">
-              Retour au catalogue
+            <Link className="btn btn-secondary" href="#programme">
+              Voir le programme
             </Link>
           </div>
         </div>

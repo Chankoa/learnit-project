@@ -25,6 +25,7 @@ export function CompletionButton({
   initiallyCompleted = false
 }: CompletionButtonProps) {
   const [isCompleted, setIsCompleted] = useState(initiallyCompleted);
+  const [isPending, setIsPending] = useState(false);
   const startedAt = useRef(Date.now());
   const router = useRouter();
   const { showToast } = useToast();
@@ -42,8 +43,13 @@ export function CompletionButton({
   }, [courseId, courseSlug, initiallyCompleted, lessonId]);
 
   function toggleCompletion() {
+    if (isPending) {
+      return;
+    }
+
     const nextValue = !isCompleted;
     setIsCompleted(nextValue);
+    setIsPending(true);
     startTransition(async () => {
       try {
         await setLessonCompletedAction(courseId, lessonId, courseSlug, nextValue);
@@ -56,6 +62,8 @@ export function CompletionButton({
       } catch {
         setIsCompleted(!nextValue);
         showToast({ title: "Mise à jour impossible", description: "Réessayez dans un instant.", variant: "danger" });
+      } finally {
+        setIsPending(false);
       }
     });
   }
@@ -65,6 +73,7 @@ export function CompletionButton({
       aria-pressed={isCompleted}
       className="completion-button"
       data-completed={isCompleted}
+      disabled={isPending}
       type="button"
       onClick={toggleCompletion}
     >
@@ -73,7 +82,7 @@ export function CompletionButton({
       ) : (
         <Circle size={19} aria-hidden="true" />
       )}
-      {isCompleted ? "Leçon terminée" : "Marquer comme terminé"}
+      {isPending ? "Enregistrement..." : isCompleted ? "Leçon terminée" : "Marquer comme terminé"}
     </button>
   );
 }

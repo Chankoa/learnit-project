@@ -19,4 +19,4 @@ The existing RLS policies allow anonymous and authenticated reads of active doma
 
 Resources are public only when they are associated with a published public course. The current `supabase/seed.sql` does not insert any `resources` rows, so Supabase course resource sections are empty until resource seed data is added.
 
-Learner enrollment, progress, notes, favorites, certificates and `/learn` continue to use their existing mock/local data in this sprint. They are deliberately not mixed with Supabase LMS data because their migration requires a separate enrollment and progress read layer.
+Learner enrollment and lesson progress are now persisted through Supabase when `NEXT_PUBLIC_DATA_SOURCE=supabase`. See `docs/learner-state.md` for the enrollment model, progress calculation, resume logic and RLS checks. Certificates remain outside the Supabase learner state for now.
