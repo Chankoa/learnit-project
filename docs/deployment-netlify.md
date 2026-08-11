@@ -92,6 +92,8 @@ In Supabase Dashboard > Authentication > URL Configuration, allow:
 - `https://<your-custom-domain>/auth/callback`, when a custom domain exists
 - `https://**--<your-site>.netlify.app/auth/callback`, if deploy previews need email login
 
+Password recovery uses the same callback route with `next=/auth/reset-password`; do not add a SPA catch-all or a separate Netlify rewrite for this flow.
+
 The production Site URL must not be localhost. Prefer setting `NEXT_PUBLIC_APP_URL` to the same canonical production URL.
 
 ## 404 diagnostics

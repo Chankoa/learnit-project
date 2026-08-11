@@ -7,9 +7,15 @@ import type { Course } from "@/types/course";
 
 type CourseHeroProps = {
   course: Course;
+  primaryCtaHref?: string;
+  primaryCtaLabel?: string;
 };
 
-export function CourseHero({ course }: CourseHeroProps) {
+export function CourseHero({
+  course,
+  primaryCtaHref = `/learn/${course.slug}`,
+  primaryCtaLabel = "Commencer la formation"
+}: CourseHeroProps) {
   return (
     <section className="section-shell page-hero">
       <Link className="nav-link inline-flex items-center gap-2" href="/formations">
@@ -30,8 +36,8 @@ export function CourseHero({ course }: CourseHeroProps) {
           </div>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link className="btn btn-primary" href={`/learn/${course.slug}`}>
-              Commencer la formation
+            <Link className="btn btn-primary" href={primaryCtaHref}>
+              {primaryCtaLabel}
             </Link>
             <Link className="btn btn-secondary" href="#programme">
               Voir le programme

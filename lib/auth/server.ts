@@ -66,6 +66,10 @@ function getAccessDeniedRedirect(reason: string, nextPath: string, profile?: Cur
   return `/access-denied?${searchParams.toString()}`;
 }
 
+function isMissingSessionError(error: unknown) {
+  return error instanceof Error && error.message.toLowerCase().includes("auth session missing");
+}
+
 export function getProfileHomePath(role: ProfileRole) {
   switch (role) {
     case "teacher":
@@ -109,7 +113,10 @@ export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser();
 
   if (error) {
-    console.error("[auth] user lookup failed", error);
+    if (!isMissingSessionError(error)) {
+      console.error("[auth] user lookup failed", error);
+    }
+
     return null;
   }
 
@@ -126,7 +133,7 @@ export async function getCurrentProfile() {
   const { data: userData, error: userError } = await supabase.auth.getUser();
 
   if (userError || !userData.user) {
-    if (userError) {
+    if (userError && !isMissingSessionError(userError)) {
       console.error("[auth] profile user lookup failed", userError);
     }
 

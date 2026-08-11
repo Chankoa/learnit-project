@@ -150,9 +150,10 @@ Resources marked `free` are visible to every learner; `enrolled` resources requi
 
 Certificates and deliverables remain out of scope and render as empty states. The legacy `/dashboard` route redirects to `/app/learner` so it cannot display an old local-progress view.
 
+Micro-sprint 5.1 adds the learner empty-state path back to the public catalogue and the Supabase password recovery workflow. Password reset requests keep a neutral response and reuse `/auth/callback?next=/auth/reset-password` before calling `auth.updateUser({ password })`.
+
 Still intentionally deferred:
 
-- password reset flow
 - admin UI for changing user roles
 - file upload UI backed by Supabase Storage
 
@@ -168,3 +169,9 @@ Teacher course authoring is now persisted when the application is configured for
 - Lesson body content is stored in `lessons.content` for V1 text/markdown authoring.
 
 Depublishing and Teacher-facing learner enrollment analytics are intentionally deferred until the enrollment visibility policy is defined.
+
+## Role model decision to revisit
+
+LearnIt currently keeps a single application role in `profiles.role` (`learner`, `teacher`, or `admin`). This remains the source of truth for Sprint 5.1.
+
+Future role governance should evaluate whether one Supabase Auth identity can hold multiple capabilities at once, for example learner plus teacher. Do not create multiple Supabase Auth accounts with the same email to solve that. Revisit the tradeoff between the current single-role profile model and a multi-role RBAC table after Teacher Studio is stable.

@@ -320,6 +320,126 @@ export async function resendConfirmationAction(formData: FormData) {
   });
 }
 
+export async function requestPasswordResetAction(formData: FormData) {
+  const email = getString(formData, "email").toLowerCase();
+  const neutralMessage = "Si un compte correspond à cette adresse, un email vous a été envoyé.";
+
+  if (!email || !email.includes("@")) {
+    redirectWithParams("/forgot-password", {
+      error: "Saisissez une adresse email valide."
+    });
+  }
+
+  if (!isSupabaseConfigured()) {
+    redirectWithParams("/forgot-password", {
+      error: "Supabase n'est pas encore configuré pour ce déploiement."
+    });
+  }
+
+  const supabase = await createOptionalClient();
+
+  if (!supabase) {
+    redirectWithParams("/forgot-password", {
+      error: "Configuration Supabase manquante."
+    });
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: getAuthRedirectUrl("/auth/reset-password")
+  });
+
+  if (error) {
+    console.error("[auth] password reset request failed", getAuthErrorDetails(error));
+
+    if (isRateLimitError(error)) {
+      redirectWithParams("/forgot-password", {
+        error: "Trop de demandes. Patientez quelques minutes avant de réessayer."
+      });
+    }
+
+    if (isTemporaryAuthError(error)) {
+      redirectWithParams("/forgot-password", {
+        error: "Le service d'authentification est temporairement indisponible. Réessayez dans quelques minutes."
+      });
+    }
+  }
+
+  redirectWithParams("/forgot-password", {
+    message: neutralMessage
+  });
+}
+
+export async function resetPasswordAction(formData: FormData) {
+  const password = getString(formData, "password");
+  const passwordConfirmation = getString(formData, "passwordConfirmation");
+
+  if (password.length < 8) {
+    redirectWithParams("/auth/reset-password", {
+      error: "Le mot de passe doit contenir au moins 8 caractères."
+    });
+  }
+
+  if (password !== passwordConfirmation) {
+    redirectWithParams("/auth/reset-password", {
+      error: "La confirmation du mot de passe ne correspond pas."
+    });
+  }
+
+  if (!isSupabaseConfigured()) {
+    redirectWithParams("/auth/reset-password", {
+      error: "Supabase n'est pas encore configuré pour ce déploiement."
+    });
+  }
+
+  const supabase = await createOptionalClient();
+
+  if (!supabase) {
+    redirectWithParams("/auth/reset-password", {
+      error: "Configuration Supabase manquante."
+    });
+  }
+
+  const { data, error: userError } = await supabase.auth.getUser();
+
+  if (userError || !data.user) {
+    if (userError) {
+      console.error("[auth] password reset session lookup failed", getAuthErrorDetails(userError));
+    }
+
+    redirectWithParams("/forgot-password", {
+      error: "Lien de réinitialisation expiré ou invalide. Demandez un nouvel email."
+    });
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    console.error("[auth] password reset update failed", getAuthErrorDetails(error));
+
+    if (isRateLimitError(error)) {
+      redirectWithParams("/auth/reset-password", {
+        error: "Trop de tentatives. Patientez quelques minutes avant de réessayer."
+      });
+    }
+
+    if (isTemporaryAuthError(error)) {
+      redirectWithParams("/auth/reset-password", {
+        error: "Le service d'authentification est temporairement indisponible. Réessayez dans quelques minutes."
+      });
+    }
+
+    redirectWithParams("/auth/reset-password", {
+      error: "La réinitialisation du mot de passe a échoué. Demandez un nouveau lien si nécessaire."
+    });
+  }
+
+  await supabase.auth.signOut();
+  revalidatePath("/", "layout");
+  redirectWithParams("/login", {
+    message: "Mot de passe mis à jour. Connectez-vous avec votre nouveau mot de passe."
+  });
+}
+
 export async function logoutAction() {
   const supabase = await createOptionalClient();
 

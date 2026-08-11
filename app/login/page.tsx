@@ -47,6 +47,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
         <LoginForm nextPath={nextPath} />
 
+        <p className="auth-card__helper">
+          <Link href="/forgot-password">Mot de passe oublié ?</Link>
+        </p>
+
         <section className="auth-confirmation-panel" aria-labelledby="confirmation-email-title">
           <div>
             <h2 id="confirmation-email-title">

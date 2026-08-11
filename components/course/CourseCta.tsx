@@ -4,10 +4,14 @@ type CourseCtaProps = {
   courseSlug: string;
   title?: string;
   description?: string;
+  primaryCtaHref?: string;
+  primaryCtaLabel?: string;
 };
 
 export function CourseCta({
   courseSlug,
+  primaryCtaHref = `/learn/${courseSlug}`,
+  primaryCtaLabel = "Commencer la formation",
   title = "Prêt à explorer le parcours ?",
   description = "Inscrivez-vous pour enregistrer votre progression, puis reprenez votre parcours à chaque connexion."
 }: CourseCtaProps) {
@@ -17,8 +21,8 @@ export function CourseCta({
         <h2 className="text-2xl font-black text-text-strong md:text-3xl">{title}</h2>
         <p className="mx-auto mt-3 max-w-2xl text-sm text-text-muted">{description}</p>
         <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-          <Link className="btn btn-primary" href={`/learn/${courseSlug}`}>
-            Commencer la formation
+          <Link className="btn btn-primary" href={primaryCtaHref}>
+            {primaryCtaLabel}
           </Link>
           <Link className="btn btn-secondary" href="/formations">
             Toutes les formations

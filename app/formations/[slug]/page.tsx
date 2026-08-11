@@ -17,6 +17,8 @@ import {
   getLmsCatalog,
   getLmsCatalogCourse
 } from "@/lib/lms";
+import { getCurrentProfile, getProfileHomePath } from "@/lib/auth/server";
+import { getLearningCourseState } from "@/lib/learning-service";
 import { createPageMetadata } from "@/lib/seo";
 
 type FormationPageProps = {
@@ -47,12 +49,31 @@ export async function generateMetadata({ params }: FormationPageProps): Promise<
 
 export default async function FormationPage({ params }: FormationPageProps) {
   const { slug } = await params;
-  const [course, catalogCourses] = await Promise.all([getLmsCatalogCourse(slug), getLmsCatalog()]);
+  const [course, catalogCourses, profile] = await Promise.all([
+    getLmsCatalogCourse(slug),
+    getLmsCatalog(),
+    getCurrentProfile()
+  ]);
 
   if (!course) {
     notFound();
   }
 
+  const learningState = profile?.role === "learner" ? await getLearningCourseState(course.slug) : undefined;
+  const primaryCta = !profile
+    ? {
+        href: `/login?next=${encodeURIComponent(`/learn/${course.slug}`)}`,
+        label: "Se connecter pour commencer"
+      }
+    : profile.role === "learner"
+      ? {
+          href: learningState?.enrollment ? learningState.ctaHref : `/learn/${course.slug}`,
+          label: learningState?.enrollment ? learningState.ctaLabel : "S'inscrire"
+        }
+      : {
+          href: getProfileHomePath(profile.role),
+          label: profile.role === "teacher" ? "Ouvrir l'espace enseignant" : "Ouvrir l'administration"
+        };
   const modules = course.modules;
   const domainCourses = catalogCourses
     .filter((candidate) => candidate.domain.id === course.domain.id && candidate.id !== course.id)
@@ -64,7 +85,7 @@ export default async function FormationPage({ params }: FormationPageProps) {
 
   return (
     <>
-      <CourseHero course={course} />
+      <CourseHero course={course} primaryCtaHref={primaryCta.href} primaryCtaLabel={primaryCta.label} />
       <CourseMeta course={course} modules={modules} />
       <CourseAudience audience={course.audience} />
       <CourseObjectives objectives={course.objectives} />
@@ -79,7 +100,11 @@ export default async function FormationPage({ params }: FormationPageProps) {
         domainName={course.domain.name}
         relatedCourses={relatedCourses}
       />
-      <CourseCta courseSlug={course.slug} />
+      <CourseCta
+        courseSlug={course.slug}
+        primaryCtaHref={primaryCta.href}
+        primaryCtaLabel={primaryCta.label}
+      />
     </>
   );
 }

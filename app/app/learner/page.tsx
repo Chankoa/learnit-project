@@ -49,10 +49,17 @@ export default async function LearnerAppPage() {
         title={`Bonjour ${profile?.name ?? "Utilisateur LearnIt"}`}
         description="Votre suivi pédagogique regroupe la progression, les formations actives et vos ressources favorites."
         actions={
-          <Link className="btn btn-secondary" href="/app/learner/courses">
-            <GraduationCap size={17} aria-hidden="true" />
-            Mes formations
-          </Link>
+          hasCourses ? (
+            <Link className="btn btn-secondary" href="/app/learner/courses">
+              <GraduationCap size={17} aria-hidden="true" />
+              Mes formations
+            </Link>
+          ) : (
+            <Link className="btn btn-primary" href="/formations">
+              <GraduationCap size={17} aria-hidden="true" />
+              Explorer les formations
+            </Link>
+          )
         }
       />
 
@@ -98,9 +105,9 @@ export default async function LearnerAppPage() {
       ) : (
         <AppEmptyState
           action={<Link className="btn btn-primary" href="/formations">Explorer les formations</Link>}
-          description="Vous n'avez encore commencé aucune formation. Explorez le catalogue pour ajouter un parcours à votre espace."
+          description="Explorez le catalogue et commencez votre premier parcours."
           icon={GraduationCap}
-          title="Aucune formation commencée"
+          title="Aucune formation en cours"
         />
       )}
 

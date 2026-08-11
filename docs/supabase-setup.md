@@ -56,6 +56,12 @@ Do not leave production Auth redirects pointing at localhost. `NEXT_PUBLIC_APP_U
 
 The `/auth/callback` route calls `exchangeCodeForSession()` and redirects only to safe relative `next` paths. Failed exchanges are logged as `[auth] callback session exchange failed` without logging tokens.
 
+Password recovery uses the same callback allowlist. `/forgot-password` calls `resetPasswordForEmail()` with a redirect URL generated as `/auth/callback?next=/auth/reset-password`; the callback exchanges the recovery code for a Supabase session, then `/auth/reset-password` calls `updateUser({ password })`. Do not add localhost directly in production variables. Configure these callback URLs in Supabase:
+
+- local password recovery callback: `http://localhost:3000/auth/callback`
+- production password recovery callback: `https://<your-site>.netlify.app/auth/callback`
+- custom domain password recovery callback: `https://<your-domain>/auth/callback`
+
 ## Account management and deletion
 
 `/app/profile` lets an authenticated user update only `profiles.name` and `profiles.avatar_url`. Email and password changes go through Supabase Auth with `auth.updateUser`; the displayed email is read from `auth.users`, which remains the source of truth after email confirmation. The `202608070002_sync_profile_email.sql` trigger synchronizes `profiles.email` only after Auth applies the change. Roles and statuses are read-only in the UI and remain protected by the `profiles` RLS column privileges.

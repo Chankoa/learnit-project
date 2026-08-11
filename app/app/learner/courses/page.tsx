@@ -65,14 +65,20 @@ export default async function LearnerCoursesPage() {
         eyebrow="Mes formations"
         title="Vos parcours d'apprentissage"
         description="Suivez les formations en cours, retrouvez celles déjà terminées et lancez les parcours non commencés."
+        actions={
+          <Link className="btn btn-primary" href="/formations">
+            <GraduationCap size={17} aria-hidden="true" />
+            Explorer les formations
+          </Link>
+        }
       />
 
       {courses.length === 0 ? (
         <AppEmptyState
           action={<Link className="btn btn-primary" href="/formations">Explorer les formations</Link>}
-          description="Vous n'avez encore commencé aucune formation. Le catalogue vous permet de choisir un parcours et de l'ajouter à votre espace."
+          description="Explorez le catalogue et commencez votre premier parcours."
           icon={GraduationCap}
-          title="Aucune formation suivie"
+          title="Aucune formation en cours"
         />
       ) : courseGroups.map((group) => {
         const groupCourses = courses.filter((course) => course.enrollment?.status === group.status);
