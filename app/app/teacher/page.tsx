@@ -20,7 +20,7 @@ import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Espace enseignant",
-  description: "Gerez vos formations, modules et lecons LearnIt.",
+  description: "Gérez vos formations, modules et leçons LearnIt.",
   path: "/app/teacher",
   noIndex: true
 });
@@ -35,7 +35,7 @@ export default async function TeacherAppPage() {
     <div className="app-page teacher-page">
       <AppBreadcrumb
         items={[
-          { label: "Acces plateforme", href: "/app" },
+          { label: "Accès plateforme", href: "/app" },
           { label: "Espace enseignant" }
         ]}
       />
@@ -43,11 +43,11 @@ export default async function TeacherAppPage() {
       <AppPageHeader
         eyebrow="Tableau de bord enseignant"
         title={`Bonjour ${profile?.name ?? "Utilisateur LearnIt"}`}
-        description="Pilotez vos formations reelles, surveillez les brouillons et reprenez les dernieres modifications."
+        description="Pilotez vos formations réelles, surveillez les brouillons et reprenez les dernières modifications."
         actions={
           <Link className="btn btn-primary" href="/app/teacher/courses/new">
             <BookPlus size={17} aria-hidden="true" />
-            Creer une formation
+            Créer une formation
           </Link>
         }
       />
@@ -67,7 +67,7 @@ export default async function TeacherAppPage() {
             <BookOpenText size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Publiees / brouillons</small>
+            <small>Publiées / brouillons</small>
             <strong>
               {dashboard.metrics.publishedCount}/{dashboard.metrics.draftCount}
             </strong>
@@ -87,7 +87,7 @@ export default async function TeacherAppPage() {
             <Sparkles size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Derniere modification</small>
+            <small>Dernière modification</small>
             <strong>
               {dashboard.metrics.latestUpdatedAt
                 ? formatTeacherDateTime(dashboard.metrics.latestUpdatedAt)
@@ -101,8 +101,8 @@ export default async function TeacherAppPage() {
         <section className="learning-panel">
           <div className="learning-panel__heading">
             <div>
-              <span>Formations recentes</span>
-              <h2>Dernieres mises a jour</h2>
+              <span>Formations récentes</span>
+              <h2>Dernières mises à jour</h2>
             </div>
             <Link className="text-link" href="/app/teacher/courses">
               Mes formations
@@ -129,10 +129,10 @@ export default async function TeacherAppPage() {
                 action={
                   <Link className="btn btn-primary" href="/app/teacher/courses/new">
                     <BookPlus size={17} aria-hidden="true" />
-                    Creer une formation
+                    Créer une formation
                   </Link>
                 }
-                description="Vous n'avez encore cree aucune formation. Commencez par un brouillon, ajoutez vos modules, puis publiez quand le parcours est pret."
+                description="Vous n'avez encore créé aucune formation. Commencez par un brouillon, ajoutez vos modules, puis publiez quand le parcours est prêt."
                 icon={GraduationCap}
                 title="Aucune formation"
               />
@@ -144,7 +144,7 @@ export default async function TeacherAppPage() {
           <div className="learning-panel__heading">
             <div>
               <span>Historique</span>
-              <h2>Dernieres modifications</h2>
+              <h2>Dernières modifications</h2>
             </div>
             <History size={20} aria-hidden="true" />
           </div>
@@ -164,8 +164,8 @@ export default async function TeacherAppPage() {
               <article>
                 <span />
                 <div>
-                  <h3>Aucune modification recente</h3>
-                  <p>Les prochaines sauvegardes apparaitront ici.</p>
+                  <h3>Aucune modification récente</h3>
+                  <p>Les prochaines sauvegardes apparaîtront ici.</p>
                 </div>
               </article>
             )}

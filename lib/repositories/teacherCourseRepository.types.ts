@@ -21,6 +21,10 @@ export type TeacherCourseInput = {
   coverImage?: string;
 };
 
+export type TeacherDomainInput = {
+  name: string;
+};
+
 export type TeacherModuleInput = {
   title: string;
   description?: string;
@@ -45,6 +49,7 @@ export type TeacherCoursePublication = {
 
 export type TeacherCourseRepository = {
   getDomains: () => Promise<Domain[]>;
+  createDomain: (teacherId: string, input: TeacherDomainInput) => Promise<Domain>;
   getTeacherCourses: (teacherId: string) => Promise<TeacherCourse[]>;
   getTeacherCourse: (teacherId: string, courseId: string) => Promise<TeacherCourse | undefined>;
   createCourse: (teacherId: string, input: TeacherCourseInput) => Promise<TeacherCourse>;

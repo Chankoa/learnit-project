@@ -1,5 +1,6 @@
 import { Save } from "lucide-react";
 
+import { TeacherDomainPicker } from "@/components/app/TeacherDomainPicker";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
 import type { TeacherCourseFormValues } from "@/lib/teacher-service";
 import { courseLevelLabels, teacherCourseStatusLabels } from "@/lib/teacher";
@@ -47,7 +48,7 @@ export function TeacherCourseForm({
         <section className="teacher-form-section">
           <div>
             <span>Publication</span>
-            <h2>Etat actuel</h2>
+            <h2>État actuel</h2>
           </div>
           <div className="teacher-form-grid teacher-form-grid--compact">
             <div className="teacher-field">
@@ -58,20 +59,20 @@ export function TeacherCourseForm({
             </div>
             <div className="teacher-field">
               <span>Slug</span>
-              <strong>{course.slug ? `/${course.slug}` : "Non defini"}</strong>
+              <strong>{course.slug ? `/${course.slug}` : "Non défini"}</strong>
             </div>
             <div className="teacher-field">
               <span>Publication</span>
-              <strong>{course.publishedAt ? "Publiee" : "Non publiee"}</strong>
+              <strong>{course.publishedAt ? "Publiée" : "Non publiée"}</strong>
             </div>
           </div>
         </section>
       ) : null}
 
-      <section className="teacher-form-section">
+      <section className="teacher-form-section" id="course-information">
         <div>
           <span>Informations</span>
-          <h2>Identite de la formation</h2>
+          <h2>Identité de la formation</h2>
         </div>
         <div className="teacher-form-grid">
           <label className="teacher-field teacher-field--wide">
@@ -93,16 +94,7 @@ export function TeacherCourseForm({
             <textarea name="description" required rows={5} defaultValue={initialValues.description} />
           </label>
 
-          <label className="teacher-field">
-            <span>Domaine</span>
-            <select name="domainId" required defaultValue={initialValues.domainId || domains[0]?.id}>
-              {domains.map((domain) => (
-                <option key={domain.id} value={domain.id}>
-                  {domain.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <TeacherDomainPicker domains={domains} selectedDomainId={initialValues.domainId || domains[0]?.id} />
 
           <label className="teacher-field">
             <span>Niveau</span>
@@ -132,9 +124,9 @@ export function TeacherCourseForm({
       </section>
 
       <div className="teacher-form-actions">
-        <TeacherSubmitButton pendingLabel={mode === "edit" ? "Enregistrement..." : "Creation..."}>
+        <TeacherSubmitButton pendingLabel={mode === "edit" ? "Enregistrement..." : "Création..."}>
           <Save size={17} aria-hidden="true" />
-          {mode === "edit" ? "Enregistrer" : "Creer la formation"}
+          {mode === "edit" ? "Enregistrer" : "Créer la formation"}
         </TeacherSubmitButton>
       </div>
     </form>

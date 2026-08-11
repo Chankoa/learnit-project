@@ -4,7 +4,12 @@ import { notFound } from "next/navigation";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { TeacherCourseBuilder } from "@/components/app/TeacherCourseBuilder";
-import { countTeacherLessons, getTeacherStudioCourse } from "@/lib/teacher-service";
+import {
+  countTeacherLessons,
+  formatLessonCount,
+  formatModuleCount,
+  getTeacherStudioCourse
+} from "@/lib/teacher-service";
 import { createPageMetadata } from "@/lib/seo";
 
 type TeacherCourseBuilderPageProps = {
@@ -34,13 +39,13 @@ export async function generateMetadata({
 
   return course
     ? createPageMetadata({
-        title: `Builder - ${course.title}`,
-        description: `Gerer les modules et lecons de ${course.title}.`,
+        title: `Éditeur de parcours - ${course.title}`,
+        description: `Gérer les modules et leçons de ${course.title}.`,
         path: `/app/teacher/courses/${course.id}/builder`,
         noIndex: true
       })
     : {
-        title: "Builder introuvable"
+        title: "Éditeur introuvable"
       };
 }
 
@@ -64,14 +69,14 @@ export default async function TeacherCourseBuilderPage({
         items={[
           { label: "Espace enseignant", href: "/app/teacher" },
           { label: "Mes formations", href: "/app/teacher/courses" },
-          { label: "Builder" }
+          { label: "Éditeur de parcours" }
         ]}
       />
 
       <AppPageHeader
-        eyebrow="Modules et lecons"
-        title="Course Builder"
-        description={`${course.modules.length} modules, ${countTeacherLessons(course)} lecons. Les modifications sont enregistrees dans Supabase.`}
+        eyebrow="Structure"
+        title="Éditeur de parcours"
+        description={`${formatModuleCount(course.modules.length)}, ${formatLessonCount(countTeacherLessons(course))}. Les modifications sont enregistrées dans Supabase.`}
       />
 
       <TeacherCourseBuilder

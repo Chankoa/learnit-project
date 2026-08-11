@@ -13,6 +13,8 @@ import { TeacherCourseForm } from "@/components/app/TeacherCourseForm";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
 import {
   countTeacherLessons,
+  formatLessonCount,
+  formatModuleCount,
   getPublicationIssues,
   getTeacherCourseFormDefaults,
   getTeacherStudioCourse,
@@ -70,6 +72,7 @@ export default async function EditTeacherCoursePage({
   }
 
   const publicationIssues = getPublicationIssues(course);
+  const isPublished = course.status === "published";
   const canPublish = publicationIssues.length === 0;
 
   return (
@@ -83,13 +86,13 @@ export default async function EditTeacherCoursePage({
       />
 
       <AppPageHeader
-        eyebrow="Edition"
+        eyebrow="Édition"
         title="Modifier la formation"
-        description="Mettez a jour les informations generales, organisez la structure, puis publiez lorsque le parcours est pret."
+        description="Mettez à jour les informations générales, organisez la structure, puis publiez lorsque le parcours est prêt."
         actions={
           <Link className="btn btn-secondary" href={`/app/teacher/courses/${course.id}/builder`}>
             <Layers3 size={17} aria-hidden="true" />
-            Ouvrir le builder
+            Éditer le parcours
           </Link>
         }
       />
@@ -107,21 +110,21 @@ export default async function EditTeacherCoursePage({
       <section className="teacher-form-section">
         <div>
           <span>Structure</span>
-          <h2>Modules et lecons</h2>
+          <h2>Modules et leçons</h2>
         </div>
         <div className="teacher-form-grid teacher-form-grid--compact">
           <div className="teacher-field">
             <span>Modules</span>
-            <strong>{course.modules.length}</strong>
+            <strong>{formatModuleCount(course.modules.length)}</strong>
           </div>
           <div className="teacher-field">
-            <span>Lecons</span>
-            <strong>{countTeacherLessons(course)}</strong>
+            <span>Leçons</span>
+            <strong>{formatLessonCount(countTeacherLessons(course))}</strong>
           </div>
           <div className="teacher-form-actions">
             <Link className="btn btn-secondary" href={`/app/teacher/courses/${course.id}/builder`}>
               <Layers3 size={17} aria-hidden="true" />
-              Gerer la structure
+              Éditer le parcours
             </Link>
           </div>
         </div>
@@ -130,10 +133,10 @@ export default async function EditTeacherCoursePage({
       <section className="teacher-form-section">
         <div>
           <span>Publication</span>
-          <h2>Rendre la formation accessible</h2>
+          <h2>État de publication</h2>
         </div>
 
-        {publicationIssues.length > 0 ? (
+        {!isPublished && publicationIssues.length > 0 ? (
           <div className="teacher-form-error" role="status">
             {publicationIssues[0]}
           </div>
@@ -141,40 +144,46 @@ export default async function EditTeacherCoursePage({
 
         <div className="teacher-form-grid teacher-form-grid--compact">
           <div className="teacher-field teacher-field--wide">
-            <span>Etat</span>
+            <span>État</span>
             <strong>
-              {course.status === "published"
-                ? "La formation est publiee dans le catalogue."
-                : "La formation est en brouillon et invisible du catalogue."}
+              {isPublished
+                ? "Formation publiée dans le catalogue."
+                : "Formation en brouillon, invisible du catalogue."}
             </strong>
           </div>
           <div className="teacher-form-actions">
-            {course.status === "published" && course.slug ? (
+            {isPublished && course.slug ? (
               <Link className="btn btn-secondary" href={`/formations/${course.slug}`}>
                 <Eye size={17} aria-hidden="true" />
                 Voir dans le catalogue
               </Link>
             ) : null}
-            <form action={publishTeacherCourseAction.bind(null, course.id)}>
-              <TeacherSubmitButton
-                className="btn btn-primary"
-                pendingLabel="Publication..."
-              >
-                <Send size={17} aria-hidden="true" />
-                Publier la formation
-              </TeacherSubmitButton>
-            </form>
+            {isPublished ? (
+              <Link className="btn btn-secondary" href="#course-information">
+                Modifier les infos
+              </Link>
+            ) : (
+              <form action={publishTeacherCourseAction.bind(null, course.id)}>
+                <TeacherSubmitButton
+                  className="btn btn-primary"
+                  pendingLabel="Publication..."
+                >
+                  <Send size={17} aria-hidden="true" />
+                  Publier la formation
+                </TeacherSubmitButton>
+              </form>
+            )}
           </div>
         </div>
 
-        {!canPublish ? (
+        {!isPublished && !canPublish ? (
           <p className="teacher-field-note">
-            La publication restera bloquee tant que les criteres minimum ne sont pas respectes.
+            La publication restera bloquée tant que les critères minimum ne sont pas respectés.
           </p>
         ) : null}
 
         <p className="teacher-field-note">
-          Depublication non destructive reportee : elle doit etre cadree avec le comportement des apprenants deja inscrits.
+          Dépublication non destructive reportée : elle doit être cadrée avec le comportement des apprenants déjà inscrits.
         </p>
       </section>
     </div>

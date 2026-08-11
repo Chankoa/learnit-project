@@ -12,13 +12,18 @@ import {
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
-import { countTeacherLessons, getTeacherStudioCourses } from "@/lib/teacher-service";
+import {
+  countTeacherLessons,
+  formatLessonCount,
+  formatModuleCount,
+  getTeacherStudioCourses
+} from "@/lib/teacher-service";
 import { formatTeacherDate, teacherCourseStatusLabels } from "@/lib/teacher";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Mes formations enseignant",
-  description: "Gerez les formations creees par l'enseignant connecte.",
+  description: "Gérez les formations créées par l'enseignant connecté.",
   path: "/app/teacher/courses",
   noIndex: true
 });
@@ -37,17 +42,17 @@ export default async function TeacherCoursesPage() {
 
       <AppPageHeader
         eyebrow="Mes formations"
-        title="Formations creees"
-        description="Consultez vos parcours, leurs statuts, leurs contenus et leur derniere mise a jour."
+        title="Formations créées"
+        description="Consultez vos parcours, leurs statuts, leurs contenus et leur dernière mise à jour."
         actions={
           <Link className="btn btn-primary" href="/app/teacher/courses/new">
             <Plus size={17} aria-hidden="true" />
-            Creer une formation
+            Créer une formation
           </Link>
         }
       />
 
-      <section className="teacher-course-management-grid" aria-label="Formations creees">
+      <section className="teacher-course-management-grid" aria-label="Formations créées">
         {courses.length > 0 ? (
           courses.map((course) => (
             <article className="teacher-management-card" key={course.id}>
@@ -68,18 +73,18 @@ export default async function TeacherCoursesPage() {
                 </div>
                 <div>
                   <dt>Modules</dt>
-                  <dd>{course.modules.length}</dd>
+                  <dd>{formatModuleCount(course.modules.length)}</dd>
                 </div>
                 <div>
-                  <dt>Lecons</dt>
-                  <dd>{countTeacherLessons(course)}</dd>
+                  <dt>Leçons</dt>
+                  <dd>{formatLessonCount(countTeacherLessons(course))}</dd>
                 </div>
                 <div>
                   <dt>Inscrits</dt>
-                  <dd>{course.enrolledLearnerCount ?? "Non expose"}</dd>
+                  <dd>{course.enrolledLearnerCount ?? "Non exposé"}</dd>
                 </div>
                 <div>
-                  <dt>Mise a jour</dt>
+                  <dt>Mise à jour</dt>
                   <dd>{formatTeacherDate(course.updatedAt)}</dd>
                 </div>
               </dl>
@@ -87,11 +92,11 @@ export default async function TeacherCoursesPage() {
               <div className="teacher-management-card__actions">
                 <Link href={`/app/teacher/courses/${course.id}/edit`}>
                   <Pencil size={16} aria-hidden="true" />
-                  Modifier
+                  Modifier les infos
                 </Link>
                 <Link href={`/app/teacher/courses/${course.id}/builder`}>
                   <Layers3 size={16} aria-hidden="true" />
-                  Builder
+                  Éditer le parcours
                 </Link>
                 {course.status === "published" && course.slug ? (
                   <Link href={`/formations/${course.slug}`}>
@@ -101,7 +106,7 @@ export default async function TeacherCoursesPage() {
                 ) : (
                   <span aria-disabled="true">
                     <Eye size={16} aria-hidden="true" />
-                    Apercu apres publication
+                    Aperçu après publication
                   </span>
                 )}
               </div>
@@ -109,11 +114,11 @@ export default async function TeacherCoursesPage() {
               <div className="teacher-management-card__footer">
                 <span>
                   <Layers3 size={15} aria-hidden="true" />
-                  {course.modules.length} modules
+                  {formatModuleCount(course.modules.length)}
                 </span>
                 <span>
                   <BookOpenText size={15} aria-hidden="true" />
-                  {countTeacherLessons(course)} lecons
+                  {formatLessonCount(countTeacherLessons(course))}
                 </span>
               </div>
             </article>
@@ -123,10 +128,10 @@ export default async function TeacherCoursesPage() {
             action={
               <Link className="btn btn-primary" href="/app/teacher/courses/new">
                 <Plus size={17} aria-hidden="true" />
-                Creer une formation
+                Créer une formation
               </Link>
             }
-            description="Vous n'avez encore cree aucune formation. Un brouillon apparaitra ici des sa creation."
+            description="Vous n'avez encore créé aucune formation. Un brouillon apparaîtra ici dès sa création."
             icon={GraduationCap}
             title="Aucune formation"
           />

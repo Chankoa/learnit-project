@@ -10,6 +10,7 @@ import type {
 } from "@/types/teaching";
 import type {
   TeacherCourseInput,
+  TeacherDomainInput,
   TeacherCourseRepository,
   TeacherLessonInput,
   TeacherModuleInput
@@ -175,6 +176,10 @@ function getSlugCandidate(baseSlug: string, attempt: number) {
   return attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
 }
 
+function normalizeSpaces(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
 function isUniqueViolation(error: { code?: string } | null) {
   return error?.code === "23505";
 }
@@ -270,6 +275,81 @@ async function getDomains(): Promise<Domain[]> {
   return (data as DomainRow[]).map(mapDomain);
 }
 
+async function getDomainBySlug(supabase: SupabaseClient, slug: string): Promise<Domain | undefined> {
+  const { data, error } = await supabase
+    .from("domains")
+    .select("id,slug,name,description,icon,display_order")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Lecture du domaine impossible : ${error.message}`);
+  }
+
+  return data ? mapDomain(data as DomainRow) : undefined;
+}
+
+async function getNextDomainOrder(supabase: SupabaseClient) {
+  const { data, error } = await supabase
+    .from("domains")
+    .select("display_order")
+    .order("display_order", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    throw new Error(`Calcul de l'ordre du domaine impossible : ${error.message}`);
+  }
+
+  const lastOrder = (data as Array<{ display_order: number }>)[0]?.display_order ?? 0;
+  return lastOrder + 1;
+}
+
+async function createDomain(_teacherId: string, input: TeacherDomainInput): Promise<Domain> {
+  const supabase = await getClient();
+  const name = normalizeSpaces(input.name);
+
+  if (!name) {
+    throw new Error("Le nom du domaine est requis.");
+  }
+
+  if (name.length > 80) {
+    throw new Error("Le nom du domaine ne peut pas dépasser 80 caractères.");
+  }
+
+  const slug = slugify(name);
+  const existingDomain = await getDomainBySlug(supabase, slug);
+
+  if (existingDomain) {
+    return existingDomain;
+  }
+
+  const displayOrder = await getNextDomainOrder(supabase);
+  const { data, error } = await supabase
+    .from("domains")
+    .insert({
+      slug,
+      name,
+      status: "active",
+      display_order: displayOrder
+    })
+    .select("id,slug,name,description,icon,display_order")
+    .single();
+
+  if (error) {
+    if (isUniqueViolation(error)) {
+      const duplicatedDomain = await getDomainBySlug(supabase, slug);
+
+      if (duplicatedDomain) {
+        return duplicatedDomain;
+      }
+    }
+
+    throw new Error(`Création du domaine impossible : ${error.message}`);
+  }
+
+  return mapDomain(data as DomainRow);
+}
+
 async function getTeacherCourses(teacherId: string): Promise<TeacherCourse[]> {
   const supabase = await getClient();
   const { data, error } = await supabase
@@ -340,14 +420,14 @@ async function createCourse(teacherId: string, input: TeacherCourseInput): Promi
     if (!error && data) {
       const course = await getTeacherCourse(teacherId, data.id);
       if (!course) {
-        throw new Error("Formation creee mais introuvable apres insertion.");
+        throw new Error("Formation créée mais introuvable après insertion.");
       }
 
       return course;
     }
 
     if (!isUniqueViolation(error)) {
-      throw new Error(`Creation de la formation impossible : ${error?.message}`);
+      throw new Error(`Création de la formation impossible : ${error?.message}`);
     }
   }
 
@@ -379,7 +459,7 @@ async function updateCourse(
     .maybeSingle();
 
   if (error) {
-    throw new Error(`Mise a jour de la formation impossible : ${error.message}`);
+    throw new Error(`Mise à jour de la formation impossible : ${error.message}`);
   }
 
   if (!data) {
@@ -388,7 +468,7 @@ async function updateCourse(
 
   const course = await getTeacherCourse(teacherId, courseId);
   if (!course) {
-    throw new Error("Formation introuvable apres mise a jour.");
+    throw new Error("Formation introuvable après mise à jour.");
   }
 
   return course;
@@ -431,7 +511,7 @@ async function createModule(
     }
 
     if (!isUniqueViolation(error)) {
-      throw new Error(`Creation du module impossible : ${error?.message}`);
+      throw new Error(`Création du module impossible : ${error?.message}`);
     }
   }
 
@@ -462,7 +542,7 @@ async function updateModule(
     .maybeSingle();
 
   if (error) {
-    throw new Error(`Mise a jour du module impossible : ${error.message}`);
+    throw new Error(`Mise à jour du module impossible : ${error.message}`);
   }
 
   if (!data) {
@@ -514,7 +594,7 @@ async function moveModule(
       .eq("course_id", courseId);
 
     if (error) {
-      throw new Error(`Reorganisation des modules impossible : ${error.message}`);
+      throw new Error(`Réorganisation des modules impossible : ${error.message}`);
     }
   }
 }
@@ -531,11 +611,11 @@ async function deleteModule(_teacherId: string, courseId: string, moduleId: stri
     .eq("course_id", courseId);
 
   if (countError) {
-    throw new Error(`Verification du module impossible : ${countError.message}`);
+    throw new Error(`Vérification du module impossible : ${countError.message}`);
   }
 
   if ((count ?? 0) > 0) {
-    throw new Error("Supprimez d'abord les lecons du module.");
+    throw new Error("Supprimez d'abord les leçons du module.");
   }
 
   const { error } = await supabase
@@ -593,11 +673,11 @@ async function createLesson(
     }
 
     if (!isUniqueViolation(error)) {
-      throw new Error(`Creation de la lecon impossible : ${error?.message}`);
+      throw new Error(`Création de la leçon impossible : ${error?.message}`);
     }
   }
 
-  throw new Error("Impossible de generer un slug unique pour cette lecon.");
+  throw new Error("Impossible de générer un slug unique pour cette leçon.");
 }
 
 async function updateLesson(
@@ -607,7 +687,7 @@ async function updateLesson(
   input: TeacherLessonInput
 ): Promise<TeacherLesson> {
   assertUuid(courseId, "Formation");
-  assertUuid(lessonId, "Lecon");
+  assertUuid(lessonId, "Leçon");
 
   const supabase = await getClient();
   const { data, error } = await supabase
@@ -627,11 +707,11 @@ async function updateLesson(
     .maybeSingle();
 
   if (error) {
-    throw new Error(`Mise a jour de la lecon impossible : ${error.message}`);
+    throw new Error(`Mise à jour de la leçon impossible : ${error.message}`);
   }
 
   if (!data) {
-    throw new Error("Lecon introuvable ou non modifiable.");
+    throw new Error("Leçon introuvable ou non modifiable.");
   }
 
   return mapLesson(data as LessonRow);
@@ -646,7 +726,7 @@ async function moveLesson(
 ) {
   assertUuid(courseId, "Formation");
   assertUuid(moduleId, "Module");
-  assertUuid(lessonId, "Lecon");
+  assertUuid(lessonId, "Leçon");
 
   const course = await getTeacherCourse(teacherId, courseId);
   const module = course?.modules.find((item) => item.id === moduleId);
@@ -683,14 +763,14 @@ async function moveLesson(
       .eq("course_id", courseId);
 
     if (error) {
-      throw new Error(`Reorganisation des lecons impossible : ${error.message}`);
+      throw new Error(`Réorganisation des leçons impossible : ${error.message}`);
     }
   }
 }
 
 async function deleteLesson(_teacherId: string, courseId: string, lessonId: string) {
   assertUuid(courseId, "Formation");
-  assertUuid(lessonId, "Lecon");
+  assertUuid(lessonId, "Leçon");
 
   const supabase = await getClient();
   const { data, error: readError } = await supabase
@@ -701,15 +781,15 @@ async function deleteLesson(_teacherId: string, courseId: string, lessonId: stri
     .maybeSingle();
 
   if (readError) {
-    throw new Error(`Verification de la lecon impossible : ${readError.message}`);
+    throw new Error(`Vérification de la leçon impossible : ${readError.message}`);
   }
 
   if (!data) {
-    throw new Error("Lecon introuvable ou non modifiable.");
+    throw new Error("Leçon introuvable ou non modifiable.");
   }
 
   if ((data as { status: string }).status !== "draft") {
-    throw new Error("Seules les lecons en brouillon peuvent etre supprimees.");
+    throw new Error("Seules les leçons en brouillon peuvent être supprimées.");
   }
 
   const { error } = await supabase
@@ -719,7 +799,7 @@ async function deleteLesson(_teacherId: string, courseId: string, lessonId: stri
     .eq("course_id", courseId);
 
   if (error) {
-    throw new Error(`Suppression de la lecon impossible : ${error.message}`);
+    throw new Error(`Suppression de la leçon impossible : ${error.message}`);
   }
 }
 
@@ -770,6 +850,7 @@ async function publishCourse(teacherId: string, courseId: string, durationMinute
 
 export const supabaseTeacherCourseRepository: TeacherCourseRepository = {
   getDomains,
+  createDomain,
   getTeacherCourses,
   getTeacherCourse,
   createCourse,

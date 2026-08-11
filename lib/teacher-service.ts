@@ -76,6 +76,18 @@ function required(value: string, message: string) {
   return value.trim();
 }
 
+export function formatTeacherCount(count: number, singular: string, plural: string) {
+  return `${count} ${count > 1 ? plural : singular}`;
+}
+
+export function formatModuleCount(count: number) {
+  return formatTeacherCount(count, "module", "modules");
+}
+
+export function formatLessonCount(count: number) {
+  return formatTeacherCount(count, "leçon", "leçons");
+}
+
 export function countTeacherLessons(course: TeacherCourse) {
   return course.modules.reduce((total, module) => total + module.lessons.length, 0);
 }
@@ -95,7 +107,7 @@ export function getTeacherCourseFormDefaults(course?: TeacherCourse): TeacherCou
     description: course?.description ?? "",
     domainId: course?.domain.id ?? "",
     level: course?.level ?? "beginner",
-    format: course?.format ?? "Formation guidee",
+    format: course?.format ?? "Formation guidée",
     coverImage: course?.coverImage ?? ""
   };
 }
@@ -130,7 +142,7 @@ export function parseTeacherLessonForm(formData: FormData): teacherCourseReposit
   const status = getString(formData, "status");
 
   return {
-    title: required(getString(formData, "title"), "Le titre de la lecon est requis."),
+    title: required(getString(formData, "title"), "Le titre de la leçon est requis."),
     description: getString(formData, "description") || undefined,
     type: isLessonType(type) ? type : "reading",
     durationMinutes: getNumber(formData, "durationMinutes"),
@@ -156,7 +168,7 @@ export function getPublicationIssues(course: TeacherCourse) {
   }
 
   if (countTeacherLessons(course) === 0) {
-    issues.push("Ajoutez au moins une lecon.");
+    issues.push("Ajoutez au moins une leçon.");
   }
 
   return issues;
@@ -179,20 +191,20 @@ export function getModuleForLesson(course: TeacherCourse, lesson: TeacherLesson)
 export function getDefaultModuleInput(): teacherCourseRepository.TeacherModuleInput {
   return {
     title: "Nouveau module",
-    description: "Decrivez l'objectif de ce module.",
+    description: "Décrivez l'objectif de ce module.",
     status: "draft"
   };
 }
 
 export function getDefaultLessonInput(): teacherCourseRepository.TeacherLessonInput {
   return {
-    title: "Nouvelle lecon",
-    description: "Decrivez ce que l'apprenant va realiser.",
+    title: "Nouvelle leçon",
+    description: "Décrivez ce que l'apprenant va réaliser.",
     type: "reading",
     durationMinutes: 20,
-    objectives: ["Comprendre l'objectif de la lecon"],
+    objectives: ["Comprendre l'objectif de la leçon"],
     content:
-      "# Nouvelle lecon\n\nAjoutez ici le contenu pedagogique. Un editeur MDX pourra remplacer ce champ plus tard.",
+      "# Nouvelle leçon\n\nAjoutez ici le contenu pédagogique. Un éditeur MDX pourra remplacer ce champ plus tard.",
     status: "draft"
   };
 }
@@ -214,7 +226,7 @@ export async function getTeacherStudioDashboard(nextPath = "/app/teacher"): Prom
     },
     activities: sortedCourses.slice(0, 5).map((course) => ({
       id: course.id,
-      label: `${course.title} mis a jour`,
+      label: `Formation mise à jour : ${course.title}`,
       updatedAt: course.updatedAt
     }))
   };
@@ -227,6 +239,17 @@ export async function getTeacherStudioCourses(nextPath = "/app/teacher/courses")
 
 export async function getTeacherStudioDomains() {
   return teacherCourseRepository.getTeacherDomains();
+}
+
+export async function createTeacherDomain(name: string) {
+  const profile = await requireRole("teacher", "/app/teacher/courses/new");
+  const normalizedName = name.replace(/\s+/g, " ").trim();
+
+  if (!normalizedName) {
+    throw new Error("Le nom du domaine est requis.");
+  }
+
+  return teacherCourseRepository.createDomain(profile.id, { name: normalizedName });
 }
 
 export async function getTeacherStudioCourse(courseId: string, nextPath: string) {

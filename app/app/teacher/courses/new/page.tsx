@@ -18,8 +18,8 @@ type NewTeacherCoursePageProps = {
 };
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Creer une formation",
-  description: "Creez une formation enseignant connectee a Supabase.",
+  title: "Créer une formation",
+  description: "Créez une formation enseignant connectée à Supabase.",
   path: "/app/teacher/courses/new",
   noIndex: true
 });
@@ -40,14 +40,14 @@ export default async function NewTeacherCoursePage({
         items={[
           { label: "Espace enseignant", href: "/app/teacher" },
           { label: "Mes formations", href: "/app/teacher/courses" },
-          { label: "Creer une formation" }
+          { label: "Créer une formation" }
         ]}
       />
 
       <AppPageHeader
-        eyebrow="Creation"
-        title="Creer une formation"
-        description="La formation est creee en brouillon. Vous pourrez ensuite ajouter modules, lecons et publier le parcours."
+        eyebrow="Création"
+        title="Créer une formation"
+        description="La formation est créée en brouillon. Vous pourrez ensuite ajouter modules, leçons et publier le parcours."
       />
 
       <TeacherCourseForm

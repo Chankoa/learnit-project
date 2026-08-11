@@ -4,12 +4,14 @@ import { getConfiguredDataSource } from "@/lib/config/data-source";
 import { mockTeacherCourseRepository } from "@/lib/repositories/mock/teacherCourseRepository";
 import { supabaseTeacherCourseRepository } from "@/lib/repositories/supabase/teacherCourseRepository";
 import type {
+  TeacherDomainInput,
   TeacherCourseInput,
   TeacherLessonInput,
   TeacherModuleInput
 } from "@/lib/repositories/teacherCourseRepository.types";
 
 export type {
+  TeacherDomainInput,
   TeacherCourseInput,
   TeacherCourseRepository,
   TeacherLessonInput,
@@ -23,6 +25,8 @@ function getTeacherCourseRepository() {
 }
 
 export const getTeacherDomains = () => getTeacherCourseRepository().getDomains();
+export const createDomain = (teacherId: string, input: TeacherDomainInput) =>
+  getTeacherCourseRepository().createDomain(teacherId, input);
 export const getTeacherCourses = (teacherId: string) =>
   getTeacherCourseRepository().getTeacherCourses(teacherId);
 export const getTeacherCourse = (teacherId: string, courseId: string) =>

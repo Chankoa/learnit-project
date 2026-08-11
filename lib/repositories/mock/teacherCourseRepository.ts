@@ -12,6 +12,9 @@ export const mockTeacherCourseRepository: TeacherCourseRepository = {
   async getDomains() {
     return [...domains];
   },
+  async createDomain() {
+    throw getMockError();
+  },
   async getTeacherCourses() {
     return [...teacherCourses].sort(
       (first, second) => new Date(second.updatedAt).getTime() - new Date(first.updatedAt).getTime()

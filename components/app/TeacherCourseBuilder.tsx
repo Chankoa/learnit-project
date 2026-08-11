@@ -26,6 +26,8 @@ import {
 import { TeacherConfirmForm } from "@/components/app/TeacherConfirmForm";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
 import {
+  formatLessonCount,
+  formatModuleCount,
   getLessonById,
   getModuleById,
   getModuleForLesson,
@@ -51,7 +53,7 @@ type TeacherCourseBuilderProps = {
 const lessonTypeOptions = Object.entries(lessonTypeLabels) as Array<[LessonType, string]>;
 const statusOptions = [
   ["draft", "Brouillon"],
-  ["published", "Publie"]
+  ["published", "Publié"]
 ] as const;
 
 function getBuilderHref(
@@ -75,7 +77,7 @@ function toLines(values?: string[]) {
 }
 
 function getLessonPreviewParagraphs(value?: string) {
-  return (value || "Contenu en preparation.")
+  return (value || "Contenu en préparation.")
     .split(/\n{2,}/)
     .map((line) => line.replace(/^#+\s*/, "").trim())
     .filter(Boolean);
@@ -114,10 +116,10 @@ export function TeacherCourseBuilder({
 
       <div className="teacher-builder__toolbar">
         <div>
-          <span>Course Builder</span>
+          <span>Éditeur de parcours</span>
           <h2>{course.title}</h2>
           <p>
-            {course.modules.length} modules · {course.modules.reduce((total, module) => total + module.lessons.length, 0)} lecons · {getTeacherCourseDuration(course)} min
+            {formatModuleCount(course.modules.length)} · {formatLessonCount(course.modules.reduce((total, module) => total + module.lessons.length, 0))} · {getTeacherCourseDuration(course)} min
           </p>
         </div>
         <form action={addModuleAction}>
@@ -129,17 +131,12 @@ export function TeacherCourseBuilder({
       </div>
 
       <div className="teacher-builder__workspace">
-        <aside className="teacher-builder__outline" aria-label="Structure modules et lecons">
+        <aside className="teacher-builder__outline" aria-label="Structure modules et leçons">
           <div className="teacher-builder__outline-heading">
             <div>
               <span>Structure</span>
-              <h2>Modules et lecons</h2>
+              <h2>Modules et leçons</h2>
             </div>
-            <form action={addModuleAction}>
-              <button aria-label="Ajouter un module" type="submit">
-                <Plus size={16} aria-hidden="true" />
-              </button>
-            </form>
           </div>
 
           <div className="teacher-builder__modules">
@@ -175,7 +172,7 @@ export function TeacherCourseBuilder({
                     <div className="teacher-icon-actions">
                       <form action={moveTeacherModuleAction.bind(null, course.id, module.id, -1)}>
                         <button
-                          aria-label="Deplacer le module vers le haut"
+                          aria-label="Déplacer le module vers le haut"
                           disabled={moduleIndex === 0}
                           type="submit"
                         >
@@ -184,7 +181,7 @@ export function TeacherCourseBuilder({
                       </form>
                       <form action={moveTeacherModuleAction.bind(null, course.id, module.id, 1)}>
                         <button
-                          aria-label="Deplacer le module vers le bas"
+                          aria-label="Déplacer le module vers le bas"
                           disabled={moduleIndex === course.modules.length - 1}
                           type="submit"
                         >
@@ -193,7 +190,7 @@ export function TeacherCourseBuilder({
                       </form>
                       <TeacherConfirmForm
                         action={deleteTeacherModuleAction.bind(null, course.id, module.id)}
-                        message="Supprimer ce module ? Cette action est autorisee seulement si le module est vide."
+                        message="Supprimer ce module ? Cette action est autorisée seulement si le module est vide."
                       >
                         <button aria-label="Supprimer le module" type="submit">
                           <Trash2 size={16} aria-hidden="true" />
@@ -203,7 +200,7 @@ export function TeacherCourseBuilder({
                   </div>
 
                   <div className="teacher-builder-module__meta">
-                    <span>{module.lessons.length} lecons</span>
+                    <span>{formatLessonCount(module.lessons.length)}</span>
                     <span>
                       <Clock3 size={15} aria-hidden="true" />
                       {module.durationMinutes ?? module.lessons.reduce((total, lesson) => total + lesson.durationMinutes, 0)} min
@@ -246,7 +243,7 @@ export function TeacherCourseBuilder({
                             )}
                           >
                             <button
-                              aria-label="Deplacer la lecon vers le haut"
+                              aria-label="Déplacer la leçon vers le haut"
                               disabled={lessonIndex === 0}
                               type="submit"
                             >
@@ -263,7 +260,7 @@ export function TeacherCourseBuilder({
                             )}
                           >
                             <button
-                              aria-label="Deplacer la lecon vers le bas"
+                              aria-label="Déplacer la leçon vers le bas"
                               disabled={lessonIndex === module.lessons.length - 1}
                               type="submit"
                             >
@@ -272,9 +269,9 @@ export function TeacherCourseBuilder({
                           </form>
                           <TeacherConfirmForm
                             action={deleteTeacherLessonAction.bind(null, course.id, lesson.id, module.id)}
-                            message="Supprimer cette lecon ? Seules les lecons en brouillon sont supprimables."
+                            message="Supprimer cette leçon ? Seules les leçons en brouillon sont supprimables."
                           >
-                            <button aria-label="Supprimer la lecon" type="submit">
+                            <button aria-label="Supprimer la leçon" type="submit">
                               <Trash2 size={15} aria-hidden="true" />
                             </button>
                           </TeacherConfirmForm>
@@ -286,7 +283,7 @@ export function TeacherCourseBuilder({
                   <form action={addLessonAction}>
                     <TeacherSubmitButton className="teacher-builder-add" pendingLabel="Ajout...">
                       <FilePlus2 size={17} aria-hidden="true" />
-                      Ajouter une lecon
+                      Ajouter une leçon
                     </TeacherSubmitButton>
                   </form>
                 </section>
@@ -295,22 +292,22 @@ export function TeacherCourseBuilder({
           </div>
         </aside>
 
-        <section className="teacher-builder__panel" aria-label="Panneau d'edition">
+        <section className="teacher-builder__panel" aria-label="Panneau d'édition">
           {!selectedModule && !selectedLesson ? (
             <div className="teacher-builder-empty">
               <span>
                 <Layers3 size={24} aria-hidden="true" />
               </span>
-              <h2>Aucun element selectionne</h2>
-              <p>Selectionnez un module ou une lecon dans la structure pour afficher son editeur.</p>
+              <h2>Aucun élément sélectionné</h2>
+              <p>Sélectionnez un module ou une leçon dans la structure pour afficher son éditeur.</p>
             </div>
           ) : null}
 
           {selectedModule && !selectedLesson ? (
-            <section className="teacher-builder-editor" aria-label="Editeur de module">
+            <section className="teacher-builder-editor" aria-label="Éditeur de module">
               <div className="teacher-builder-editor__heading">
                 <div>
-                  <span>Module selectionne</span>
+                  <span>Module sélectionné</span>
                   <h2>{selectedModule.title}</h2>
                 </div>
               </div>
@@ -327,7 +324,7 @@ export function TeacherCourseBuilder({
                   <textarea name="description" rows={4} defaultValue={selectedModule.description} />
                 </label>
                 <label className="teacher-field">
-                  <span>Duree estimee</span>
+                  <span>Durée estimée</span>
                   <input
                     min={0}
                     name="durationMinutes"
@@ -356,10 +353,10 @@ export function TeacherCourseBuilder({
           ) : null}
 
           {selectedLesson && selectedModule ? (
-            <section className="teacher-builder-editor" aria-label="Editeur de lecon">
+            <section className="teacher-builder-editor" aria-label="Éditeur de leçon">
               <div className="teacher-builder-editor__heading">
                 <div>
-                  <span>Lecon selectionnee</span>
+                  <span>Leçon sélectionnée</span>
                   <h2>{selectedLesson.title}</h2>
                 </div>
                 <div className="teacher-builder-editor__actions">
@@ -371,7 +368,7 @@ export function TeacherCourseBuilder({
                     })}
                   >
                     <Eye size={16} aria-hidden="true" />
-                    Previsualiser
+                    Prévisualiser
                   </Link>
                 </div>
               </div>
@@ -398,7 +395,7 @@ export function TeacherCourseBuilder({
                   </select>
                 </label>
                 <label className="teacher-field">
-                  <span>Duree</span>
+                  <span>Durée</span>
                   <input
                     min={0}
                     name="durationMinutes"
@@ -413,7 +410,7 @@ export function TeacherCourseBuilder({
                 <label className="teacher-field teacher-field--wide">
                   <span>Contenu</span>
                   <textarea name="content" rows={10} defaultValue={selectedLesson.content ?? ""} />
-                  <small className="teacher-field-note">Textarea simple pour cette V1. Un editeur MDX viendra plus tard.</small>
+                  <small className="teacher-field-note">Textarea simple pour cette V1. Un éditeur MDX viendra plus tard.</small>
                 </label>
                 <label className="teacher-field">
                   <span>Statut</span>
@@ -428,7 +425,7 @@ export function TeacherCourseBuilder({
                 <div className="teacher-form-actions">
                   <TeacherSubmitButton pendingLabel="Enregistrement...">
                     <Save size={16} aria-hidden="true" />
-                    Enregistrer la lecon
+                    Enregistrer la leçon
                   </TeacherSubmitButton>
                 </div>
               </form>
@@ -438,18 +435,18 @@ export function TeacherCourseBuilder({
       </div>
 
       {previewLesson && previewModule ? (
-        <div className="teacher-preview-modal" role="dialog" aria-modal="true" aria-label="Previsualisation lecon">
+        <div className="teacher-preview-modal" role="dialog" aria-modal="true" aria-label="Prévisualisation leçon">
           <div className="teacher-preview-modal__panel">
             <header>
               <div>
-                <span>Previsualisation apprenant</span>
+                <span>Prévisualisation apprenant</span>
                 <h2>{previewLesson.title}</h2>
                 <p>
                   {previewModule.title} · {lessonTypeLabels[previewLesson.type]} · {previewLesson.durationMinutes} min
                 </p>
               </div>
               <Link
-                aria-label="Fermer la previsualisation"
+                aria-label="Fermer la prévisualisation"
                 href={getBuilderHref(course.id, { lesson: previewLesson.id })}
               >
                 <X size={18} aria-hidden="true" />
