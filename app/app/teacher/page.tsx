@@ -4,38 +4,38 @@ import {
   ArrowRight,
   BookOpenText,
   BookPlus,
-  FileText,
   GraduationCap,
   History,
-  Users
+  Pencil,
+  Sparkles
 } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
+import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { getCurrentProfile } from "@/lib/auth/server";
-import {
-  formatTeacherDateTime,
-  getTeacherDashboardData,
-  teacherCourseStatusLabels
-} from "@/lib/teacher";
+import { formatTeacherDateTime, teacherCourseStatusLabels } from "@/lib/teacher";
+import { getTeacherStudioDashboard } from "@/lib/teacher-service";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Espace enseignant",
-  description: "Gérez vos formations, modules, leçons, ressources et apprenants LearnIt.",
+  description: "Gerez vos formations, modules et lecons LearnIt.",
   path: "/app/teacher",
   noIndex: true
 });
 
 export default async function TeacherAppPage() {
-  const dashboard = getTeacherDashboardData();
-  const profile = await getCurrentProfile();
+  const [dashboard, profile] = await Promise.all([
+    getTeacherStudioDashboard("/app/teacher"),
+    getCurrentProfile()
+  ]);
 
   return (
     <div className="app-page teacher-page">
       <AppBreadcrumb
         items={[
-          { label: "Accès plateforme", href: "/app" },
+          { label: "Acces plateforme", href: "/app" },
           { label: "Espace enseignant" }
         ]}
       />
@@ -43,11 +43,11 @@ export default async function TeacherAppPage() {
       <AppPageHeader
         eyebrow="Tableau de bord enseignant"
         title={`Bonjour ${profile?.name ?? "Utilisateur LearnIt"}`}
-        description="Pilotez vos formations, surveillez les brouillons, suivez les ressources publiées et gardez un œil sur les apprenants inscrits."
+        description="Pilotez vos formations reelles, surveillez les brouillons et reprenez les dernieres modifications."
         actions={
           <Link className="btn btn-primary" href="/app/teacher/courses/new">
             <BookPlus size={17} aria-hidden="true" />
-            Créer une formation démo
+            Creer une formation
           </Link>
         }
       />
@@ -58,8 +58,8 @@ export default async function TeacherAppPage() {
             <GraduationCap size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Formations créées</small>
-            <strong>{dashboard.metrics.createdCourseCount}</strong>
+            <small>Mes formations</small>
+            <strong>{dashboard.metrics.courseCount}</strong>
           </div>
         </article>
         <article>
@@ -67,28 +67,32 @@ export default async function TeacherAppPage() {
             <BookOpenText size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Publiées / brouillons</small>
+            <small>Publiees / brouillons</small>
             <strong>
-              {dashboard.metrics.publishedCourseCount}/{dashboard.metrics.draftCourseCount}
+              {dashboard.metrics.publishedCount}/{dashboard.metrics.draftCount}
             </strong>
           </div>
         </article>
         <article>
           <span className="learning-metric-icon learning-metric-icon--cyan">
-            <Users size={19} aria-hidden="true" />
+            <Pencil size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Apprenants fictifs</small>
-            <strong>{dashboard.metrics.learnerCount}</strong>
+            <small>Brouillons</small>
+            <strong>{dashboard.metrics.draftCount}</strong>
           </div>
         </article>
         <article>
           <span className="learning-metric-icon learning-metric-icon--amber">
-            <FileText size={19} aria-hidden="true" />
+            <Sparkles size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Ressources publiées</small>
-            <strong>{dashboard.metrics.publishedResourceCount}</strong>
+            <small>Derniere modification</small>
+            <strong>
+              {dashboard.metrics.latestUpdatedAt
+                ? formatTeacherDateTime(dashboard.metrics.latestUpdatedAt)
+                : "-"}
+            </strong>
           </div>
         </article>
       </section>
@@ -97,8 +101,8 @@ export default async function TeacherAppPage() {
         <section className="learning-panel">
           <div className="learning-panel__heading">
             <div>
-              <span>Formations récentes</span>
-              <h2>Dernières mises à jour</h2>
+              <span>Formations recentes</span>
+              <h2>Dernieres mises a jour</h2>
             </div>
             <Link className="text-link" href="/app/teacher/courses">
               Mes formations
@@ -107,18 +111,32 @@ export default async function TeacherAppPage() {
           </div>
 
           <div className="teacher-list">
-            {dashboard.courses.slice(0, 4).map((course) => (
-              <article className="teacher-row teacher-row--course" key={course.id}>
-                <div>
-                  <span>{course.domain.name}</span>
-                  <h3>{course.title}</h3>
-                  <p>{formatTeacherDateTime(course.updatedAt)}</p>
-                </div>
-                <span className="state-badge" data-state={course.status}>
-                  {teacherCourseStatusLabels[course.status]}
-                </span>
-              </article>
-            ))}
+            {dashboard.courses.length > 0 ? (
+              dashboard.courses.slice(0, 4).map((course) => (
+                <article className="teacher-row teacher-row--course" key={course.id}>
+                  <div>
+                    <span>{course.domain.name}</span>
+                    <h3>{course.title}</h3>
+                    <p>{formatTeacherDateTime(course.updatedAt)}</p>
+                  </div>
+                  <span className="state-badge" data-state={course.status}>
+                    {teacherCourseStatusLabels[course.status]}
+                  </span>
+                </article>
+              ))
+            ) : (
+              <AppEmptyState
+                action={
+                  <Link className="btn btn-primary" href="/app/teacher/courses/new">
+                    <BookPlus size={17} aria-hidden="true" />
+                    Creer une formation
+                  </Link>
+                }
+                description="Vous n'avez encore cree aucune formation. Commencez par un brouillon, ajoutez vos modules, puis publiez quand le parcours est pret."
+                icon={GraduationCap}
+                title="Aucune formation"
+              />
+            )}
           </div>
         </section>
 
@@ -126,21 +144,31 @@ export default async function TeacherAppPage() {
           <div className="learning-panel__heading">
             <div>
               <span>Historique</span>
-              <h2>Dernières modifications</h2>
+              <h2>Dernieres modifications</h2>
             </div>
             <History size={20} aria-hidden="true" />
           </div>
 
           <div className="teacher-timeline">
-            {dashboard.activities.map((activity) => (
-              <article key={activity.id}>
+            {dashboard.activities.length > 0 ? (
+              dashboard.activities.map((activity) => (
+                <article key={activity.id}>
+                  <span />
+                  <div>
+                    <h3>{activity.label}</h3>
+                    <p>{formatTeacherDateTime(activity.updatedAt)}</p>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <article>
                 <span />
                 <div>
-                  <h3>{activity.label}</h3>
-                  <p>{formatTeacherDateTime(activity.updatedAt)}</p>
+                  <h3>Aucune modification recente</h3>
+                  <p>Les prochaines sauvegardes apparaitront ici.</p>
                 </div>
               </article>
-            ))}
+            )}
           </div>
         </section>
       </div>

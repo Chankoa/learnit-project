@@ -1,24 +1,25 @@
 import type { Metadata } from "next";
 
+import { createTeacherCourseAction } from "@/app/app/teacher/courses/actions";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { TeacherCourseForm } from "@/components/app/TeacherCourseForm";
 import {
-  getTeacherCourseById,
   getTeacherCourseFormDefaults,
-  getTeacherDomains
-} from "@/lib/teacher";
+  getTeacherStudioDomains
+} from "@/lib/teacher-service";
 import { createPageMetadata } from "@/lib/seo";
 
 type NewTeacherCoursePageProps = {
   searchParams?: Promise<{
-    duplicate?: string | string[];
+    error?: string | string[];
+    message?: string | string[];
   }>;
 };
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Créer une formation",
-  description: "Créez une formation enseignant en mode démo.",
+  title: "Creer une formation",
+  description: "Creez une formation enseignant connectee a Supabase.",
   path: "/app/teacher/courses/new",
   noIndex: true
 });
@@ -31,9 +32,7 @@ export default async function NewTeacherCoursePage({
   searchParams
 }: NewTeacherCoursePageProps) {
   const params = await searchParams;
-  const duplicateCourseId = getSingleParam(params?.duplicate);
-  const duplicatedCourse = duplicateCourseId ? getTeacherCourseById(duplicateCourseId) : undefined;
-  const initialValues = getTeacherCourseFormDefaults(duplicatedCourse);
+  const domains = await getTeacherStudioDomains();
 
   return (
     <div className="app-page teacher-page">
@@ -41,23 +40,25 @@ export default async function NewTeacherCoursePage({
         items={[
           { label: "Espace enseignant", href: "/app/teacher" },
           { label: "Mes formations", href: "/app/teacher/courses" },
-          { label: "Créer une formation" }
+          { label: "Creer une formation" }
         ]}
       />
 
       <AppPageHeader
-        eyebrow="Création"
-        title={duplicatedCourse ? "Dupliquer une formation" : "Créer une formation"}
-        description="Le formulaire fonctionne en mode démo : validation front, log navigateur au submit et confirmation visuelle."
+        eyebrow="Creation"
+        title="Creer une formation"
+        description="La formation est creee en brouillon. Vous pourrez ensuite ajouter modules, lecons et publier le parcours."
       />
 
       <TeacherCourseForm
-        domains={getTeacherDomains()}
+        action={createTeacherCourseAction}
+        domains={domains}
+        error={getSingleParam(params?.error)}
         initialValues={{
-          ...initialValues,
-          title: duplicatedCourse ? `${initialValues.title} - copie` : initialValues.title,
-          status: "draft"
+          ...getTeacherCourseFormDefaults(),
+          domainId: domains[0]?.id ?? ""
         }}
+        message={getSingleParam(params?.message)}
         mode="create"
       />
     </div>

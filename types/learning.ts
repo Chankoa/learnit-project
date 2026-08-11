@@ -14,6 +14,7 @@ export type Lesson = {
   status?: LessonStatus;
   videoUrl?: string;
   contentPath?: string;
+  content?: string;
   objectives?: string[];
   resources?: Resource[];
   order: number;

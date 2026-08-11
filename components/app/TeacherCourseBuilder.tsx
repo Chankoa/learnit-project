@@ -1,330 +1,114 @@
-"use client";
-
 import {
   ArrowDown,
   ArrowUp,
   BookOpenCheck,
   Clock3,
+  Eye,
   FilePlus2,
   Layers3,
   Plus,
+  Save,
   Trash2,
   X
 } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
 
-import { useToast } from "@/components/app/ToastProvider";
-import { LessonEditor } from "@/components/teacher/LessonEditor";
-import { ModuleEditor } from "@/components/teacher/ModuleEditor";
 import {
-  getTeacherLessonDurationTotal,
+  createTeacherLessonAction,
+  createTeacherModuleAction,
+  deleteTeacherLessonAction,
+  deleteTeacherModuleAction,
+  moveTeacherLessonAction,
+  moveTeacherModuleAction,
+  updateTeacherLessonAction,
+  updateTeacherModuleAction
+} from "@/app/app/teacher/courses/actions";
+import { TeacherConfirmForm } from "@/components/app/TeacherConfirmForm";
+import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
+import {
+  getLessonById,
+  getModuleById,
+  getModuleForLesson,
+  getTeacherCourseDuration
+} from "@/lib/teacher-service";
+import {
   lessonTypeLabels,
   teacherLessonStatusLabels,
-  teacherModuleStatusLabels,
-  teacherResourceTypeLabels
+  teacherModuleStatusLabels
 } from "@/lib/teacher";
-import type {
-  TeacherCourse,
-  TeacherLesson,
-  TeacherModule,
-  TeacherResource
-} from "@/types/teaching";
+import type { LessonType } from "@/types/learning";
+import type { TeacherCourse } from "@/types/teaching";
 
 type TeacherCourseBuilderProps = {
   course: TeacherCourse;
-  resources: TeacherResource[];
+  error?: string;
+  message?: string;
+  previewLessonId?: string;
+  selectedLessonId?: string;
+  selectedModuleId?: string;
 };
 
-type BuilderSelection =
-  | { type: "module"; moduleId: string }
-  | { type: "lesson"; moduleId: string; lessonId: string };
+const lessonTypeOptions = Object.entries(lessonTypeLabels) as Array<[LessonType, string]>;
+const statusOptions = [
+  ["draft", "Brouillon"],
+  ["published", "Publie"]
+] as const;
 
-type PreviewSelection = {
-  moduleId: string;
-  lessonId: string;
-};
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
-
-function getModuleDuration(module: TeacherModule) {
-  return module.durationMinutes ?? getTeacherLessonDurationTotal(module.lessons);
-}
-
-function getModuleStatus(module: TeacherModule) {
-  if (module.status) {
-    return module.status;
-  }
-
-  if (module.lessons.length > 0 && module.lessons.every((lesson) => lesson.status === "published")) {
-    return "published";
-  }
-
-  if (module.lessons.some((lesson) => lesson.status === "review")) {
-    return "review";
-  }
-
-  return "draft";
-}
-
-function getLessonDefaults(
-  lesson: TeacherLesson,
-  module: TeacherModule,
-  course: TeacherCourse
-): TeacherLesson {
-  return {
-    ...lesson,
-    description:
-      lesson.description ??
-      `Introduction pratique pour avancer dans le module "${module.title}".`,
-    objectives:
-      lesson.objectives ??
-      course.objectives.slice(0, 2).map((objective) => `${objective}.`),
-    content:
-      lesson.content ??
-      `# ${lesson.title}\n\nCette leçon présente les notions clés, un exemple guidé et une action à réaliser côté apprenant.\n\n## À retenir\n\n- Comprendre le contexte\n- Appliquer la méthode\n- Préparer la suite du module`,
-    resourceIds: lesson.resourceIds ?? []
-  };
-}
-
-function cloneModules(course: TeacherCourse) {
-  return course.modules.map((module) => {
-    const lessons = module.lessons.map((lesson) => getLessonDefaults(lesson, module, course));
-
-    return {
-      ...module,
-      durationMinutes: getModuleDuration({ ...module, lessons }),
-      status: getModuleStatus({ ...module, lessons }),
-      lessons
-    };
-  });
-}
-
-function reorderItems<Item extends { order: number }>(
-  items: Item[],
-  index: number,
-  direction: -1 | 1
+function getBuilderHref(
+  courseId: string,
+  params: Record<string, string | undefined>
 ) {
-  const targetIndex = index + direction;
+  const searchParams = new URLSearchParams();
 
-  if (targetIndex < 0 || targetIndex >= items.length) {
-    return items;
-  }
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      searchParams.set(key, value);
+    }
+  });
 
-  const nextItems = [...items];
-  const currentItem = nextItems[index];
-  const targetItem = nextItems[targetIndex];
-
-  if (!currentItem || !targetItem) {
-    return items;
-  }
-
-  nextItems[index] = targetItem;
-  nextItems[targetIndex] = currentItem;
-
-  return nextItems.map((item, itemIndex) => ({
-    ...item,
-    order: itemIndex + 1
-  }));
+  const query = searchParams.toString();
+  return query ? `/app/teacher/courses/${courseId}/builder?${query}` : `/app/teacher/courses/${courseId}/builder`;
 }
 
-function sortByOrder<Item extends { order: number }>(items: Item[]) {
-  return [...items]
-    .sort((first, second) => first.order - second.order)
-    .map((item, index) => ({ ...item, order: index + 1 }));
+function toLines(values?: string[]) {
+  return values?.join("\n") ?? "";
 }
 
-export function TeacherCourseBuilder({ course, resources }: TeacherCourseBuilderProps) {
-  const [modules, setModules] = useState(() => cloneModules(course));
-  const [selection, setSelection] = useState<BuilderSelection | null>(null);
-  const [previewSelection, setPreviewSelection] = useState<PreviewSelection | null>(null);
-  const [toast, setToast] = useState<string>();
-  const { showToast } = useToast();
+function getLessonPreviewParagraphs(value?: string) {
+  return (value || "Contenu en preparation.")
+    .split(/\n{2,}/)
+    .map((line) => line.replace(/^#+\s*/, "").trim())
+    .filter(Boolean);
+}
 
-  const selectedModule = selection
-    ? modules.find((module) => module.id === selection.moduleId)
-    : undefined;
-  const selectedLesson =
-    selection?.type === "lesson"
-      ? selectedModule?.lessons.find((lesson) => lesson.id === selection.lessonId)
-      : undefined;
-  const previewModule = previewSelection
-    ? modules.find((module) => module.id === previewSelection.moduleId)
-    : undefined;
-  const previewLesson = previewSelection
-    ? previewModule?.lessons.find((lesson) => lesson.id === previewSelection.lessonId)
-    : undefined;
-  const previewResources =
-    previewLesson?.resourceIds
-      ?.map((resourceId) => resources.find((resource) => resource.id === resourceId))
-      .filter((resource): resource is TeacherResource => Boolean(resource)) ?? [];
-
-  function notify(message: string) {
-    setToast(message);
-    showToast({
-      description: "Modification simulée dans l'interface ; aucun contenu n'est publié ni sauvegardé en base.",
-      title: message,
-      variant: "success"
-    });
-  }
-
-  function addModule() {
-    const moduleId = `demo-module-${Date.now()}`;
-
-    setModules((current) => [
-      ...current,
-      {
-        id: moduleId,
-        title: "Nouveau module",
-        description: "Module ajouté en mode démo.",
-        order: current.length + 1,
-        durationMinutes: 0,
-        status: "draft",
-        lessons: []
-      }
-    ]);
-    setSelection({ type: "module", moduleId });
-    notify("Module ajouté en mode démo.");
-  }
-
-  function updateModule(moduleId: string, patch: Partial<TeacherModule>) {
-    setModules((current) => {
-      if (patch.order === undefined) {
-        return current.map((module) =>
-          module.id === moduleId ? { ...module, ...patch } : module
-        );
-      }
-
-      const currentIndex = current.findIndex((module) => module.id === moduleId);
-
-      if (currentIndex < 0) {
-        return current;
-      }
-
-      const nextOrder = clamp(Math.round(patch.order), 1, current.length);
-      const updatedModule = { ...current[currentIndex], ...patch, order: nextOrder };
-      const remainingModules = current.filter((module) => module.id !== moduleId);
-
-      remainingModules.splice(nextOrder - 1, 0, updatedModule);
-
-      return sortByOrder(remainingModules);
-    });
-  }
-
-  function deleteModule(moduleId: string) {
-    if (!window.confirm("Supprimer ce module en mode démo ?")) {
-      return;
-    }
-
-    setModules((current) =>
-      current
-        .filter((module) => module.id !== moduleId)
-        .map((module, index) => ({ ...module, order: index + 1 }))
-    );
-
-    if (selection?.moduleId === moduleId) {
-      setSelection(null);
-    }
-
-    notify("Module supprimé en mode démo.");
-  }
-
-  function moveModule(moduleIndex: number, direction: -1 | 1) {
-    setModules((current) => reorderItems(current, moduleIndex, direction));
-    notify("Ordre des modules mis à jour visuellement.");
-  }
-
-  function addLesson(moduleId: string) {
-    const lessonId = `demo-lesson-${Date.now()}`;
-
-    setModules((current) =>
-      current.map((module) => {
-        if (module.id !== moduleId) {
-          return module;
-        }
-
-        return {
-          ...module,
-          lessons: [
-            ...module.lessons,
-            {
-              id: lessonId,
-              title: "Nouvelle leçon",
-              description: "Leçon ajoutée en mode démo.",
-              type: "reading",
-              durationMinutes: 20,
-              objectives: ["Clarifier l'objectif de la leçon"],
-              content:
-                "# Nouvelle leçon\n\nAjoutez ici le contenu pédagogique. Ce champ pourra être remplacé par un éditeur MDX.",
-              resourceIds: [],
-              status: "draft",
-              order: module.lessons.length + 1
-            }
-          ]
-        };
-      })
-    );
-    setSelection({ type: "lesson", moduleId, lessonId });
-    notify("Leçon ajoutée en mode démo.");
-  }
-
-  function updateLesson(moduleId: string, lessonId: string, patch: Partial<TeacherLesson>) {
-    setModules((current) =>
-      current.map((module) =>
-        module.id === moduleId
-          ? {
-              ...module,
-              lessons: module.lessons.map((lesson) =>
-                lesson.id === lessonId ? { ...lesson, ...patch } : lesson
-              )
-            }
-          : module
-      )
-    );
-  }
-
-  function deleteLesson(moduleId: string, lessonId: string) {
-    if (!window.confirm("Supprimer cette leçon en mode démo ?")) {
-      return;
-    }
-
-    setModules((current) =>
-      current.map((module) =>
-        module.id === moduleId
-          ? {
-              ...module,
-              lessons: module.lessons
-                .filter((lesson) => lesson.id !== lessonId)
-                .map((lesson, index) => ({ ...lesson, order: index + 1 }))
-            }
-          : module
-      )
-    );
-
-    if (selection?.type === "lesson" && selection.lessonId === lessonId) {
-      setSelection({ type: "module", moduleId });
-    }
-
-    notify("Leçon supprimée en mode démo.");
-  }
-
-  function moveLesson(moduleId: string, lessonIndex: number, direction: -1 | 1) {
-    setModules((current) =>
-      current.map((module) =>
-        module.id === moduleId
-          ? { ...module, lessons: reorderItems(module.lessons, lessonIndex, direction) }
-          : module
-      )
-    );
-    notify("Ordre des leçons mis à jour visuellement.");
-  }
+export function TeacherCourseBuilder({
+  course,
+  error,
+  message,
+  previewLessonId,
+  selectedLessonId,
+  selectedModuleId
+}: TeacherCourseBuilderProps) {
+  const selectedLesson = getLessonById(course, selectedLessonId);
+  const selectedModule =
+    selectedLesson
+      ? getModuleForLesson(course, selectedLesson)
+      : getModuleById(course, selectedModuleId);
+  const previewLesson = getLessonById(course, previewLessonId);
+  const previewModule = previewLesson ? getModuleForLesson(course, previewLesson) : undefined;
+  const addModuleAction = createTeacherModuleAction.bind(null, course.id);
 
   return (
     <div className="teacher-builder">
-      {toast ? (
+      {error ? (
+        <div className="teacher-form-error" role="alert">
+          {error}
+        </div>
+      ) : null}
+
+      {message ? (
         <div className="teacher-toast" role="status">
-          {toast}
+          {message}
         </div>
       ) : null}
 
@@ -333,207 +117,343 @@ export function TeacherCourseBuilder({ course, resources }: TeacherCourseBuilder
           <span>Course Builder</span>
           <h2>{course.title}</h2>
           <p>
-            {modules.length} modules · {modules.reduce((total, module) => total + module.lessons.length, 0)} leçons
+            {course.modules.length} modules · {course.modules.reduce((total, module) => total + module.lessons.length, 0)} lecons · {getTeacherCourseDuration(course)} min
           </p>
         </div>
-        <button className="btn btn-primary" type="button" onClick={addModule}>
-          <Plus size={17} aria-hidden="true" />
-          Ajouter module démo
-        </button>
+        <form action={addModuleAction}>
+          <TeacherSubmitButton pendingLabel="Ajout...">
+            <Plus size={17} aria-hidden="true" />
+            Ajouter un module
+          </TeacherSubmitButton>
+        </form>
       </div>
 
       <div className="teacher-builder__workspace">
-        <aside className="teacher-builder__outline" aria-label="Structure modules et leçons">
+        <aside className="teacher-builder__outline" aria-label="Structure modules et lecons">
           <div className="teacher-builder__outline-heading">
             <div>
               <span>Structure</span>
-              <h2>Modules et leçons</h2>
+              <h2>Modules et lecons</h2>
             </div>
-            <button aria-label="Ajouter un module démo" type="button" onClick={addModule}>
-              <Plus size={16} aria-hidden="true" />
-            </button>
+            <form action={addModuleAction}>
+              <button aria-label="Ajouter un module" type="submit">
+                <Plus size={16} aria-hidden="true" />
+              </button>
+            </form>
           </div>
 
           <div className="teacher-builder__modules">
-            {modules.map((module, moduleIndex) => (
-              <section
-                className="teacher-builder-module"
-                data-active={selection?.moduleId === module.id}
-                key={module.id}
-              >
-                <div className="teacher-builder-module__row">
-                  <button
-                    className="teacher-builder-module__select"
-                    type="button"
-                    onClick={() => setSelection({ type: "module", moduleId: module.id })}
-                  >
-                    <span>Module {module.order}</span>
-                    <strong>{module.title}</strong>
-                    <small>{module.description}</small>
-                  </button>
+            {course.modules.length === 0 ? (
+              <div className="teacher-builder-empty">
+                <span>
+                  <Layers3 size={24} aria-hidden="true" />
+                </span>
+                <h2>Aucun module</h2>
+                <p>Ajoutez un premier module pour commencer la structure du parcours.</p>
+              </div>
+            ) : null}
 
-                  <div className="teacher-icon-actions">
-                    <button
-                      aria-label="Déplacer le module vers le haut"
-                      disabled={moduleIndex === 0}
-                      type="button"
-                      onClick={() => moveModule(moduleIndex, -1)}
-                    >
-                      <ArrowUp size={16} aria-hidden="true" />
-                    </button>
-                    <button
-                      aria-label="Déplacer le module vers le bas"
-                      disabled={moduleIndex === modules.length - 1}
-                      type="button"
-                      onClick={() => moveModule(moduleIndex, 1)}
-                    >
-                      <ArrowDown size={16} aria-hidden="true" />
-                    </button>
-                    <button
-                      aria-label="Supprimer le module"
-                      type="button"
-                      onClick={() => deleteModule(module.id)}
-                    >
-                      <Trash2 size={16} aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
+            {course.modules.map((module, moduleIndex) => {
+              const addLessonAction = createTeacherLessonAction.bind(null, course.id, module.id);
 
-                <div className="teacher-builder-module__meta">
-                  <span>{module.lessons.length} leçons</span>
-                  <span>
-                    <Clock3 size={15} aria-hidden="true" />
-                    {getModuleDuration(module)} min
-                  </span>
-                  <span className="state-badge" data-state={getModuleStatus(module)}>
-                    {teacherModuleStatusLabels[getModuleStatus(module)]}
-                  </span>
-                </div>
-
-                <div className="teacher-builder-lessons">
-                  {module.lessons.map((lesson, lessonIndex) => (
-                    <article
-                      className="teacher-builder-lesson"
-                      data-active={
-                        selection?.type === "lesson" && selection.lessonId === lesson.id
-                      }
-                      key={lesson.id}
-                    >
-                      <button
-                        className="teacher-builder-lesson__select"
-                        type="button"
-                        onClick={() =>
-                          setSelection({
-                            type: "lesson",
-                            moduleId: module.id,
-                            lessonId: lesson.id
-                          })
-                        }
-                      >
-                        <span>{lesson.order}</span>
-                        <div>
-                          <h4>{lesson.title}</h4>
-                          <p>
-                            {lessonTypeLabels[lesson.type]} · {lesson.durationMinutes} min
-                          </p>
-                        </div>
-                      </button>
-                      <span className="state-badge" data-state={lesson.status}>
-                        {teacherLessonStatusLabels[lesson.status]}
-                      </span>
-                      <div className="teacher-icon-actions">
-                        <button
-                          aria-label="Déplacer la leçon vers le haut"
-                          disabled={lessonIndex === 0}
-                          type="button"
-                          onClick={() => moveLesson(module.id, lessonIndex, -1)}
-                        >
-                          <ArrowUp size={15} aria-hidden="true" />
-                        </button>
-                        <button
-                          aria-label="Déplacer la leçon vers le bas"
-                          disabled={lessonIndex === module.lessons.length - 1}
-                          type="button"
-                          onClick={() => moveLesson(module.id, lessonIndex, 1)}
-                        >
-                          <ArrowDown size={15} aria-hidden="true" />
-                        </button>
-                        <button
-                          aria-label="Supprimer la leçon"
-                          type="button"
-                          onClick={() => deleteLesson(module.id, lesson.id)}
-                        >
-                          <Trash2 size={15} aria-hidden="true" />
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-
-                <button
-                  className="teacher-builder-add"
-                  type="button"
-                  onClick={() => addLesson(module.id)}
+              return (
+                <section
+                  className="teacher-builder-module"
+                  data-active={selectedModule?.id === module.id}
+                  key={module.id}
                 >
-                  <FilePlus2 size={17} aria-hidden="true" />
-                  Ajouter une leçon démo
-                </button>
-              </section>
-            ))}
+                  <div className="teacher-builder-module__row">
+                    <Link
+                      className="teacher-builder-module__select"
+                      href={getBuilderHref(course.id, { module: module.id })}
+                    >
+                      <span>Module {module.order}</span>
+                      <strong>{module.title}</strong>
+                      <small>{module.description}</small>
+                    </Link>
+
+                    <div className="teacher-icon-actions">
+                      <form action={moveTeacherModuleAction.bind(null, course.id, module.id, -1)}>
+                        <button
+                          aria-label="Deplacer le module vers le haut"
+                          disabled={moduleIndex === 0}
+                          type="submit"
+                        >
+                          <ArrowUp size={16} aria-hidden="true" />
+                        </button>
+                      </form>
+                      <form action={moveTeacherModuleAction.bind(null, course.id, module.id, 1)}>
+                        <button
+                          aria-label="Deplacer le module vers le bas"
+                          disabled={moduleIndex === course.modules.length - 1}
+                          type="submit"
+                        >
+                          <ArrowDown size={16} aria-hidden="true" />
+                        </button>
+                      </form>
+                      <TeacherConfirmForm
+                        action={deleteTeacherModuleAction.bind(null, course.id, module.id)}
+                        message="Supprimer ce module ? Cette action est autorisee seulement si le module est vide."
+                      >
+                        <button aria-label="Supprimer le module" type="submit">
+                          <Trash2 size={16} aria-hidden="true" />
+                        </button>
+                      </TeacherConfirmForm>
+                    </div>
+                  </div>
+
+                  <div className="teacher-builder-module__meta">
+                    <span>{module.lessons.length} lecons</span>
+                    <span>
+                      <Clock3 size={15} aria-hidden="true" />
+                      {module.durationMinutes ?? module.lessons.reduce((total, lesson) => total + lesson.durationMinutes, 0)} min
+                    </span>
+                    <span className="state-badge" data-state={module.status ?? "draft"}>
+                      {teacherModuleStatusLabels[module.status ?? "draft"]}
+                    </span>
+                  </div>
+
+                  <div className="teacher-builder-lessons">
+                    {module.lessons.map((lesson, lessonIndex) => (
+                      <article
+                        className="teacher-builder-lesson"
+                        data-active={selectedLesson?.id === lesson.id}
+                        key={lesson.id}
+                      >
+                        <Link
+                          className="teacher-builder-lesson__select"
+                          href={getBuilderHref(course.id, { lesson: lesson.id })}
+                        >
+                          <span>{lesson.order}</span>
+                          <div>
+                            <h4>{lesson.title}</h4>
+                            <p>
+                              {lessonTypeLabels[lesson.type]} · {lesson.durationMinutes} min
+                            </p>
+                          </div>
+                        </Link>
+                        <span className="state-badge" data-state={lesson.status}>
+                          {teacherLessonStatusLabels[lesson.status]}
+                        </span>
+                        <div className="teacher-icon-actions">
+                          <form
+                            action={moveTeacherLessonAction.bind(
+                              null,
+                              course.id,
+                              module.id,
+                              lesson.id,
+                              -1
+                            )}
+                          >
+                            <button
+                              aria-label="Deplacer la lecon vers le haut"
+                              disabled={lessonIndex === 0}
+                              type="submit"
+                            >
+                              <ArrowUp size={15} aria-hidden="true" />
+                            </button>
+                          </form>
+                          <form
+                            action={moveTeacherLessonAction.bind(
+                              null,
+                              course.id,
+                              module.id,
+                              lesson.id,
+                              1
+                            )}
+                          >
+                            <button
+                              aria-label="Deplacer la lecon vers le bas"
+                              disabled={lessonIndex === module.lessons.length - 1}
+                              type="submit"
+                            >
+                              <ArrowDown size={15} aria-hidden="true" />
+                            </button>
+                          </form>
+                          <TeacherConfirmForm
+                            action={deleteTeacherLessonAction.bind(null, course.id, lesson.id, module.id)}
+                            message="Supprimer cette lecon ? Seules les lecons en brouillon sont supprimables."
+                          >
+                            <button aria-label="Supprimer la lecon" type="submit">
+                              <Trash2 size={15} aria-hidden="true" />
+                            </button>
+                          </TeacherConfirmForm>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+
+                  <form action={addLessonAction}>
+                    <TeacherSubmitButton className="teacher-builder-add" pendingLabel="Ajout...">
+                      <FilePlus2 size={17} aria-hidden="true" />
+                      Ajouter une lecon
+                    </TeacherSubmitButton>
+                  </form>
+                </section>
+              );
+            })}
           </div>
         </aside>
 
-        <section className="teacher-builder__panel" aria-label="Panneau d'édition">
-          {!selection ? (
+        <section className="teacher-builder__panel" aria-label="Panneau d'edition">
+          {!selectedModule && !selectedLesson ? (
             <div className="teacher-builder-empty">
               <span>
                 <Layers3 size={24} aria-hidden="true" />
               </span>
-              <h2>Aucun élément sélectionné</h2>
-              <p>Sélectionnez un module ou une leçon dans la structure pour afficher son éditeur.</p>
+              <h2>Aucun element selectionne</h2>
+              <p>Selectionnez un module ou une lecon dans la structure pour afficher son editeur.</p>
             </div>
           ) : null}
 
-          {selection?.type === "module" && selectedModule ? (
-            <ModuleEditor
-              module={selectedModule}
-              onChange={(patch) => updateModule(selectedModule.id, patch)}
-              onSave={() => notify("Module enregistré en mode démo.")}
-            />
+          {selectedModule && !selectedLesson ? (
+            <section className="teacher-builder-editor" aria-label="Editeur de module">
+              <div className="teacher-builder-editor__heading">
+                <div>
+                  <span>Module selectionne</span>
+                  <h2>{selectedModule.title}</h2>
+                </div>
+              </div>
+              <form
+                action={updateTeacherModuleAction.bind(null, course.id, selectedModule.id)}
+                className="teacher-form-grid"
+              >
+                <label className="teacher-field teacher-field--wide">
+                  <span>Titre</span>
+                  <input name="title" required defaultValue={selectedModule.title} />
+                </label>
+                <label className="teacher-field teacher-field--wide">
+                  <span>Description</span>
+                  <textarea name="description" rows={4} defaultValue={selectedModule.description} />
+                </label>
+                <label className="teacher-field">
+                  <span>Duree estimee</span>
+                  <input
+                    min={0}
+                    name="durationMinutes"
+                    type="number"
+                    defaultValue={selectedModule.durationMinutes ?? ""}
+                  />
+                </label>
+                <label className="teacher-field">
+                  <span>Statut</span>
+                  <select name="status" defaultValue={selectedModule.status ?? "draft"}>
+                    {statusOptions.map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="teacher-form-actions">
+                  <TeacherSubmitButton pendingLabel="Enregistrement...">
+                    <Save size={16} aria-hidden="true" />
+                    Enregistrer le module
+                  </TeacherSubmitButton>
+                </div>
+              </form>
+            </section>
           ) : null}
 
-          {selection?.type === "lesson" && selectedModule && selectedLesson ? (
-            <LessonEditor
-              lesson={selectedLesson}
-              resources={resources}
-              onChange={(patch) => updateLesson(selectedModule.id, selectedLesson.id, patch)}
-              onPreview={() =>
-                setPreviewSelection({
-                  moduleId: selectedModule.id,
-                  lessonId: selectedLesson.id
-                })
-              }
-              onSave={() => notify("Leçon enregistrée en mode démo.")}
-            />
+          {selectedLesson && selectedModule ? (
+            <section className="teacher-builder-editor" aria-label="Editeur de lecon">
+              <div className="teacher-builder-editor__heading">
+                <div>
+                  <span>Lecon selectionnee</span>
+                  <h2>{selectedLesson.title}</h2>
+                </div>
+                <div className="teacher-builder-editor__actions">
+                  <Link
+                    className="btn btn-secondary"
+                    href={getBuilderHref(course.id, {
+                      lesson: selectedLesson.id,
+                      preview: selectedLesson.id
+                    })}
+                  >
+                    <Eye size={16} aria-hidden="true" />
+                    Previsualiser
+                  </Link>
+                </div>
+              </div>
+              <form
+                action={updateTeacherLessonAction.bind(null, course.id, selectedLesson.id)}
+                className="teacher-form-grid"
+              >
+                <label className="teacher-field teacher-field--wide">
+                  <span>Titre</span>
+                  <input name="title" required defaultValue={selectedLesson.title} />
+                </label>
+                <label className="teacher-field teacher-field--wide">
+                  <span>Description</span>
+                  <textarea name="description" rows={3} defaultValue={selectedLesson.description ?? ""} />
+                </label>
+                <label className="teacher-field">
+                  <span>Type</span>
+                  <select name="type" defaultValue={selectedLesson.type}>
+                    {lessonTypeOptions.map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="teacher-field">
+                  <span>Duree</span>
+                  <input
+                    min={0}
+                    name="durationMinutes"
+                    type="number"
+                    defaultValue={selectedLesson.durationMinutes}
+                  />
+                </label>
+                <label className="teacher-field teacher-field--wide">
+                  <span>Objectifs</span>
+                  <textarea name="objectives" rows={4} defaultValue={toLines(selectedLesson.objectives)} />
+                </label>
+                <label className="teacher-field teacher-field--wide">
+                  <span>Contenu</span>
+                  <textarea name="content" rows={10} defaultValue={selectedLesson.content ?? ""} />
+                  <small className="teacher-field-note">Textarea simple pour cette V1. Un editeur MDX viendra plus tard.</small>
+                </label>
+                <label className="teacher-field">
+                  <span>Statut</span>
+                  <select name="status" defaultValue={selectedLesson.status}>
+                    {statusOptions.map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="teacher-form-actions">
+                  <TeacherSubmitButton pendingLabel="Enregistrement...">
+                    <Save size={16} aria-hidden="true" />
+                    Enregistrer la lecon
+                  </TeacherSubmitButton>
+                </div>
+              </form>
+            </section>
           ) : null}
         </section>
       </div>
 
       {previewLesson && previewModule ? (
-        <div className="teacher-preview-modal" role="dialog" aria-modal="true" aria-label="Prévisualisation leçon">
+        <div className="teacher-preview-modal" role="dialog" aria-modal="true" aria-label="Previsualisation lecon">
           <div className="teacher-preview-modal__panel">
             <header>
               <div>
-                <span>Prévisualisation apprenant</span>
+                <span>Previsualisation apprenant</span>
                 <h2>{previewLesson.title}</h2>
                 <p>
-                  {previewModule.title} · {lessonTypeLabels[previewLesson.type]} ·{" "}
-                  {previewLesson.durationMinutes} min
+                  {previewModule.title} · {lessonTypeLabels[previewLesson.type]} · {previewLesson.durationMinutes} min
                 </p>
               </div>
-              <button aria-label="Fermer la prévisualisation" type="button" onClick={() => setPreviewSelection(null)}>
+              <Link
+                aria-label="Fermer la previsualisation"
+                href={getBuilderHref(course.id, { lesson: previewLesson.id })}
+              >
                 <X size={18} aria-hidden="true" />
-              </button>
+              </Link>
             </header>
 
             <article className="teacher-preview-lesson">
@@ -560,27 +480,9 @@ export function TeacherCourseBuilder({ course, resources }: TeacherCourseBuilder
 
               <section>
                 <h3>Contenu</h3>
-                {(previewLesson.content ?? "Contenu en préparation.")
-                  .split("\n")
-                  .filter(Boolean)
-                  .map((line) => (
-                    <p key={line}>{line.replace(/^#+\s*/, "")}</p>
-                  ))}
-              </section>
-
-              <section>
-                <h3>Ressources liées</h3>
-                {previewResources.length > 0 ? (
-                  <ul>
-                    {previewResources.map((resource) => (
-                      <li key={resource.id}>
-                        {resource.title} · {teacherResourceTypeLabels[resource.type]}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>Aucune ressource liée pour le moment.</p>
-                )}
+                {getLessonPreviewParagraphs(previewLesson.content).map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
               </section>
             </article>
           </div>

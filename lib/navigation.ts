@@ -170,7 +170,7 @@ export const teacherNavigation = [
   },
   {
     label: "Leçons",
-    href: "/app/teacher/courses/teacher-course-web-portfolio/builder",
+    href: "/app/teacher/courses",
     icon: BookOpen,
     role: "teacher",
     isActive: (pathname) => pathname.endsWith("/builder")

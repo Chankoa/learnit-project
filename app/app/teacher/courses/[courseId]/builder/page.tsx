@@ -4,36 +4,38 @@ import { notFound } from "next/navigation";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { TeacherCourseBuilder } from "@/components/app/TeacherCourseBuilder";
-import {
-  countTeacherLessons,
-  getTeacherCourseById,
-  getTeacherCourseStaticParams,
-  getTeacherResources
-} from "@/lib/teacher";
+import { countTeacherLessons, getTeacherStudioCourse } from "@/lib/teacher-service";
 import { createPageMetadata } from "@/lib/seo";
 
 type TeacherCourseBuilderPageProps = {
   params: Promise<{
     courseId: string;
   }>;
+  searchParams?: Promise<{
+    error?: string | string[];
+    lesson?: string | string[];
+    message?: string | string[];
+    module?: string | string[];
+    preview?: string | string[];
+  }>;
 };
 
-export const dynamicParams = false;
+export const dynamic = "force-dynamic";
 
-export function generateStaticParams() {
-  return getTeacherCourseStaticParams();
+function getSingleParam(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 export async function generateMetadata({
   params
 }: TeacherCourseBuilderPageProps): Promise<Metadata> {
   const { courseId } = await params;
-  const course = getTeacherCourseById(courseId);
+  const course = await getTeacherStudioCourse(courseId, `/app/teacher/courses/${courseId}/builder`);
 
   return course
     ? createPageMetadata({
         title: `Builder - ${course.title}`,
-        description: `Gérer les modules et leçons de ${course.title}.`,
+        description: `Gerer les modules et lecons de ${course.title}.`,
         path: `/app/teacher/courses/${course.id}/builder`,
         noIndex: true
       })
@@ -43,16 +45,18 @@ export async function generateMetadata({
 }
 
 export default async function TeacherCourseBuilderPage({
-  params
+  params,
+  searchParams
 }: TeacherCourseBuilderPageProps) {
   const { courseId } = await params;
-  const course = getTeacherCourseById(courseId);
+  const [course, query] = await Promise.all([
+    getTeacherStudioCourse(courseId, `/app/teacher/courses/${courseId}/builder`),
+    searchParams
+  ]);
 
   if (!course) {
     notFound();
   }
-
-  const resources = getTeacherResources().filter((resource) => resource.courseId === course.id);
 
   return (
     <div className="app-page teacher-page">
@@ -65,12 +69,19 @@ export default async function TeacherCourseBuilderPage({
       />
 
       <AppPageHeader
-        eyebrow="Modules et leçons"
+        eyebrow="Modules et lecons"
         title="Course Builder"
-        description={`${course.modules.length} modules, ${countTeacherLessons(course)} leçons. Les actions modifient uniquement l'affichage local en mode démo.`}
+        description={`${course.modules.length} modules, ${countTeacherLessons(course)} lecons. Les modifications sont enregistrees dans Supabase.`}
       />
 
-      <TeacherCourseBuilder course={course} resources={resources} />
+      <TeacherCourseBuilder
+        course={course}
+        error={getSingleParam(query?.error)}
+        message={getSingleParam(query?.message)}
+        previewLessonId={getSingleParam(query?.preview)}
+        selectedLessonId={getSingleParam(query?.lesson)}
+        selectedModuleId={getSingleParam(query?.module)}
+      />
     </div>
   );
 }

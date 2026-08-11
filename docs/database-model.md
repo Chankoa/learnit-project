@@ -103,6 +103,7 @@ Champs principaux :
 - `status`
 - `duration_minutes`
 - `content_path`
+- `content`
 - `video_url`
 - `objectives`
 - `order`

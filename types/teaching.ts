@@ -40,7 +40,9 @@ export type TeacherModule = {
 
 export type TeacherCourse = {
   id: string;
+  slug?: string;
   title: string;
+  subtitle?: string;
   description: string;
   domain: Domain;
   level: CourseLevel;
@@ -50,9 +52,10 @@ export type TeacherCourse = {
   audience: string[];
   requirements: string[];
   coverImage?: string;
-  enrolledLearnerCount: number;
+  enrolledLearnerCount?: number;
   createdAt: string;
   updatedAt: string;
+  publishedAt?: string;
   modules: TeacherModule[];
 };
 

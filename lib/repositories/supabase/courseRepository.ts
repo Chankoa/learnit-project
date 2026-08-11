@@ -63,6 +63,7 @@ type LessonRow = {
   status: "draft" | "published" | "locked";
   duration_minutes: number | null;
   content_path: string | null;
+  content: string | null;
   video_url: string | null;
   objectives: string[] | null;
   display_order: number;
@@ -120,6 +121,7 @@ function mapLesson(row: LessonRow, resources: Resource[]): Lesson {
     durationMinutes: row.duration_minutes ?? undefined,
     status: row.status === "published" ? "available" : row.status === "locked" ? "locked" : "preview",
     contentPath: row.content_path ?? undefined,
+    content: row.content ?? undefined,
     videoUrl: row.video_url ?? undefined,
     objectives: row.objectives ?? undefined,
     resources: resources.length > 0 ? resources : undefined,
@@ -198,7 +200,7 @@ export async function getCourses(lookup?: CourseLookup): Promise<Course[]> {
   const courseIds = courseRows.map((course) => course.id);
   const [{ data: moduleData, error: moduleError }, { data: lessonData, error: lessonError }, { data: resourceData, error: resourceError }] = await Promise.all([
     supabase.from("course_modules").select("id,course_id,slug,title,description,duration_minutes,display_order,status").in("course_id", courseIds).order("display_order"),
-    supabase.from("lessons").select("id,course_id,module_id,slug,title,description,type,status,duration_minutes,content_path,video_url,objectives,display_order").in("course_id", courseIds).order("display_order"),
+    supabase.from("lessons").select("id,course_id,module_id,slug,title,description,type,status,duration_minutes,content_path,content,video_url,objectives,display_order").in("course_id", courseIds).order("display_order"),
     supabase.from("resources").select("id,course_id,module_id,lesson_id,title,type,href,description,file_name,access,tags,created_at,updated_at").in("course_id", courseIds)
   ]);
 

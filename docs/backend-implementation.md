@@ -131,7 +131,7 @@ Implemented read-only LMS access when `NEXT_PUBLIC_DATA_SOURCE=supabase`:
 - database rows are mapped to the existing application types before reaching UI components
 - mock remains the explicit source when `NEXT_PUBLIC_DATA_SOURCE=mock`
 
-Enrollments, progress, notes, favorites, certificates, teacher CRUD and the `/learn` progression routes remain mock/local until their dedicated migration sprints.
+Certificates and advanced resource authoring remain mock/local until their dedicated migration sprints.
 
 ## Learner state migration
 
@@ -155,3 +155,16 @@ Still intentionally deferred:
 - password reset flow
 - admin UI for changing user roles
 - file upload UI backed by Supabase Storage
+
+## Teacher Studio migration
+
+Teacher course authoring is now persisted when the application is configured for Supabase:
+
+- `courses.teacher_id` is the ownership field.
+- Course creation starts as `draft`, `private`, `preview`.
+- Modules and lessons are edited through Server Actions and the Teacher repository.
+- Publishing validates title, description, one module and one lesson before exposing the course as `published` and `public`.
+- RLS requires both course ownership and `profiles.role = teacher` for Teacher write access.
+- Lesson body content is stored in `lessons.content` for V1 text/markdown authoring.
+
+Depublishing and Teacher-facing learner enrollment analytics are intentionally deferred until the enrollment visibility policy is defined.
