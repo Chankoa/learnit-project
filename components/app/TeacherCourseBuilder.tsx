@@ -574,7 +574,6 @@ export function TeacherCourseBuilder({
                   <form
                     action={uploadTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id)}
                     className="teacher-form-grid"
-                    encType="multipart/form-data"
                   >
                     <label className="teacher-field">
                       <span>Titre</span>
