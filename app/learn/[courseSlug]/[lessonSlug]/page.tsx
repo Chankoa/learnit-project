@@ -2,17 +2,15 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { CompletionButton } from "@/components/learning/CompletionButton";
-import { ExerciseBlock } from "@/components/learning/ExerciseBlock";
 import { LearningShell } from "@/components/learning/LearningShell";
-import { LessonContent } from "@/components/learning/LessonContent";
 import { LessonHeader } from "@/components/learning/LessonHeader";
+import { MarkdownLessonContent } from "@/components/learning/MarkdownLessonContent";
 import { LessonNotes } from "@/components/learning/LessonNotes";
 import { LessonNavigation } from "@/components/learning/LessonNavigation";
 import { LessonSidebar } from "@/components/learning/LessonSidebar";
 import { ResourceList } from "@/components/learning/ResourceList";
 import { getLessonMdxComponent } from "@/content/lessons/registry";
 import { requireRole } from "@/lib/auth/server";
-import { getLessonContent } from "@/lib/lesson-content";
 import { getLearningCourseState, getLessonNote } from "@/lib/learning-service";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -69,7 +67,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const lessonIndex = data.lessons.findIndex((item) => item.id === lesson.id);
   const initials = profile.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
   const learner = { id: profile.id, firstName: profile.name, displayName: profile.name, email: profile.email, initials };
-  const content = getLessonContent(lesson);
+  const resources = lesson.resources ?? module?.resources ?? [];
 
   return (
     <LearningShell
@@ -97,12 +95,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
               <MdxLesson />
             </div>
           ) : (
-            <>
-              <LessonContent content={content} />
-              <ResourceList resources={lesson.resources ?? module?.resources ?? []} />
-              <ExerciseBlock exercise={content.exercise} />
-            </>
+            <MarkdownLessonContent content={lesson.content} />
           )}
+          <ResourceList resources={resources} />
 
           <div className="lesson-completion">
             <div>

@@ -4280,6 +4280,41 @@ a.lesson-sidebar__lesson:hover {
   background: var(--surface-card);
 }
 
+.lesson-content pre {
+  overflow-x: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  padding: var(--space-4);
+}
+
+.lesson-content code {
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-primary) 9%, transparent);
+  padding: 0.12rem 0.32rem;
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+.lesson-content pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.lesson-content a {
+  color: var(--accent-primary);
+  font-weight: var(--font-weight-bold);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.lesson-content--empty {
+  border: 1px dashed var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  padding: var(--space-5);
+}
+
 .lesson-resources {
   display: grid;
   gap: var(--space-4);
@@ -4357,6 +4392,17 @@ a.lesson-sidebar__lesson:hover {
 .lesson-resource-list p {
   color: var(--text-muted);
   font-size: var(--text-xs);
+}
+
+.lesson-resource-list small,
+.lesson-resource-empty {
+  color: var(--text-soft);
+  font-size: var(--text-xs);
+}
+
+.lesson-resource-empty {
+  border-top: 1px solid var(--border-soft);
+  padding-top: var(--space-4);
 }
 
 .exercise-block {

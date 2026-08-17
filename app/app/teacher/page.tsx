@@ -45,10 +45,16 @@ export default async function TeacherAppPage() {
         title={`Bonjour ${profile?.name ?? "Utilisateur LearnIt"}`}
         description="Pilotez vos formations réelles, surveillez les brouillons et reprenez les dernières modifications."
         actions={
-          <Link className="btn btn-primary" href="/app/teacher/courses/new">
-            <BookPlus size={17} aria-hidden="true" />
-            Créer une formation
-          </Link>
+          <>
+            <Link className="btn btn-secondary" href="/app/teacher/courses/forge">
+              <Sparkles size={17} aria-hidden="true" />
+              Créer avec Forge AI
+            </Link>
+            <Link className="btn btn-primary" href="/app/teacher/courses/new">
+              <BookPlus size={17} aria-hidden="true" />
+              Créer une formation
+            </Link>
+          </>
         }
       />
 

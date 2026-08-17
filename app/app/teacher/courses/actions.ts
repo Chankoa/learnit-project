@@ -7,15 +7,18 @@ import {
   createTeacherDomain,
   createTeacherCourse,
   createTeacherLesson,
+  createTeacherLessonResource,
   createTeacherModule,
   deleteTeacherLesson,
+  deleteTeacherResource,
   deleteTeacherModule,
   moveTeacherLesson,
   moveTeacherModule,
   publishTeacherCourse,
   updateTeacherCourse,
   updateTeacherLesson,
-  updateTeacherModule
+  updateTeacherModule,
+  uploadTeacherLessonResource
 } from "@/lib/teacher-service";
 import type { Domain } from "@/types/course";
 
@@ -61,6 +64,7 @@ function getEditPath(courseId: string, params: Record<string, string | undefined
 function revalidateTeacherCourse(courseId: string, courseSlug?: string) {
   revalidatePath("/app/teacher");
   revalidatePath("/app/teacher/courses");
+  revalidatePath("/app/teacher/resources");
   revalidatePath(`/app/teacher/courses/${courseId}/edit`);
   revalidatePath(`/app/teacher/courses/${courseId}/builder`);
   revalidatePath("/formations");
@@ -285,6 +289,92 @@ export async function deleteTeacherLessonAction(courseId: string, lessonId: stri
       error: getErrorMessage(error),
       lesson: lessonId
     });
+  }
+
+  redirect(destination);
+}
+
+export async function createTeacherLessonResourceAction(
+  courseId: string,
+  lessonId: string,
+  formData: FormData
+) {
+  let destination = getBuilderPath(courseId, { lesson: lessonId });
+
+  try {
+    await createTeacherLessonResource(courseId, lessonId, formData);
+    revalidateTeacherCourse(courseId);
+    destination = getBuilderPath(courseId, {
+      lesson: lessonId,
+      message: "Ressource ajoutée."
+    });
+  } catch (error) {
+    destination = getBuilderPath(courseId, {
+      error: getErrorMessage(error),
+      lesson: lessonId
+    });
+  }
+
+  redirect(destination);
+}
+
+export async function uploadTeacherLessonResourceAction(
+  courseId: string,
+  lessonId: string,
+  formData: FormData
+) {
+  let destination = getBuilderPath(courseId, { lesson: lessonId });
+
+  try {
+    await uploadTeacherLessonResource(courseId, lessonId, formData);
+    revalidateTeacherCourse(courseId);
+    destination = getBuilderPath(courseId, {
+      lesson: lessonId,
+      message: "Fichier téléversé."
+    });
+  } catch (error) {
+    destination = getBuilderPath(courseId, {
+      error: getErrorMessage(error),
+      lesson: lessonId
+    });
+  }
+
+  redirect(destination);
+}
+
+export async function deleteTeacherLessonResourceAction(
+  courseId: string,
+  lessonId: string,
+  resourceId: string
+) {
+  let destination = getBuilderPath(courseId, { lesson: lessonId });
+
+  try {
+    await deleteTeacherResource(resourceId, getBuilderPath(courseId, { lesson: lessonId }));
+    revalidateTeacherCourse(courseId);
+    destination = getBuilderPath(courseId, {
+      lesson: lessonId,
+      message: "Ressource supprimée."
+    });
+  } catch (error) {
+    destination = getBuilderPath(courseId, {
+      error: getErrorMessage(error),
+      lesson: lessonId
+    });
+  }
+
+  redirect(destination);
+}
+
+export async function deleteTeacherLibraryResourceAction(resourceId: string) {
+  let destination = "/app/teacher/resources";
+
+  try {
+    await deleteTeacherResource(resourceId, "/app/teacher/resources");
+    revalidatePath("/app/teacher/resources");
+    destination = withParams("/app/teacher/resources", { message: "Ressource supprimée." });
+  } catch (error) {
+    destination = withParams("/app/teacher/resources", { error: getErrorMessage(error) });
   }
 
   redirect(destination);

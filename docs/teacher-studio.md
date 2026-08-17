@@ -2,6 +2,8 @@
 
 Sprint 6 connecte la boucle d'authoring Teacher à Supabase.
 Sprint 6.1 stabilise la terminologie UX, les domaines créés à la volée et les états de publication.
+Sprint 7 ajoute le CMS pédagogique léger : contenu Markdown, ressources liées aux leçons et upload Storage.
+Sprint 8 ajoute Forge AI comme copilote optionnel, sans publication ni écrasement automatique.
 
 ## Terminologie UX
 
@@ -26,9 +28,12 @@ Sprint 6.1 stabilise la terminologie UX, les domaines créés à la volée et le
 - `courses` : formation, slug global, statut `draft | published`, visibilité et publication.
 - `course_modules` : structure de modules, `display_order`, statut.
 - `lessons` : leçons, `display_order`, type, statut, objectifs et contenu texte.
+- `resources` : ressources pédagogiques liées aux formations, modules ou leçons.
+- `storage.objects` : fichiers de ressources et couvertures de formation.
 
 La migration `20260811090300_teacher_studio_authoring.sql` ajoute `lessons.content`.
 La migration `20260811101524_teacher_domain_creation.sql` autorise les Teachers actifs à créer des domaines actifs.
+La migration `20260817071013_content_cms_resources.sql` ajoute les métadonnées fichiers, les buckets `resources` et `course-covers`, et les policies associées.
 
 ## Création inline de domaines
 
@@ -59,21 +64,25 @@ Les policies ajoutées permettent à un Teacher authentifié de :
 - supprimer un module uniquement s'il est vide ;
 - supprimer une leçon uniquement si elle est en brouillon ;
 - créer un domaine `active` depuis le Teacher Studio.
+- créer/supprimer des ressources uniquement sur ses propres formations ;
+- uploader des fichiers uniquement sous son préfixe Storage `auth.uid()/courseId/...`.
 
 Un Learner ne peut pas créer ni modifier de formation, même en forgeant un payload.
 
 ## Workflow
 
 1. Le Teacher crée une formation via `/app/teacher/courses/new`.
+   Il peut aussi créer une proposition via `/app/teacher/courses/forge`, puis importer uniquement les modules/leçons validés.
 2. La formation est créée en `draft`, `visibility = private`, `availability = preview`.
 3. Le Teacher édite les informations dans `/app/teacher/courses/[courseId]/edit`.
 4. Le Teacher organise les modules/leçons dans `/app/teacher/courses/[courseId]/builder`.
-5. La publication valide au minimum :
+5. Dans une leçon, le Teacher rédige le contenu Markdown et ajoute des liens ou fichiers.
+6. La publication valide au minimum :
    - titre présent ;
    - description présente ;
    - au moins un module ;
    - au moins une leçon.
-6. La publication passe la formation en `published`, `visibility = public`, `availability = complete` et publie les modules/leçons non verrouillés.
+7. La publication passe la formation en `published`, `visibility = public`, `availability = complete` et publie les modules/leçons non verrouillés.
 
 ## États de publication
 
@@ -94,11 +103,29 @@ Une formation publiée par Teacher devient accessible via :
 
 Le Learning Engine Sprint 5 peut ensuite utiliser les tables `enrollments` et `lesson_progress` sans modèle parallèle.
 
+## CMS pédagogique
+
+Le contenu de leçon V1 reste volontairement simple :
+
+- champ `lessons.content` au format Markdown ;
+- textarea confortable dans l'Éditeur de parcours ;
+- rendu Learner via `react-markdown` sans HTML brut ;
+- états vides explicites pour une leçon sans contenu ou sans ressource.
+
+Les ressources sont ajoutées depuis une leçon. Elles peuvent être :
+
+- un lien externe ;
+- un fichier téléversé dans le bucket privé `resources`.
+
+Les fichiers de ressources sont accessibles côté Learner par URL signée, sous réserve des RLS `resources` et `storage.objects`.
+
+Les images de couverture peuvent être téléversées dans `course-covers`, bucket public dédié aux assets catalogue.
+
 ## Restrictions
 
 - La dépublication est reportée : elle doit être cadrée avec les enrollments existants.
-- Les ressources restent hors périmètre authoring avancé pour Sprint 6.
-- Pas d'upload Storage, media library, versioning, drag and drop ou éditeur riche.
+- La ressource V1 ne gère pas encore le remplacement de fichier.
+- Pas de media library globale, versioning, drag and drop ou éditeur riche.
 - Les compteurs d'apprenants Teacher ne sont pas exposés tant que les RLS enrollments Teacher ne sont pas définies.
 
 ## Validation SQL

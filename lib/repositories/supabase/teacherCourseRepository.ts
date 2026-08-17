@@ -3,10 +3,12 @@ import "server-only";
 import { createOptionalClient } from "@/lib/supabase/server";
 import type { CourseLevel, Domain } from "@/types/course";
 import type { LessonType } from "@/types/learning";
+import type { ResourceAccess, ResourceType } from "@/types/resource";
 import type {
   TeacherCourse,
   TeacherLesson,
-  TeacherModule
+  TeacherModule,
+  TeacherResource
 } from "@/types/teaching";
 import type {
   TeacherCourseInput,
@@ -40,6 +42,7 @@ type CourseRow = {
   visibility: "public" | "private" | "unlisted";
   availability: "complete" | "preview" | "coming-soon";
   cover_image: string | null;
+  cover_storage_path: string | null;
   duration_minutes: number | null;
   format: string | null;
   published_at: string | null;
@@ -79,12 +82,33 @@ type LessonRow = {
   updated_at: string;
 };
 
+type ResourceRow = {
+  access: ResourceAccess;
+  course_id: string;
+  created_at: string;
+  description: string | null;
+  file_name: string | null;
+  file_size: number | null;
+  href: string;
+  id: string;
+  lesson_id: string | null;
+  mime_type: string | null;
+  module_id: string | null;
+  storage_bucket: string | null;
+  storage_path: string | null;
+  title: string;
+  type: ResourceType;
+  updated_at: string;
+};
+
 const courseSelect =
-  "id,domain_id,teacher_id,slug,title,subtitle,description,level,status,visibility,availability,cover_image,duration_minutes,format,published_at,created_at,updated_at,domains(id,slug,name,description,icon,display_order)";
+  "id,domain_id,teacher_id,slug,title,subtitle,description,level,status,visibility,availability,cover_image,cover_storage_path,duration_minutes,format,published_at,created_at,updated_at,domains(id,slug,name,description,icon,display_order)";
 const moduleSelect =
   "id,course_id,slug,title,description,duration_minutes,display_order,status,created_at,updated_at";
 const lessonSelect =
   "id,course_id,module_id,slug,title,description,type,status,duration_minutes,content,video_url,objectives,display_order,created_at,updated_at";
+const resourceSelect =
+  "id,title,type,href,description,file_name,file_size,mime_type,storage_bucket,storage_path,access,course_id,module_id,lesson_id,created_at,updated_at";
 
 function normalizeDomainRelation(row: CourseRow): CourseRow & { domains: DomainRow | null } {
   return {
@@ -104,7 +128,29 @@ function mapDomain(row: DomainRow): Domain {
   };
 }
 
-function mapLesson(row: LessonRow): TeacherLesson {
+function mapResource(row: ResourceRow): TeacherResource {
+  return {
+    id: row.id,
+    title: row.title,
+    type: row.type,
+    href: row.href,
+    description: row.description ?? undefined,
+    courseId: row.course_id,
+    lessonId: row.lesson_id ?? undefined,
+    moduleId: row.module_id ?? undefined,
+    fileName: row.file_name ?? undefined,
+    fileSize: row.file_size ?? undefined,
+    mimeType: row.mime_type ?? undefined,
+    storageBucket: row.storage_bucket ?? undefined,
+    storagePath: row.storage_path ?? undefined,
+    access: row.access,
+    status: "published",
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function mapLesson(row: LessonRow, resources: TeacherResource[] = []): TeacherLesson {
   return {
     id: row.id,
     title: row.title,
@@ -114,6 +160,7 @@ function mapLesson(row: LessonRow): TeacherLesson {
     objectives: row.objectives ?? [],
     content: row.content ?? undefined,
     resourceIds: [],
+    resources,
     status: row.status === "published" ? "published" : "draft",
     order: row.display_order
   };
@@ -153,6 +200,7 @@ function mapCourse(
     audience: [],
     requirements: [],
     coverImage: row.cover_image ?? undefined,
+    coverStoragePath: row.cover_storage_path ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     publishedAt: row.published_at ?? undefined,
@@ -223,7 +271,11 @@ async function hydrateCourses(supabase: SupabaseClient, rows: CourseRow[]) {
   }
 
   const courseIds = courseRows.map((course) => course.id);
-  const [{ data: moduleData, error: moduleError }, { data: lessonData, error: lessonError }] =
+  const [
+    { data: moduleData, error: moduleError },
+    { data: lessonData, error: lessonError },
+    { data: resourceData, error: resourceError }
+  ] =
     await Promise.all([
       supabase
         .from("course_modules")
@@ -234,16 +286,22 @@ async function hydrateCourses(supabase: SupabaseClient, rows: CourseRow[]) {
         .from("lessons")
         .select(lessonSelect)
         .in("course_id", courseIds)
-        .order("display_order")
+        .order("display_order"),
+      supabase
+        .from("resources")
+        .select(resourceSelect)
+        .in("course_id", courseIds)
+        .order("created_at", { ascending: false })
     ]);
 
-  if (moduleError || lessonError) {
-    const error = moduleError ?? lessonError;
+  if (moduleError || lessonError || resourceError) {
+    const error = moduleError ?? lessonError ?? resourceError;
     throw new Error(`Lecture de la structure impossible : ${error?.message}`);
   }
 
   const modules = moduleData as ModuleRow[];
   const lessons = lessonData as LessonRow[];
+  const resources = (resourceData as ResourceRow[]).map(mapResource);
 
   return courseRows.map((course) => {
     const courseModules = modules
@@ -251,7 +309,14 @@ async function hydrateCourses(supabase: SupabaseClient, rows: CourseRow[]) {
       .map((module) =>
         mapModule(
           module,
-          lessons.filter((lesson) => lesson.module_id === module.id).map(mapLesson)
+          lessons
+            .filter((lesson) => lesson.module_id === module.id)
+            .map((lesson) =>
+              mapLesson(
+                lesson,
+                resources.filter((resource) => resource.lessonId === lesson.id)
+              )
+            )
         )
       )
       .sort((first, second) => first.order - second.order);

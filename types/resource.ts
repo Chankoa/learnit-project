@@ -9,6 +9,10 @@ export type Resource = {
   href: string;
   description?: string;
   fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+  storageBucket?: string;
+  storagePath?: string;
   durationMinutes?: number;
   access?: ResourceAccess;
   tags?: string[];

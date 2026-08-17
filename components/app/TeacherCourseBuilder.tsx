@@ -14,16 +14,20 @@ import {
 import Link from "next/link";
 
 import {
+  createTeacherLessonResourceAction,
   createTeacherLessonAction,
   createTeacherModuleAction,
+  deleteTeacherLessonResourceAction,
   deleteTeacherLessonAction,
   deleteTeacherModuleAction,
   moveTeacherLessonAction,
   moveTeacherModuleAction,
   updateTeacherLessonAction,
+  uploadTeacherLessonResourceAction,
   updateTeacherModuleAction
 } from "@/app/app/teacher/courses/actions";
 import { TeacherConfirmForm } from "@/components/app/TeacherConfirmForm";
+import { ForgeLessonAssistant } from "@/components/app/ForgeLessonAssistant";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
 import {
   formatLessonCount,
@@ -36,9 +40,12 @@ import {
 import {
   lessonTypeLabels,
   teacherLessonStatusLabels,
-  teacherModuleStatusLabels
+  teacherModuleStatusLabels,
+  teacherResourceTypeLabels
 } from "@/lib/teacher";
+import { formatFileSize } from "@/lib/storage/content-files";
 import type { LessonType } from "@/types/learning";
+import type { ResourceAccess, ResourceType } from "@/types/resource";
 import type { TeacherCourse } from "@/types/teaching";
 
 type TeacherCourseBuilderProps = {
@@ -51,6 +58,11 @@ type TeacherCourseBuilderProps = {
 };
 
 const lessonTypeOptions = Object.entries(lessonTypeLabels) as Array<[LessonType, string]>;
+const resourceTypeOptions = Object.entries(teacherResourceTypeLabels) as Array<[ResourceType, string]>;
+const resourceAccessOptions: Array<[ResourceAccess, string]> = [
+  ["enrolled", "Réservée aux inscrits"],
+  ["free", "Accessible publiquement"]
+];
 const statusOptions = [
   ["draft", "Brouillon"],
   ["published", "Publié"]
@@ -96,6 +108,8 @@ export function TeacherCourseBuilder({
     selectedLesson
       ? getModuleForLesson(course, selectedLesson)
       : getModuleById(course, selectedModuleId);
+  const selectedLessonResources = selectedLesson?.resources ?? [];
+  const lessonContentTextareaId = selectedLesson ? `lesson-content-${selectedLesson.id}` : undefined;
   const previewLesson = getLessonById(course, previewLessonId);
   const previewModule = previewLesson ? getModuleForLesson(course, previewLesson) : undefined;
   const addModuleAction = createTeacherModuleAction.bind(null, course.id);
@@ -374,54 +388,78 @@ export function TeacherCourseBuilder({
               </div>
               <form
                 action={updateTeacherLessonAction.bind(null, course.id, selectedLesson.id)}
-                className="teacher-form-grid"
+                className="teacher-builder-editor__stack"
               >
-                <label className="teacher-field teacher-field--wide">
-                  <span>Titre</span>
-                  <input name="title" required defaultValue={selectedLesson.title} />
-                </label>
-                <label className="teacher-field teacher-field--wide">
-                  <span>Description</span>
-                  <textarea name="description" rows={3} defaultValue={selectedLesson.description ?? ""} />
-                </label>
-                <label className="teacher-field">
-                  <span>Type</span>
-                  <select name="type" defaultValue={selectedLesson.type}>
-                    {lessonTypeOptions.map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="teacher-field">
-                  <span>Durée</span>
-                  <input
-                    min={0}
-                    name="durationMinutes"
-                    type="number"
-                    defaultValue={selectedLesson.durationMinutes}
-                  />
-                </label>
-                <label className="teacher-field teacher-field--wide">
-                  <span>Objectifs</span>
-                  <textarea name="objectives" rows={4} defaultValue={toLines(selectedLesson.objectives)} />
-                </label>
-                <label className="teacher-field teacher-field--wide">
-                  <span>Contenu</span>
-                  <textarea name="content" rows={10} defaultValue={selectedLesson.content ?? ""} />
-                  <small className="teacher-field-note">Textarea simple pour cette V1. Un éditeur MDX viendra plus tard.</small>
-                </label>
-                <label className="teacher-field">
-                  <span>Statut</span>
-                  <select name="status" defaultValue={selectedLesson.status}>
-                    {statusOptions.map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <section className="teacher-builder-editor__section">
+                  <div>
+                    <span>Informations</span>
+                    <h3>Paramètres de la leçon</h3>
+                  </div>
+                  <div className="teacher-form-grid">
+                    <label className="teacher-field teacher-field--wide">
+                      <span>Titre</span>
+                      <input name="title" required defaultValue={selectedLesson.title} />
+                    </label>
+                    <label className="teacher-field teacher-field--wide">
+                      <span>Résumé</span>
+                      <textarea name="description" rows={3} defaultValue={selectedLesson.description ?? ""} />
+                    </label>
+                    <label className="teacher-field">
+                      <span>Type</span>
+                      <select name="type" defaultValue={selectedLesson.type}>
+                        {lessonTypeOptions.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="teacher-field">
+                      <span>Durée estimée</span>
+                      <input
+                        min={0}
+                        name="durationMinutes"
+                        type="number"
+                        defaultValue={selectedLesson.durationMinutes}
+                      />
+                    </label>
+                    <label className="teacher-field">
+                      <span>Statut</span>
+                      <select name="status" defaultValue={selectedLesson.status}>
+                        {statusOptions.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="teacher-field teacher-field--wide">
+                      <span>Objectifs</span>
+                      <textarea name="objectives" rows={4} defaultValue={toLines(selectedLesson.objectives)} />
+                    </label>
+                  </div>
+                </section>
+
+                <section className="teacher-builder-editor__section">
+                  <div>
+                    <span>Contenu</span>
+                    <h3>Markdown pédagogique</h3>
+                  </div>
+                  <label className="teacher-field teacher-field--wide">
+                    <span>Contenu</span>
+                    <textarea
+                      className="teacher-lesson-content-textarea"
+                      id={lessonContentTextareaId}
+                      name="content"
+                      rows={18}
+                      defaultValue={selectedLesson.content ?? ""}
+                    />
+                    <small className="teacher-field-note">
+                      Markdown pris en charge : titres, paragraphes, listes, emphase, liens et blocs de code.
+                    </small>
+                  </label>
+                </section>
+
                 <div className="teacher-form-actions">
                   <TeacherSubmitButton pendingLabel="Enregistrement...">
                     <Save size={16} aria-hidden="true" />
@@ -429,6 +467,164 @@ export function TeacherCourseBuilder({
                   </TeacherSubmitButton>
                 </div>
               </form>
+
+              {lessonContentTextareaId ? (
+                <ForgeLessonAssistant
+                  content={selectedLesson.content}
+                  courseId={course.id}
+                  description={selectedLesson.description}
+                  lessonId={selectedLesson.id}
+                  targetTextareaId={lessonContentTextareaId}
+                  title={selectedLesson.title}
+                />
+              ) : null}
+
+              <section className="teacher-builder-editor__section teacher-resource-editor">
+                <div>
+                  <span>Ressources</span>
+                  <h3>Supports associés</h3>
+                </div>
+
+                {selectedLessonResources.length > 0 ? (
+                  <div className="teacher-resource-list">
+                    {selectedLessonResources.map((resource) => (
+                      <article className="teacher-resource-card" key={resource.id}>
+                        <div>
+                          <span className="state-badge" data-state="published">
+                            {teacherResourceTypeLabels[resource.type]}
+                          </span>
+                          <h4>{resource.title}</h4>
+                          {resource.description ? <p>{resource.description}</p> : null}
+                          <small>
+                            {resource.fileName ?? resource.href}
+                            {resource.fileSize ? ` · ${formatFileSize(resource.fileSize)}` : ""}
+                          </small>
+                        </div>
+                        <TeacherConfirmForm
+                          action={deleteTeacherLessonResourceAction.bind(
+                            null,
+                            course.id,
+                            selectedLesson.id,
+                            resource.id
+                          )}
+                          message="Supprimer cette ressource ? Le fichier associé sera aussi supprimé si nécessaire."
+                        >
+                          <button className="teacher-icon-button" aria-label="Supprimer la ressource" type="submit">
+                            <Trash2 size={16} aria-hidden="true" />
+                          </button>
+                        </TeacherConfirmForm>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="teacher-builder-empty teacher-builder-empty--compact">
+                    <span>
+                      <FilePlus2 size={22} aria-hidden="true" />
+                    </span>
+                    <h2>Aucune ressource associée à cette leçon.</h2>
+                    <p>Ajoutez un lien ou téléversez un fichier pour enrichir le support apprenant.</p>
+                  </div>
+                )}
+
+                <div className="teacher-resource-forms">
+                  <form
+                    action={createTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id)}
+                    className="teacher-form-grid"
+                  >
+                    <label className="teacher-field">
+                      <span>Titre</span>
+                      <input name="resourceTitle" required placeholder="Checklist de préparation" />
+                    </label>
+                    <label className="teacher-field">
+                      <span>Type</span>
+                      <select name="resourceType" defaultValue="link">
+                        {resourceTypeOptions.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="teacher-field teacher-field--wide">
+                      <span>Description courte</span>
+                      <input name="resourceDescription" placeholder="Ce que l'apprenant trouvera dans cette ressource." />
+                    </label>
+                    <label className="teacher-field teacher-field--wide">
+                      <span>URL</span>
+                      <input name="resourceHref" required placeholder="https://..." type="url" />
+                    </label>
+                    <label className="teacher-field">
+                      <span>Accès</span>
+                      <select name="resourceAccess" defaultValue="enrolled">
+                        {resourceAccessOptions.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="teacher-form-actions">
+                      <TeacherSubmitButton pendingLabel="Ajout...">
+                        <FilePlus2 size={16} aria-hidden="true" />
+                        Ajouter le lien
+                      </TeacherSubmitButton>
+                    </div>
+                  </form>
+
+                  <form
+                    action={uploadTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id)}
+                    className="teacher-form-grid"
+                    encType="multipart/form-data"
+                  >
+                    <label className="teacher-field">
+                      <span>Titre</span>
+                      <input name="fileResourceTitle" placeholder="Nom public du fichier" />
+                    </label>
+                    <label className="teacher-field">
+                      <span>Type</span>
+                      <select name="fileResourceType" defaultValue="download">
+                        {resourceTypeOptions.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="teacher-field teacher-field--wide">
+                      <span>Description courte</span>
+                      <input name="fileResourceDescription" placeholder="PDF, template ou support à télécharger." />
+                    </label>
+                    <label className="teacher-field teacher-field--wide">
+                      <span>Fichier</span>
+                      <input
+                        accept=".pdf,image/jpeg,image/png,image/webp,image/gif,text/plain,.zip"
+                        name="resourceFile"
+                        required
+                        type="file"
+                      />
+                      <small className="teacher-field-note">
+                        Formats acceptés : PDF, image, texte ou ZIP. Taille maximale : 10 Mo.
+                      </small>
+                    </label>
+                    <label className="teacher-field">
+                      <span>Accès</span>
+                      <select name="fileResourceAccess" defaultValue="enrolled">
+                        {resourceAccessOptions.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="teacher-form-actions">
+                      <TeacherSubmitButton pendingLabel="Téléversement...">
+                        <FilePlus2 size={16} aria-hidden="true" />
+                        Ajouter le fichier
+                      </TeacherSubmitButton>
+                    </div>
+                  </form>
+                </div>
+              </section>
             </section>
           ) : null}
         </section>

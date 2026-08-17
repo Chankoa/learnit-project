@@ -79,10 +79,20 @@ type ResourceRow = {
   href: string;
   description: string | null;
   file_name: string | null;
+  file_size: number | null;
+  mime_type: string | null;
+  storage_bucket: string | null;
+  storage_path: string | null;
   access: Resource["access"] | null;
   tags: string[] | null;
   created_at: string;
   updated_at: string;
+};
+
+type ResourceWithRelations = Resource & {
+  courseId?: string;
+  lessonId?: string;
+  moduleId?: string;
 };
 
 function mapDomain(row: DomainRow): Domain {
@@ -96,14 +106,38 @@ function mapDomain(row: DomainRow): Domain {
   };
 }
 
-function mapResource(row: ResourceRow): Resource {
+async function mapResource(
+  supabase: Awaited<ReturnType<typeof getClient>>,
+  row: ResourceRow
+): Promise<ResourceWithRelations> {
+  let href = row.href;
+
+  if (row.storage_path) {
+    const { data, error } = await supabase.storage
+      .from(row.storage_bucket ?? "resources")
+      .createSignedUrl(row.storage_path, 60 * 60);
+
+    if (error) {
+      throw new Error(`Unable to create resource download URL: ${error.message}`);
+    }
+
+    href = data.signedUrl;
+  }
+
   return {
     id: row.id,
     title: row.title,
     type: row.type,
-    href: row.href,
+    href,
     description: row.description ?? undefined,
     fileName: row.file_name ?? undefined,
+    fileSize: row.file_size ?? undefined,
+    mimeType: row.mime_type ?? undefined,
+    storageBucket: row.storage_bucket ?? undefined,
+    storagePath: row.storage_path ?? undefined,
+    courseId: row.course_id ?? undefined,
+    lessonId: row.lesson_id ?? undefined,
+    moduleId: row.module_id ?? undefined,
     access: row.access ?? undefined,
     tags: row.tags ?? undefined,
     createdAt: row.created_at,
@@ -201,7 +235,7 @@ export async function getCourses(lookup?: CourseLookup): Promise<Course[]> {
   const [{ data: moduleData, error: moduleError }, { data: lessonData, error: lessonError }, { data: resourceData, error: resourceError }] = await Promise.all([
     supabase.from("course_modules").select("id,course_id,slug,title,description,duration_minutes,display_order,status").in("course_id", courseIds).order("display_order"),
     supabase.from("lessons").select("id,course_id,module_id,slug,title,description,type,status,duration_minutes,content_path,content,video_url,objectives,display_order").in("course_id", courseIds).order("display_order"),
-    supabase.from("resources").select("id,course_id,module_id,lesson_id,title,type,href,description,file_name,access,tags,created_at,updated_at").in("course_id", courseIds)
+    supabase.from("resources").select("id,course_id,module_id,lesson_id,title,type,href,description,file_name,file_size,mime_type,storage_bucket,storage_path,access,tags,created_at,updated_at").in("course_id", courseIds)
   ]);
 
   if (moduleError || lessonError || resourceError) {
@@ -211,7 +245,7 @@ export async function getCourses(lookup?: CourseLookup): Promise<Course[]> {
 
   const modules = moduleData as ModuleRow[];
   const lessons = lessonData as LessonRow[];
-  const resources = resourceData as ResourceRow[];
+  const resources = await Promise.all((resourceData as ResourceRow[]).map((resource) => mapResource(supabase, resource)));
 
   return courseRows.map((course) => {
     if (!course.domains) {
@@ -219,17 +253,17 @@ export async function getCourses(lookup?: CourseLookup): Promise<Course[]> {
     }
 
     const courseResources = resources
-      .filter((resource) => resource.course_id === course.id && !resource.module_id && !resource.lesson_id)
-      .map(mapResource);
+      .filter((resource) => resource.courseId === course.id && !resource.moduleId && !resource.lessonId);
     const courseModules = modules
       .filter((module) => module.course_id === course.id)
       .map((module) => {
         const moduleResources = resources
-          .filter((resource) => resource.module_id === module.id && !resource.lesson_id)
-          .map(mapResource);
+          .filter((resource) => resource.moduleId === module.id && !resource.lessonId);
         const moduleLessons = lessons
           .filter((lesson) => lesson.module_id === module.id)
-          .map((lesson) => mapLesson(lesson, resources.filter((resource) => resource.lesson_id === lesson.id).map(mapResource)));
+          .map((lesson) =>
+            mapLesson(lesson, resources.filter((resource) => resource.lessonId === lesson.id))
+          );
 
         return mapModule(module, moduleLessons, moduleResources);
       })

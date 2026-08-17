@@ -1,6 +1,6 @@
 import type { CourseLevel, Domain } from "@/types/course";
 import type { LessonType } from "@/types/learning";
-import type { ResourceType } from "@/types/resource";
+import type { ResourceAccess, ResourceType } from "@/types/resource";
 
 export type TeacherProfile = {
   id: string;
@@ -24,6 +24,7 @@ export type TeacherLesson = {
   objectives?: string[];
   content?: string;
   resourceIds?: string[];
+  resources?: TeacherResource[];
   status: TeacherLessonStatus;
   order: number;
 };
@@ -52,6 +53,7 @@ export type TeacherCourse = {
   audience: string[];
   requirements: string[];
   coverImage?: string;
+  coverStoragePath?: string;
   enrolledLearnerCount?: number;
   createdAt: string;
   updatedAt: string;
@@ -65,10 +67,22 @@ export type TeacherResource = {
   id: string;
   title: string;
   type: ResourceType;
+  href: string;
+  description?: string;
   courseId: string;
+  courseTitle?: string;
   lessonId?: string;
+  lessonTitle?: string;
+  moduleId?: string;
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+  storageBucket?: string;
+  storagePath?: string;
+  access?: ResourceAccess;
   status: TeacherResourceStatus;
   createdAt: string;
+  updatedAt?: string;
 };
 
 export type TeacherStudentStatus = "active" | "late" | "completed";

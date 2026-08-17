@@ -2,8 +2,10 @@ import "server-only";
 
 import { requireRole } from "@/lib/auth/server";
 import * as teacherCourseRepository from "@/lib/repositories/teacherCourseRepository";
+import * as teacherResourceRepository from "@/lib/repositories/teacherResourceRepository";
 import type { CourseLevel } from "@/types/course";
 import type { LessonType } from "@/types/learning";
+import type { ResourceAccess, ResourceType } from "@/types/resource";
 import type {
   TeacherCourse,
   TeacherLesson,
@@ -13,6 +15,8 @@ import type {
 const courseLevels = ["beginner", "intermediate", "advanced"] satisfies CourseLevel[];
 const lessonTypes = ["video", "reading", "exercise", "quiz", "project"] satisfies LessonType[];
 const publishableStatuses = ["draft", "published"] as const;
+const resourceTypes = ["article", "video", "download", "template", "exercise", "link", "tool"] satisfies ResourceType[];
+const resourceAccessValues = ["free", "enrolled", "premium"] satisfies ResourceAccess[];
 
 export type TeacherCourseFormValues = {
   title: string;
@@ -56,6 +60,11 @@ function getLines(value: string) {
     .filter(Boolean);
 }
 
+function getFile(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return value instanceof File && value.size > 0 ? value : undefined;
+}
+
 function isCourseLevel(value: string): value is CourseLevel {
   return courseLevels.includes(value as CourseLevel);
 }
@@ -66,6 +75,14 @@ function isLessonType(value: string): value is LessonType {
 
 function isPublishableStatus(value: string): value is (typeof publishableStatuses)[number] {
   return publishableStatuses.includes(value as (typeof publishableStatuses)[number]);
+}
+
+function isResourceType(value: string): value is ResourceType {
+  return resourceTypes.includes(value as ResourceType);
+}
+
+function isResourceAccess(value: string): value is ResourceAccess {
+  return resourceAccessValues.includes(value as ResourceAccess);
 }
 
 function required(value: string, message: string) {
@@ -149,6 +166,50 @@ export function parseTeacherLessonForm(formData: FormData): teacherCourseReposit
     objectives: getLines(getString(formData, "objectives")),
     content: getString(formData, "content") || undefined,
     status: isPublishableStatus(status) ? status : "draft"
+  };
+}
+
+export function parseTeacherResourceForm(
+  courseId: string,
+  lessonId: string | undefined,
+  formData: FormData
+): teacherResourceRepository.TeacherResourceInput {
+  const type = getString(formData, "resourceType");
+  const access = getString(formData, "resourceAccess");
+  const href = getString(formData, "resourceHref");
+
+  return {
+    access: isResourceAccess(access) ? access : "enrolled",
+    courseId,
+    description: getString(formData, "resourceDescription") || undefined,
+    href: required(href, "L'URL de la ressource est requise."),
+    lessonId,
+    title: required(getString(formData, "resourceTitle"), "Le titre de la ressource est requis."),
+    type: isResourceType(type) ? type : "link"
+  };
+}
+
+export function parseTeacherFileResourceForm(
+  courseId: string,
+  lessonId: string | undefined,
+  formData: FormData
+): teacherResourceRepository.TeacherFileResourceInput {
+  const type = getString(formData, "fileResourceType");
+  const access = getString(formData, "fileResourceAccess");
+  const file = getFile(formData, "resourceFile");
+
+  if (!file) {
+    throw new Error("Sélectionnez un fichier à téléverser.");
+  }
+
+  return {
+    access: isResourceAccess(access) ? access : "enrolled",
+    courseId,
+    description: getString(formData, "fileResourceDescription") || undefined,
+    file,
+    lessonId,
+    title: getString(formData, "fileResourceTitle") || file.name,
+    type: isResourceType(type) ? type : "download"
   };
 }
 
@@ -252,6 +313,11 @@ export async function createTeacherDomain(name: string) {
   return teacherCourseRepository.createDomain(profile.id, { name: normalizedName });
 }
 
+export async function getTeacherResources(nextPath = "/app/teacher/resources") {
+  const profile = await requireRole("teacher", nextPath);
+  return teacherResourceRepository.getTeacherResources(profile.id);
+}
+
 export async function getTeacherStudioCourse(courseId: string, nextPath: string) {
   const profile = await requireRole("teacher", nextPath);
   return teacherCourseRepository.getTeacherCourse(profile.id, courseId);
@@ -259,12 +325,36 @@ export async function getTeacherStudioCourse(courseId: string, nextPath: string)
 
 export async function createTeacherCourse(formData: FormData) {
   const profile = await requireRole("teacher", "/app/teacher/courses/new");
-  return teacherCourseRepository.createCourse(profile.id, parseTeacherCourseForm(formData));
+  const course = await teacherCourseRepository.createCourse(profile.id, parseTeacherCourseForm(formData));
+  const coverFile = getFile(formData, "coverFile");
+
+  if (!coverFile) {
+    return course;
+  }
+
+  await teacherResourceRepository.uploadCourseCover(profile.id, {
+    courseId: course.id,
+    file: coverFile
+  });
+
+  return (await teacherCourseRepository.getTeacherCourse(profile.id, course.id)) ?? course;
 }
 
 export async function updateTeacherCourse(courseId: string, formData: FormData) {
   const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/edit`);
-  return teacherCourseRepository.updateCourse(profile.id, courseId, parseTeacherCourseForm(formData));
+  const course = await teacherCourseRepository.updateCourse(profile.id, courseId, parseTeacherCourseForm(formData));
+  const coverFile = getFile(formData, "coverFile");
+
+  if (!coverFile) {
+    return course;
+  }
+
+  await teacherResourceRepository.uploadCourseCover(profile.id, {
+    courseId: course.id,
+    file: coverFile
+  });
+
+  return (await teacherCourseRepository.getTeacherCourse(profile.id, course.id)) ?? course;
 }
 
 export async function createTeacherModule(courseId: string) {
@@ -305,6 +395,38 @@ export async function updateTeacherLesson(courseId: string, lessonId: string, fo
     lessonId,
     parseTeacherLessonForm(formData)
   );
+}
+
+export async function createTeacherLessonResource(
+  courseId: string,
+  lessonId: string | undefined,
+  formData: FormData
+) {
+  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  return teacherResourceRepository.createResource(
+    profile.id,
+    parseTeacherResourceForm(courseId, lessonId, formData)
+  );
+}
+
+export async function uploadTeacherLessonResource(
+  courseId: string,
+  lessonId: string | undefined,
+  formData: FormData
+) {
+  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  return teacherResourceRepository.createFileResource(
+    profile.id,
+    parseTeacherFileResourceForm(courseId, lessonId, formData)
+  );
+}
+
+export async function deleteTeacherResource(
+  resourceId: string,
+  nextPath = "/app/teacher/resources"
+) {
+  const profile = await requireRole("teacher", nextPath);
+  return teacherResourceRepository.deleteResource(profile.id, resourceId);
 }
 
 export async function moveTeacherLesson(

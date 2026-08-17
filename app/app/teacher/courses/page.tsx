@@ -6,7 +6,8 @@ import {
   GraduationCap,
   Layers3,
   Pencil,
-  Plus
+  Plus,
+  Sparkles
 } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
@@ -45,10 +46,16 @@ export default async function TeacherCoursesPage() {
         title="Formations créées"
         description="Consultez vos parcours, leurs statuts, leurs contenus et leur dernière mise à jour."
         actions={
-          <Link className="btn btn-primary" href="/app/teacher/courses/new">
-            <Plus size={17} aria-hidden="true" />
-            Créer une formation
-          </Link>
+          <>
+            <Link className="btn btn-secondary" href="/app/teacher/courses/forge">
+              <Sparkles size={17} aria-hidden="true" />
+              Créer avec Forge AI
+            </Link>
+            <Link className="btn btn-primary" href="/app/teacher/courses/new">
+              <Plus size={17} aria-hidden="true" />
+              Créer une formation
+            </Link>
+          </>
         }
       />
 
@@ -126,10 +133,16 @@ export default async function TeacherCoursesPage() {
         ) : (
           <AppEmptyState
             action={
-              <Link className="btn btn-primary" href="/app/teacher/courses/new">
-                <Plus size={17} aria-hidden="true" />
-                Créer une formation
-              </Link>
+              <>
+                <Link className="btn btn-secondary" href="/app/teacher/courses/forge">
+                  <Sparkles size={17} aria-hidden="true" />
+                  Créer avec Forge AI
+                </Link>
+                <Link className="btn btn-primary" href="/app/teacher/courses/new">
+                  <Plus size={17} aria-hidden="true" />
+                  Créer une formation
+                </Link>
+              </>
             }
             description="Vous n'avez encore créé aucune formation. Un brouillon apparaîtra ici dès sa création."
             icon={GraduationCap}

@@ -13,6 +13,7 @@ import {
   Send,
   Settings,
   ShieldCheck,
+  Sparkles,
   SquarePen,
   TrendingUp,
   UserCircle,
@@ -159,6 +160,7 @@ export const teacherNavigation = [
       pathname === "/app/teacher/courses" ||
       (pathname.startsWith("/app/teacher/courses/") &&
         pathname !== "/app/teacher/courses/new" &&
+        pathname !== "/app/teacher/courses/forge" &&
         !pathname.endsWith("/builder"))
   },
   {
@@ -167,6 +169,13 @@ export const teacherNavigation = [
     icon: BookPlus,
     role: "teacher",
     isActive: (pathname) => pathname === "/app/teacher/courses/new"
+  },
+  {
+    label: "Créer avec Forge AI",
+    href: "/app/teacher/courses/forge",
+    icon: Sparkles,
+    role: "teacher",
+    isActive: (pathname) => pathname === "/app/teacher/courses/forge"
   },
   {
     label: "Leçons",

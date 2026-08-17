@@ -119,6 +119,17 @@ export function TeacherCourseForm({
               placeholder="/images/courses/web-creation-cover.png"
               defaultValue={initialValues.coverImage}
             />
+            <small className="teacher-field-note">
+              Vous pouvez conserver une URL existante ou téléverser une image depuis votre ordinateur.
+            </small>
+          </label>
+
+          <label className="teacher-field teacher-field--wide">
+            <span>Téléverser une couverture</span>
+            <input accept="image/jpeg,image/png,image/webp,image/gif" name="coverFile" type="file" />
+            <small className="teacher-field-note">
+              Formats acceptés : JPG, PNG, WebP ou GIF. Taille maximale : 5 Mo.
+            </small>
           </label>
         </div>
       </section>
