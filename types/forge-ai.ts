@@ -2,6 +2,7 @@ import type { CourseLevel } from "@/types/course";
 
 export type ForgePromptType =
   | "course_structure"
+  | "course_improvement"
   | "course_import"
   | "lesson_plan"
   | "lesson_intro"
@@ -25,6 +26,49 @@ export type ForgeCourseIntent = {
   tone?: string;
 };
 
+export type CourseBrief = {
+  constraints?: string;
+  domainId: string;
+  duration?: string;
+  entryLevel: CourseLevel;
+  learningObjectives: string[];
+  prerequisites?: string;
+  sourceIds?: string[];
+  sources?: CourseSource[];
+  subject: string;
+  targetAudience: string;
+  targetLevel: CourseLevel;
+};
+
+export type CourseSourceType = "pdf" | "text" | "markdown" | "docx";
+
+export type CourseSource = {
+  courseId?: string;
+  createdAt: string;
+  fileName: string;
+  fileSize: number;
+  id: string;
+  metadata?: Record<string, unknown>;
+  mimeType: string;
+  storageBucket: string;
+  storagePath: string;
+  teacherId: string;
+  title: string;
+  type: CourseSourceType;
+  updatedAt: string;
+};
+
+export type CourseContextSnippet = {
+  sourceId: string;
+  sourceTitle: string;
+  text: string;
+};
+
+export type CourseContext = {
+  sourceCount: number;
+  snippets: CourseContextSnippet[];
+};
+
 export type ForgeLessonProposal = {
   clientId: string;
   estimatedMinutes?: number;
@@ -45,6 +89,7 @@ export type ForgeCourseProposal = {
   modules: ForgeModuleProposal[];
   objectives: string[];
   prerequisites?: string[];
+  sourceCount?: number;
   summary: string;
   title: string;
 };
@@ -55,9 +100,39 @@ export type ForgeCourseImportSelection = {
 };
 
 export type ForgeCourseImportInput = {
+  brief?: CourseBrief;
   domainId: string;
   proposal: ForgeCourseProposal;
   selection: ForgeCourseImportSelection;
+};
+
+export type ForgeCourseImprovementInput = {
+  brief: CourseBrief;
+  courseId: string;
+  mode: "analyze" | "improve_structure";
+};
+
+export type ForgeCourseImprovementApplyInput = {
+  courseId: string;
+  moduleId?: string;
+  suggestion: {
+    proposed: string;
+    rationale?: string;
+    type: "module" | "lesson";
+  };
+};
+
+export type ForgeCourseImprovement = {
+  summary: string;
+  sourceCount: number;
+  suggestions: Array<{
+    clientId: string;
+    current?: string;
+    proposed: string;
+    rationale: string;
+    type: "module" | "lesson" | "rename" | "reorder" | "gap" | "duration";
+  }>;
+  title: string;
 };
 
 export type ForgeLessonAction =

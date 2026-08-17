@@ -3,13 +3,16 @@ import "server-only";
 import { getForgeAIConfig } from "@/lib/forge-ai/config";
 import { parseJsonObject } from "@/lib/forge-ai/validation";
 import type {
+  CourseBrief,
+  ForgeCourseImprovement,
+  ForgeCourseImprovementInput,
   ForgeCourseIntent,
   ForgeLessonSuggestionInput,
   ForgePromptType
 } from "@/types/forge-ai";
 
 type ForgeAIJsonRequest = {
-  input: ForgeCourseIntent | ForgeLessonSuggestionInput;
+  input: CourseBrief | ForgeCourseImprovementInput | ForgeCourseIntent | ForgeLessonSuggestionInput;
   promptType: ForgePromptType;
   systemPrompt: string;
   userPrompt: string;
@@ -26,24 +29,41 @@ export type ForgeAIProvider = {
   generateJson: (request: ForgeAIJsonRequest) => Promise<ForgeAIJsonResponse>;
 };
 
-function isCourseIntent(input: ForgeAIJsonRequest["input"]): input is ForgeCourseIntent {
-  return "subject" in input;
+function isCourseBrief(input: ForgeAIJsonRequest["input"]): input is CourseBrief {
+  return "subject" in input && "targetAudience" in input;
 }
 
-function getMockCourseProposal(input: ForgeCourseIntent) {
+function isLegacyCourseIntent(input: ForgeAIJsonRequest["input"]): input is ForgeCourseIntent {
+  return "subject" in input && "audience" in input;
+}
+
+function isCourseImprovement(
+  input: ForgeAIJsonRequest["input"]
+): input is ForgeCourseImprovementInput {
+  return "mode" in input && "courseId" in input;
+}
+
+function getMockCourseProposal(input: CourseBrief | ForgeCourseIntent) {
   const subject = input.subject || "Nouveau parcours";
-  const audience = input.audience || "apprenants ciblés";
+  const audience = isCourseBrief(input)
+    ? input.targetAudience || "apprenants ciblés"
+    : input.audience || "apprenants ciblés";
+  const level = isCourseBrief(input) ? input.targetLevel : input.level;
+  const summary = isCourseBrief(input)
+    ? input.learningObjectives[0] || `Un parcours guidé pour structurer et pratiquer ${subject}.`
+    : input.goal || `Un parcours guidé pour structurer et pratiquer ${subject}.`;
 
   return {
     audience,
-    level: input.level,
+    level,
     objectives: [
       `Identifier les fondamentaux de ${subject}`,
       "Appliquer une méthode progressive sur un cas concret",
       "Produire un livrable exploitable en autonomie"
     ],
     prerequisites: ["Avoir un objectif de projet clair", "Pouvoir consacrer du temps à la pratique"],
-    summary: input.goal || `Un parcours guidé pour structurer et pratiquer ${subject}.`,
+    sourceCount: isCourseBrief(input) ? input.sourceIds?.length ?? 0 : 0,
+    summary,
     title: subject,
     modules: [
       {
@@ -98,6 +118,46 @@ function getMockCourseProposal(input: ForgeCourseIntent) {
   };
 }
 
+function getMockCourseImprovement(input: ForgeCourseImprovementInput): ForgeCourseImprovement {
+  const title =
+    input.mode === "analyze"
+      ? "Analyse pédagogique du parcours"
+      : "Propositions d'amélioration de structure";
+
+  return {
+    sourceCount: input.brief.sourceIds?.length ?? 0,
+    suggestions: [
+      {
+        clientId: "suggestion-1",
+        current: "Structure actuelle",
+        proposed: "Cadrer le livrable et les critères de réussite",
+        rationale:
+          "Ajouter un module de cadrage clarifie les attentes avant les exercices et réduit les risques de décrochage.",
+        type: "module"
+      },
+      {
+        clientId: "suggestion-2",
+        current: "Leçons existantes",
+        proposed: "Exercice guidé avant le projet final",
+        rationale:
+          "Une leçon de pratique intermédiaire facilite le passage du concept au livrable complet.",
+        type: "lesson"
+      },
+      {
+        clientId: "suggestion-3",
+        current: "Objectifs pédagogiques",
+        proposed: "Reformuler les objectifs avec des verbes observables : identifier, produire, vérifier.",
+        rationale:
+          "Les objectifs deviennent plus faciles à évaluer par le formateur et l'apprenant.",
+        type: "gap"
+      }
+    ],
+    summary:
+      "Le parcours peut gagner en lisibilité avec un cadrage initial, une pratique intermédiaire et des objectifs plus observables.",
+    title
+  };
+}
+
 function getMockLessonSuggestion(input: ForgeLessonSuggestionInput) {
   const title = input.title || "Leçon";
 
@@ -118,7 +178,9 @@ function getMockLessonSuggestion(input: ForgeLessonSuggestionInput) {
 const mockProvider: ForgeAIProvider = {
   async generateJson(request) {
     const startedAt = Date.now();
-    const json = isCourseIntent(request.input)
+    const json = isCourseImprovement(request.input)
+      ? getMockCourseImprovement(request.input)
+      : isCourseBrief(request.input) || isLegacyCourseIntent(request.input)
       ? getMockCourseProposal(request.input)
       : getMockLessonSuggestion(request.input);
 

@@ -2579,6 +2579,100 @@
   line-height: 1.7;
 }
 
+.forge-source-manager,
+.forge-source-list,
+.forge-existing-course,
+.forge-diff,
+.forge-suggestion-list {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.forge-existing-course__grid {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.forge-source-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-panel);
+  padding: var(--space-3);
+}
+
+.forge-source-item svg {
+  color: var(--accent-primary);
+}
+
+.forge-source-item div {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.forge-source-item strong,
+.forge-source-manager h3,
+.forge-diff h3,
+.forge-suggestion strong {
+  color: var(--text-strong);
+}
+
+.forge-source-item span,
+.forge-diff p,
+.forge-diff li,
+.forge-diff small,
+.forge-suggestion p {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.btn-icon {
+  display: inline-grid;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+}
+
+.forge-diff {
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  align-items: start;
+}
+
+.forge-diff__current,
+.forge-diff__proposal,
+.forge-suggestion {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-panel);
+  padding: var(--space-4);
+}
+
+.forge-diff__current > span,
+.forge-diff__proposal > span,
+.forge-suggestion > span {
+  color: var(--accent-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.forge-diff ol,
+.forge-diff ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
 .teacher-preview-modal {
   position: fixed;
   z-index: 80;
@@ -2680,6 +2774,7 @@
 @media (max-width: 760px) {
   .teacher-metrics,
   .teacher-course-management-grid,
+  .forge-diff,
   .forge-ai-layout,
   .teacher-resource-forms,
   .teacher-form-grid {

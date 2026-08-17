@@ -1,5 +1,6 @@
 import type { CourseLevel } from "@/types/course";
 import type {
+  ForgeCourseImprovement,
   ForgeCourseProposal,
   ForgeLessonAction,
   ForgeLessonSuggestion
@@ -116,7 +117,41 @@ export function validateForgeCourseProposal(value: unknown): ForgeCourseProposal
     modules,
     objectives: stringArray(value.objectives, 8),
     prerequisites: stringArray(value.prerequisites, 6),
+    sourceCount: positiveMinutes(value.sourceCount),
     summary: requiredString(value.summary, "résumé"),
+    title: requiredString(value.title, "titre")
+  };
+}
+
+export function validateForgeCourseImprovement(value: unknown): ForgeCourseImprovement {
+  if (!isRecord(value)) {
+    throw new Error("Sortie IA invalide : objet attendu.");
+  }
+
+  const suggestionTypes = ["module", "lesson", "rename", "reorder", "gap", "duration"];
+  const suggestionsSource = Array.isArray(value.suggestions) ? value.suggestions : [];
+  const suggestions = suggestionsSource.slice(0, 8).map((suggestionValue, suggestionIndex) => {
+    if (!isRecord(suggestionValue)) {
+      throw new Error(`Sortie IA invalide : suggestion ${suggestionIndex + 1} incorrecte.`);
+    }
+
+    const type = stringValue(suggestionValue.type);
+
+    return {
+      clientId: `suggestion-${suggestionIndex + 1}`,
+      current: optionalString(suggestionValue.current),
+      proposed: requiredString(suggestionValue.proposed, `proposition ${suggestionIndex + 1}`),
+      rationale: requiredString(suggestionValue.rationale, `justification ${suggestionIndex + 1}`),
+      type: suggestionTypes.includes(type)
+        ? (type as ForgeCourseImprovement["suggestions"][number]["type"])
+        : "gap"
+    };
+  });
+
+  return {
+    sourceCount: positiveMinutes(value.sourceCount) ?? 0,
+    suggestions,
+    summary: requiredString(value.summary, "synthèse"),
     title: requiredString(value.title, "titre")
   };
 }

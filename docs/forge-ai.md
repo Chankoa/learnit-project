@@ -1,42 +1,48 @@
 # Forge AI
 
-Sprint 8 introduit Forge AI comme copilote de conception pédagogique.
+Forge AI est le copilote de conception pédagogique de LearnIt. Il assiste le Teacher, mais ne publie jamais et ne modifie jamais silencieusement une formation.
 
-Principe produit : l'IA propose, le formateur valide, puis seulement les éléments validés sont persistés.
+Principe produit :
+
+```txt
+proposition IA -> preview / diff -> validation humaine -> persistence explicite
+```
 
 ## Architecture
 
-Flux :
+Flux principal :
 
 ```txt
 UI Teacher
--> Server Action
+-> Server Actions
 -> forgeAiService
--> AIProvider
+-> Retrieval Service / AIProvider
 -> validation JSON
--> preview / import explicite
+-> preview / diff
 -> repositories Teacher
 -> Supabase
 ```
 
-Les composants React ne connaissent pas le provider IA.
+Les composants React ne connaissent ni SQL, ni Storage, ni provider IA.
 
 Fichiers principaux :
 
-- `lib/forge-ai/provider.ts`
 - `lib/forge-ai/service.ts`
+- `lib/forge-ai/provider.ts`
+- `lib/forge-ai/retrieval.ts`
 - `lib/forge-ai/prompts.ts`
 - `lib/forge-ai/validation.ts`
 - `app/app/teacher/forge/actions.ts`
 - `components/app/ForgeCourseCreator.tsx`
+- `components/app/ForgeCourseContextPanel.tsx`
 - `components/app/ForgeLessonAssistant.tsx`
 
 ## Provider
 
 Providers V1 :
 
-- `mock` : provider déterministe local, utile en développement ou démonstration.
-- `openai-compatible` : endpoint chat completions compatible OpenAI.
+- `mock` : provider déterministe, utile sans clé externe.
+- `openai-compatible` : endpoint Chat Completions compatible OpenAI.
 
 Variables serveur :
 
@@ -52,22 +58,36 @@ FORGE_AI_RATE_LIMIT_PER_HOUR=8
 
 Aucune clé IA ne doit être exposée en `NEXT_PUBLIC_*`.
 
-## Première boucle
+## Course Brief
+
+Le brief contient :
+
+- sujet / titre de travail ;
+- domaine ;
+- public cible ;
+- niveau initial ;
+- niveau visé ;
+- prérequis ;
+- objectifs pédagogiques ;
+- durée cible ;
+- contraintes ;
+- sources documentaires associées.
+
+Il est utilisé pour créer une nouvelle formation ou contextualiser une formation existante.
+
+## Nouvelle formation
 
 Route :
 
 `/app/teacher/courses/forge`
 
-Le Teacher renseigne :
+Workflow :
 
-- sujet ;
-- domaine ;
-- public cible ;
-- niveau ;
-- objectif général ;
-- durée éventuelle ;
-- contraintes ;
-- ton / approche.
+```txt
+Brief -> Sources -> Analyse -> Proposition -> Sélection -> Import draft
+```
+
+Le Teacher peut créer un domaine depuis le formulaire via `TeacherDomainPicker`. La création réutilise `createTeacherDomainAction()`, le slug serveur et l'anti-doublon du Teacher Studio.
 
 Forge retourne une proposition structurée :
 
@@ -79,6 +99,7 @@ Forge retourne une proposition structurée :
   level: "beginner" | "intermediate" | "advanced",
   objectives: string[],
   prerequisites?: string[],
+  sourceCount?: number,
   modules: Array<{
     title: string,
     description?: string,
@@ -91,108 +112,99 @@ Forge retourne une proposition structurée :
 }
 ```
 
-Le formateur peut décocher des modules ou leçons avant import.
+Le Teacher peut décocher des modules ou leçons avant import.
 
-L'import crée :
+L'import crée uniquement :
 
 - une formation `draft` ;
 - des modules `draft` ;
 - des leçons `draft`.
 
-La publication reste manuelle dans le Teacher Studio.
+La publication reste manuelle.
+
+## Formation existante
+
+La page `/app/teacher/courses/[courseId]/edit` expose **Travailler avec Forge AI**.
+
+Forge reçoit :
+
+- les informations du cours ;
+- le domaine ;
+- les modules ;
+- les leçons ;
+- le Course Brief rempli ou ajusté ;
+- les sources attachées à cette formation.
+
+Modes V1 :
+
+- analyser le parcours ;
+- améliorer la structure.
+
+La sortie est affichée en diff :
+
+- structure actuelle ;
+- proposition Forge ;
+- justification.
+
+Seules les suggestions de type `module` ou `lesson` peuvent être appliquées automatiquement, et uniquement après clic explicite **Accepter en brouillon**. Les autres suggestions restent à appliquer manuellement dans l'éditeur.
 
 ## Assistant leçon
 
-Depuis l'Éditeur de parcours, le bloc **Demander à Forge** propose :
+Depuis l'Éditeur de parcours, **Demander à Forge** propose :
 
 - plan ;
 - introduction ;
 - synthèse ;
 - simplification.
 
-La proposition s'affiche en preview. Le bouton **Insérer dans le contenu** ajoute le texte dans le textarea, mais ne sauvegarde pas. Le Teacher doit cliquer sur **Enregistrer la leçon**.
+Le bouton **Insérer dans le contenu** remplit le textarea, mais ne sauvegarde pas. Le Teacher doit cliquer sur **Enregistrer la leçon**.
 
-## Prompts
+## Retrieval
 
-Les prompts séparent clairement :
+Le Sprint 8.1 ajoute un `Retrieval Service` remplaçable.
 
-- instructions système ;
-- données utilisateur ;
-- contexte de leçon.
+V1 :
 
-Les contenus Teacher sont traités comme données et ne peuvent pas redéfinir les règles système.
+- sources stockées en Supabase Storage dans `course-sources` ;
+- TXT/Markdown téléchargés côté serveur et découpés en extraits courts ;
+- PDF référencés comme sources associées, sans fausses citations ni extraction intégrale ;
+- maximum 8 sources attachées à une génération ;
+- maximum 6 snippets transmis au provider.
 
-Règles pédagogiques principales :
+Cette V1 évite un moteur vectoriel maison. Un provider de file search/vector search pourra remplacer `lib/forge-ai/retrieval.ts`.
 
-- objectifs observables ;
-- progression du simple vers le complexe ;
-- 3 à 6 modules ;
-- 2 à 6 leçons par module ;
-- durée réaliste ;
-- vocabulaire adapté au niveau ;
-- éviter les formulations marketing.
+## Traçabilité
 
-## Validation
+`ai_generations` stocke les métadonnées des générations.
 
-La sortie IA est validée côté serveur.
+`ai_generation_sources` relie une génération aux sources utilisées.
 
-Si la réponse n'est pas un JSON exploitable ou ne respecte pas le schéma minimal, l'UI affiche une erreur et aucune donnée métier n'est créée.
+Le contenu complet des prompts et des sorties n'est pas stocké en V1.
 
 ## Sécurité
 
 - Appels IA côté serveur uniquement.
-- `requireRole("teacher")` sur les actions Forge.
-- Aucun token Auth, secret ou clé Supabase envoyé au provider.
-- Données envoyées minimisées et tronquées.
-- Pas de publication automatique.
-- Pas d'écrasement silencieux de contenu.
-
-## Historique minimal
-
-Migration :
-
-`20260817075543_forge_ai_generations.sql`
-
-Table :
-
-`public.ai_generations`
-
-Elle stocke uniquement des métadonnées :
-
-- `user_id`
-- `context_type`
-- `context_id`
-- `prompt_type`
-- `provider`
-- `model`
-- `status`
-- `duration_ms`
-- `error_code`
-- `created_at`
-
-Elle ne stocke pas les prompts complets ni les contenus générés.
-
-## RLS
-
-Un Teacher peut :
-
-- insérer ses propres métadonnées de génération ;
-- lire ses propres métadonnées.
-
-Learner et anon n'ont aucun accès.
+- `requireRole("teacher")` sur les Server Actions Forge.
+- RLS sur `course_sources` et `ai_generation_sources`.
+- Storage `course-sources` privé.
+- Aucun token Auth, secret Supabase ou clé IA envoyé au provider.
+- Données utilisateur et documents traités comme données, jamais comme instructions système.
+- Inputs tronqués, fichiers limités, rate limit best-effort.
+- Sorties JSON validées côté serveur.
 
 ## Limites
 
 - Rate limiting V1 en mémoire, best-effort en environnement serverless.
+- PDF non extrait en texte dans cette V1.
+- Pas de RAG global entre Teachers.
+- Pas de vector database maison.
 - Pas de chat généraliste.
-- Pas de RAG, embeddings ou knowledge graph.
 - Pas de génération massive.
-- Pas de quiz complexes.
-- Pas de scoring IA.
-- Pas de billing IA.
+- Pas de publication automatique.
+- Pas de versioning complet des propositions.
 
 ## Fallback
 
 Si le provider externe est indisponible ou absent, le Teacher Studio reste fonctionnel.
 
-Le provider `mock` peut être utilisé pour préserver la boucle produit sans dépendre d'une clé externe.
+Le provider `mock` préserve la boucle produit sans dépendre d'une clé externe.

@@ -4,43 +4,85 @@ import { requireRole } from "@/lib/auth/server";
 import { getForgeAIConfig } from "@/lib/forge-ai/config";
 import { logForgeGeneration } from "@/lib/forge-ai/generation-log";
 import { getForgeAIProvider } from "@/lib/forge-ai/provider";
+import { getCourseContext } from "@/lib/forge-ai/retrieval";
 import {
+  buildCourseImprovementUserPrompt,
   buildCourseStructureUserPrompt,
   buildLessonAssistantUserPrompt,
+  forgeCourseImprovementSystemPrompt,
   forgeCourseStructureSystemPrompt,
   forgeLessonAssistantSystemPrompt
 } from "@/lib/forge-ai/prompts";
 import { assertForgeAIRateLimit } from "@/lib/forge-ai/rate-limit";
 import {
+  validateForgeCourseImprovement,
   validateForgeCourseProposal,
   validateForgeLessonSuggestion
 } from "@/lib/forge-ai/validation";
+import * as forgeSourceRepository from "@/lib/repositories/forgeSourceRepository";
 import * as teacherCourseRepository from "@/lib/repositories/teacherCourseRepository";
+import type { CourseLevel } from "@/types/course";
 import type {
+  CourseBrief,
+  CourseSource,
   ForgeCourseImportInput,
-  ForgeCourseIntent,
+  ForgeCourseImprovement,
+  ForgeCourseImprovementApplyInput,
+  ForgeCourseImprovementInput,
   ForgeCourseProposal,
   ForgeLessonSuggestion,
   ForgeLessonSuggestionInput,
   ForgePromptType
 } from "@/types/forge-ai";
+import type { TeacherCourse } from "@/types/teaching";
+
+const courseLevels = ["beginner", "intermediate", "advanced"] satisfies CourseLevel[];
 
 function truncate(value: string, maxLength: number) {
   return value.trim().slice(0, maxLength);
 }
 
-function sanitizeIntent(input: ForgeCourseIntent): ForgeCourseIntent {
+function getString(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function getFile(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return value instanceof File && value.size > 0 ? value : undefined;
+}
+
+function normalizeLines(value: string[]) {
+  return value
+    .flatMap((item) => item.split("\n"))
+    .map((item) => item.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function courseLevel(value: CourseLevel | undefined, fallback: CourseLevel): CourseLevel {
+  return courseLevels.includes(value as CourseLevel) ? (value as CourseLevel) : fallback;
+}
+
+function sanitizeBrief(input: CourseBrief, fallbackCourse?: TeacherCourse): CourseBrief {
   const config = getForgeAIConfig();
+  const fallbackObjective = fallbackCourse?.description ? [fallbackCourse.description] : [];
+  const objectives = normalizeLines(
+    input.learningObjectives.length > 0 ? input.learningObjectives : fallbackObjective
+  );
 
   return {
-    audience: truncate(input.audience, 260),
-    constraints: truncate(input.constraints ?? "", Math.min(config.maxInputChars, 800)),
-    domainId: input.domainId,
+    constraints: truncate(input.constraints ?? "", Math.min(config.maxInputChars, 900)),
+    domainId: truncate(input.domainId || fallbackCourse?.domain.id || "", 80),
     duration: truncate(input.duration ?? "", 120),
-    goal: truncate(input.goal, 600),
-    level: input.level,
-    subject: truncate(input.subject, 260),
-    tone: truncate(input.tone ?? "", 220)
+    entryLevel: courseLevel(input.entryLevel, fallbackCourse?.level ?? "beginner"),
+    learningObjectives: objectives,
+    prerequisites: truncate(input.prerequisites ?? "", 500),
+    sourceIds: Array.from(new Set(input.sourceIds ?? [])).filter(Boolean).slice(0, 8),
+    sources: input.sources?.slice(0, 8),
+    subject: truncate(input.subject || fallbackCourse?.title || "", 260),
+    targetAudience: truncate(input.targetAudience, 260),
+    targetLevel: courseLevel(input.targetLevel, fallbackCourse?.level ?? "beginner")
   };
 }
 
@@ -63,11 +105,14 @@ function required(value: string, message: string) {
   }
 }
 
-function assertCourseIntent(input: ForgeCourseIntent) {
+function assertCourseBrief(input: CourseBrief) {
   required(input.subject, "Le sujet est requis.");
-  required(input.audience, "Le public cible est requis.");
-  required(input.goal, "L'objectif général est requis.");
+  required(input.targetAudience, "Le public cible est requis.");
   required(input.domainId, "Le domaine est requis.");
+
+  if (input.learningObjectives.length === 0) {
+    throw new Error("Ajoutez au moins un objectif pédagogique.");
+  }
 }
 
 function getSelectedModules(input: ForgeCourseImportInput) {
@@ -88,7 +133,11 @@ function logFailure(
   promptType: ForgePromptType,
   startedAt: number,
   error: unknown,
-  context?: { contextId?: string; contextType: "course" | "lesson" | "teacher_studio" }
+  context?: {
+    contextId?: string;
+    contextType: "course" | "lesson" | "teacher_studio";
+    sourceIds?: string[];
+  }
 ) {
   const message = error instanceof Error ? error.message : "unknown";
   console.error("[forge-ai] generation failed", {
@@ -105,6 +154,7 @@ function logFailure(
     model: getForgeAIConfig().model || "unknown",
     promptType,
     provider: getForgeAIConfig().provider,
+    sourceIds: context?.sourceIds,
     status: message.includes("Sortie IA invalide") || message.includes("Réponse IA invalide")
       ? "invalid_output"
       : message.includes("Limite temporaire")
@@ -114,24 +164,63 @@ function logFailure(
   });
 }
 
+export async function getForgeCourseSources(
+  courseId?: string,
+  nextPath = "/app/teacher/courses/forge"
+): Promise<CourseSource[]> {
+  const profile = await requireRole("teacher", nextPath);
+  return forgeSourceRepository.getSources(profile.id, courseId);
+}
+
+export async function uploadForgeCourseSource(formData: FormData): Promise<CourseSource> {
+  const courseId = getString(formData, "courseId") || undefined;
+  const profile = await requireRole(
+    "teacher",
+    courseId ? `/app/teacher/courses/${courseId}/edit` : "/app/teacher/courses/forge"
+  );
+  const file = getFile(formData, "sourceFile");
+
+  if (!file) {
+    throw new Error("Sélectionnez une source à téléverser.");
+  }
+
+  return forgeSourceRepository.createSource(profile.id, {
+    courseId,
+    file,
+    title: getString(formData, "sourceTitle") || file.name
+  });
+}
+
+export async function deleteForgeCourseSource(sourceId: string, courseId?: string) {
+  const profile = await requireRole(
+    "teacher",
+    courseId ? `/app/teacher/courses/${courseId}/edit` : "/app/teacher/courses/forge"
+  );
+  return forgeSourceRepository.deleteSource(profile.id, sourceId);
+}
+
 export async function generateForgeCourseProposal(
-  input: ForgeCourseIntent
+  input: CourseBrief
 ): Promise<ForgeCourseProposal> {
   const profile = await requireRole("teacher", "/app/teacher/courses/forge");
   const startedAt = Date.now();
-  const sanitized = sanitizeIntent(input);
-  assertCourseIntent(sanitized);
+  const sanitized = sanitizeBrief(input);
+  assertCourseBrief(sanitized);
   assertForgeAIRateLimit(profile.id, "course_structure");
 
   try {
+    const context = await getCourseContext(profile.id, sanitized.sourceIds);
     const provider = getForgeAIProvider();
     const response = await provider.generateJson({
       input: sanitized,
       promptType: "course_structure",
       systemPrompt: forgeCourseStructureSystemPrompt,
-      userPrompt: buildCourseStructureUserPrompt(sanitized)
+      userPrompt: buildCourseStructureUserPrompt(sanitized, context)
     });
-    const proposal = validateForgeCourseProposal(response.json);
+    const proposal = {
+      ...validateForgeCourseProposal(response.json),
+      sourceCount: context.sourceCount
+    };
 
     await logForgeGeneration({
       contextType: "teacher_studio",
@@ -139,6 +228,7 @@ export async function generateForgeCourseProposal(
       model: response.model,
       promptType: "course_structure",
       provider: response.provider,
+      sourceIds: sanitized.sourceIds,
       status: "success",
       userId: profile.id
     });
@@ -146,12 +236,16 @@ export async function generateForgeCourseProposal(
     console.info("[forge-ai] course proposal generated", {
       durationMs: response.durationMs,
       model: response.model,
-      provider: response.provider
+      provider: response.provider,
+      sourceCount: context.sourceCount
     });
 
     return proposal;
   } catch (error) {
-    await logFailure(profile.id, "course_structure", startedAt, error);
+    await logFailure(profile.id, "course_structure", startedAt, error, {
+      contextType: "teacher_studio",
+      sourceIds: sanitized.sourceIds
+    });
     throw error;
   }
 }
@@ -163,6 +257,7 @@ export async function importForgeCourseProposal(input: ForgeCourseImportInput) {
     ...input,
     proposal
   });
+  const domainId = input.brief?.domainId || input.domainId;
 
   if (modules.length === 0) {
     throw new Error("Sélectionnez au moins un module avec une leçon.");
@@ -170,7 +265,7 @@ export async function importForgeCourseProposal(input: ForgeCourseImportInput) {
 
   const course = await teacherCourseRepository.createCourse(profile.id, {
     description: proposal.summary,
-    domainId: input.domainId,
+    domainId,
     format: "Parcours assisté par Forge AI",
     level: proposal.level,
     subtitle: proposal.summary,
@@ -201,17 +296,126 @@ export async function importForgeCourseProposal(input: ForgeCourseImportInput) {
     }
   }
 
+  const sourceIds = input.brief?.sourceIds ?? [];
+
+  if (sourceIds.length > 0) {
+    await forgeSourceRepository.attachSourcesToCourse(profile.id, sourceIds, course.id);
+  }
+
   await logForgeGeneration({
     contextId: course.id,
     contextType: "course",
     model: getForgeAIConfig().model || "unknown",
     promptType: "course_import",
     provider: getForgeAIConfig().provider,
+    sourceIds,
     status: "success",
     userId: profile.id
   });
 
   return course;
+}
+
+export async function generateForgeCourseImprovement(
+  input: ForgeCourseImprovementInput
+): Promise<ForgeCourseImprovement> {
+  const profile = await requireRole("teacher", `/app/teacher/courses/${input.courseId}/edit`);
+  const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
+
+  if (!course) {
+    throw new Error("Formation introuvable ou non modifiable.");
+  }
+
+  const startedAt = Date.now();
+  const sanitized: ForgeCourseImprovementInput = {
+    ...input,
+    brief: sanitizeBrief(input.brief, course)
+  };
+
+  assertCourseBrief(sanitized.brief);
+  assertForgeAIRateLimit(profile.id, "course_improvement");
+
+  try {
+    const context = await getCourseContext(profile.id, sanitized.brief.sourceIds);
+    const provider = getForgeAIProvider();
+    const response = await provider.generateJson({
+      input: sanitized,
+      promptType: "course_improvement",
+      systemPrompt: forgeCourseImprovementSystemPrompt,
+      userPrompt: buildCourseImprovementUserPrompt(sanitized, course, context)
+    });
+    const improvement = {
+      ...validateForgeCourseImprovement(response.json),
+      sourceCount: context.sourceCount
+    };
+
+    await logForgeGeneration({
+      contextId: course.id,
+      contextType: "course",
+      durationMs: response.durationMs,
+      model: response.model,
+      promptType: "course_improvement",
+      provider: response.provider,
+      sourceIds: sanitized.brief.sourceIds,
+      status: "success",
+      userId: profile.id
+    });
+
+    console.info("[forge-ai] course improvement generated", {
+      courseId: course.id,
+      durationMs: response.durationMs,
+      model: response.model,
+      provider: response.provider,
+      sourceCount: context.sourceCount
+    });
+
+    return improvement;
+  } catch (error) {
+    await logFailure(profile.id, "course_improvement", startedAt, error, {
+      contextId: course.id,
+      contextType: "course",
+      sourceIds: sanitized.brief.sourceIds
+    });
+    throw error;
+  }
+}
+
+export async function applyForgeCourseImprovement(input: ForgeCourseImprovementApplyInput) {
+  const profile = await requireRole("teacher", `/app/teacher/courses/${input.courseId}/edit`);
+  const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
+
+  if (!course) {
+    throw new Error("Formation introuvable ou non modifiable.");
+  }
+
+  if (input.suggestion.type === "module") {
+    return teacherCourseRepository.createModule(profile.id, course.id, {
+      description: input.suggestion.rationale,
+      status: "draft",
+      title: input.suggestion.proposed.slice(0, 140)
+    });
+  }
+
+  let moduleId = input.moduleId || course.modules[0]?.id;
+
+  if (!moduleId) {
+    const module = await teacherCourseRepository.createModule(profile.id, course.id, {
+      description: "Module créé pour accueillir une suggestion Forge AI.",
+      status: "draft",
+      title: "Compléments proposés par Forge"
+    });
+    moduleId = module.id;
+  }
+
+  return teacherCourseRepository.createLesson(profile.id, course.id, moduleId, {
+    content: "",
+    description: input.suggestion.rationale,
+    durationMinutes: 20,
+    objectives: [input.suggestion.rationale ?? "Approfondir le parcours"],
+    status: "draft",
+    title: input.suggestion.proposed.slice(0, 140),
+    type: "reading"
+  });
 }
 
 export async function generateForgeLessonSuggestion(

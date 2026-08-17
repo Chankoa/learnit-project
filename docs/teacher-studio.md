@@ -4,6 +4,7 @@ Sprint 6 connecte la boucle d'authoring Teacher à Supabase.
 Sprint 6.1 stabilise la terminologie UX, les domaines créés à la volée et les états de publication.
 Sprint 7 ajoute le CMS pédagogique léger : contenu Markdown, ressources liées aux leçons et upload Storage.
 Sprint 8 ajoute Forge AI comme copilote optionnel, sans publication ni écrasement automatique.
+Sprint 8.1 ajoute le Course Brief, les sources documentaires et l'analyse Forge d'une formation existante.
 
 ## Terminologie UX
 
@@ -29,11 +30,14 @@ Sprint 8 ajoute Forge AI comme copilote optionnel, sans publication ni écraseme
 - `course_modules` : structure de modules, `display_order`, statut.
 - `lessons` : leçons, `display_order`, type, statut, objectifs et contenu texte.
 - `resources` : ressources pédagogiques liées aux formations, modules ou leçons.
+- `course_sources` : documents de contexte utilisés par Forge AI.
+- `ai_generation_sources` : traçabilité entre générations Forge et sources utilisées.
 - `storage.objects` : fichiers de ressources et couvertures de formation.
 
 La migration `20260811090300_teacher_studio_authoring.sql` ajoute `lessons.content`.
 La migration `20260811101524_teacher_domain_creation.sql` autorise les Teachers actifs à créer des domaines actifs.
 La migration `20260817071013_content_cms_resources.sql` ajoute les métadonnées fichiers, les buckets `resources` et `course-covers`, et les policies associées.
+La migration `20260817083313_course_sources.sql` ajoute les sources Forge, le bucket privé `course-sources` et la traçabilité `ai_generation_sources`.
 
 ## Création inline de domaines
 
@@ -72,7 +76,7 @@ Un Learner ne peut pas créer ni modifier de formation, même en forgeant un pay
 ## Workflow
 
 1. Le Teacher crée une formation via `/app/teacher/courses/new`.
-   Il peut aussi créer une proposition via `/app/teacher/courses/forge`, puis importer uniquement les modules/leçons validés.
+   Il peut aussi créer une proposition via `/app/teacher/courses/forge`, renseigner un Course Brief, associer des sources, puis importer uniquement les modules/leçons validés.
 2. La formation est créée en `draft`, `visibility = private`, `availability = preview`.
 3. Le Teacher édite les informations dans `/app/teacher/courses/[courseId]/edit`.
 4. Le Teacher organise les modules/leçons dans `/app/teacher/courses/[courseId]/builder`.
@@ -83,6 +87,25 @@ Un Learner ne peut pas créer ni modifier de formation, même en forgeant un pay
    - au moins un module ;
    - au moins une leçon.
 7. La publication passe la formation en `published`, `visibility = public`, `availability = complete` et publie les modules/leçons non verrouillés.
+
+## Forge AI dans le Studio
+
+Deux boucles existent :
+
+- nouvelle formation : `/app/teacher/courses/forge` ;
+- formation existante : `/app/teacher/courses/[courseId]/edit`, section **Travailler avec Forge AI**.
+
+Le Course Brief réutilise le sélecteur de domaine du Teacher Studio. Un Teacher peut donc créer un domaine à la volée depuis Forge, avec le même slug serveur et la même stratégie anti-doublons que le formulaire de formation.
+
+Pour une formation existante, Forge reçoit :
+
+- informations générales ;
+- domaine ;
+- modules et leçons ;
+- brief ajustable ;
+- sources associées.
+
+La réponse Forge est affichée en preview/diff. Aucune modification n'est appliquée tant que le Teacher n'a pas cliqué sur **Accepter en brouillon**. Seules les propositions simples de module ou de leçon sont applicables automatiquement en V1 ; les renommages, réorganisations et recommandations restent à traiter dans l'Éditeur de parcours.
 
 ## États de publication
 

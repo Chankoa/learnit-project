@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Eye, Layers3, Send } from "lucide-react";
+import { Eye, Layers3, Send, Sparkles } from "lucide-react";
 
 import {
   publishTeacherCourseAction,
@@ -9,8 +9,10 @@ import {
 } from "@/app/app/teacher/courses/actions";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
+import { ForgeCourseContextPanel } from "@/components/app/ForgeCourseContextPanel";
 import { TeacherCourseForm } from "@/components/app/TeacherCourseForm";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
+import { getForgeCourseSources } from "@/lib/forge-ai/service";
 import {
   countTeacherLessons,
   formatLessonCount,
@@ -61,9 +63,10 @@ export default async function EditTeacherCoursePage({
   searchParams
 }: EditTeacherCoursePageProps) {
   const { courseId } = await params;
-  const [course, domains, query] = await Promise.all([
+  const [course, domains, sources, query] = await Promise.all([
     getTeacherStudioCourse(courseId, `/app/teacher/courses/${courseId}/edit`),
     getTeacherStudioDomains(),
+    getForgeCourseSources(courseId, `/app/teacher/courses/${courseId}/edit`),
     searchParams
   ]);
 
@@ -90,10 +93,16 @@ export default async function EditTeacherCoursePage({
         title="Modifier la formation"
         description="Mettez à jour les informations générales, organisez la structure, puis publiez lorsque le parcours est prêt."
         actions={
-          <Link className="btn btn-secondary" href={`/app/teacher/courses/${course.id}/builder`}>
-            <Layers3 size={17} aria-hidden="true" />
-            Éditer le parcours
-          </Link>
+          <>
+            <Link className="btn btn-secondary" href="#forge-ai">
+              <Sparkles size={17} aria-hidden="true" />
+              Travailler avec Forge AI
+            </Link>
+            <Link className="btn btn-secondary" href={`/app/teacher/courses/${course.id}/builder`}>
+              <Layers3 size={17} aria-hidden="true" />
+              Éditer le parcours
+            </Link>
+          </>
         }
       />
 
@@ -186,6 +195,10 @@ export default async function EditTeacherCoursePage({
           Dépublication non destructive reportée : elle doit être cadrée avec le comportement des apprenants déjà inscrits.
         </p>
       </section>
+
+      <div id="forge-ai">
+        <ForgeCourseContextPanel course={course} domains={domains} initialSources={sources} />
+      </div>
     </div>
   );
 }
