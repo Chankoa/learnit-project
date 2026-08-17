@@ -3,6 +3,7 @@ import type {
   ForgeCourseImprovement,
   ForgeCourseProposal,
   ForgeLessonAction,
+  ForgeLessonContentProposal,
   ForgeLessonSuggestion
 } from "@/types/forge-ai";
 
@@ -167,5 +168,41 @@ export function validateForgeLessonSuggestion(value: unknown): ForgeLessonSugges
     action: lessonActions.includes(action as ForgeLessonAction) ? (action as ForgeLessonAction) : "plan",
     content: requiredString(value.content, "contenu proposé"),
     title: requiredString(value.title, "titre de la proposition")
+  };
+}
+
+export function validateForgeLessonContentProposal(value: unknown): ForgeLessonContentProposal {
+  if (!isRecord(value)) {
+    throw new Error("Sortie IA invalide : objet attendu.");
+  }
+
+  const referencesSource = Array.isArray(value.sourceReferences) ? value.sourceReferences : [];
+  const sourceReferences = referencesSource.slice(0, 6).flatMap((referenceValue) => {
+    if (!isRecord(referenceValue)) {
+      return [];
+    }
+
+    const sourceId = stringValue(referenceValue.sourceId);
+    const label = stringValue(referenceValue.label);
+
+    if (!sourceId || !label) {
+      return [];
+    }
+
+    return {
+      excerpt: optionalString(referenceValue.excerpt),
+      label,
+      sourceId
+    };
+  });
+
+  return {
+    contentMarkdown: requiredString(value.contentMarkdown, "contenu Markdown"),
+    estimatedMinutes: positiveMinutes(value.estimatedMinutes) ?? 20,
+    keyPoints: stringArray(value.keyPoints, 8),
+    objectives: stringArray(value.objectives, 8),
+    sourceReferences,
+    summary: requiredString(value.summary, "résumé"),
+    title: requiredString(value.title, "titre")
   };
 }

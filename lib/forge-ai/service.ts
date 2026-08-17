@@ -8,15 +8,18 @@ import { getCourseContext } from "@/lib/forge-ai/retrieval";
 import {
   buildCourseImprovementUserPrompt,
   buildCourseStructureUserPrompt,
+  buildLessonContentUserPrompt,
   buildLessonAssistantUserPrompt,
   forgeCourseImprovementSystemPrompt,
   forgeCourseStructureSystemPrompt,
+  forgeLessonContentSystemPrompt,
   forgeLessonAssistantSystemPrompt
 } from "@/lib/forge-ai/prompts";
 import { assertForgeAIRateLimit } from "@/lib/forge-ai/rate-limit";
 import {
   validateForgeCourseImprovement,
   validateForgeCourseProposal,
+  validateForgeLessonContentProposal,
   validateForgeLessonSuggestion
 } from "@/lib/forge-ai/validation";
 import * as forgeSourceRepository from "@/lib/repositories/forgeSourceRepository";
@@ -30,6 +33,10 @@ import type {
   ForgeCourseImprovementApplyInput,
   ForgeCourseImprovementInput,
   ForgeCourseProposal,
+  ForgeLessonContentInput,
+  ForgeLessonContentMode,
+  ForgeLessonContentProposal,
+  ForgeLessonProposalApplyInput,
   ForgeLessonSuggestion,
   ForgeLessonSuggestionInput,
   ForgePromptType
@@ -99,6 +106,20 @@ function sanitizeLessonInput(input: ForgeLessonSuggestionInput): ForgeLessonSugg
   };
 }
 
+function sanitizeLessonContentInput(input: ForgeLessonContentInput): ForgeLessonContentInput {
+  const config = getForgeAIConfig();
+
+  return {
+    content: truncate(input.content ?? "", config.maxInputChars),
+    courseId: input.courseId,
+    description: truncate(input.description ?? "", 500),
+    lessonId: input.lessonId,
+    mode: input.mode,
+    sourceIds: Array.from(new Set(input.sourceIds ?? [])).filter(Boolean).slice(0, 8),
+    title: truncate(input.title ?? "", 220)
+  };
+}
+
 function required(value: string, message: string) {
   if (!value.trim()) {
     throw new Error(message);
@@ -126,6 +147,59 @@ function getSelectedModules(input: ForgeCourseImportInput) {
       lessons: module.lessons.filter((lesson) => selectedLessonIds.has(lesson.clientId))
     }))
     .filter((module) => module.lessons.length > 0);
+}
+
+function getLessonPromptType(mode: ForgeLessonContentMode): ForgePromptType {
+  const promptTypes: Record<ForgeLessonContentMode, ForgePromptType> = {
+    analyze: "lesson_analyze",
+    examples: "lesson_examples",
+    exercise: "lesson_exercise",
+    expand: "lesson_expand",
+    generate: "lesson_generate",
+    improve: "lesson_improve",
+    intro: "lesson_intro",
+    simplify: "lesson_simplify",
+    summary: "lesson_summary"
+  };
+
+  return promptTypes[mode];
+}
+
+function getLessonContext(course: TeacherCourse, lessonId: string) {
+  for (const module of course.modules) {
+    const lessonIndex = module.lessons.findIndex((lesson) => lesson.id === lessonId);
+
+    if (lessonIndex >= 0) {
+      const flattenedLessons = course.modules.flatMap((item) => item.lessons);
+      const flattenedIndex = flattenedLessons.findIndex((lesson) => lesson.id === lessonId);
+
+      return {
+        lesson: module.lessons[lessonIndex],
+        module,
+        nextLesson: flattenedIndex >= 0 ? flattenedLessons[flattenedIndex + 1] : undefined,
+        previousLesson: flattenedIndex > 0 ? flattenedLessons[flattenedIndex - 1] : undefined
+      };
+    }
+  }
+
+  return {};
+}
+
+function filterSourceReferences(
+  proposal: ForgeLessonContentProposal,
+  contextSourceLabels: Map<string, string>
+): ForgeLessonContentProposal {
+  const references = proposal.sourceReferences
+    .filter((reference) => contextSourceLabels.has(reference.sourceId))
+    .map((reference) => ({
+      ...reference,
+      label: reference.label || contextSourceLabels.get(reference.sourceId) || "Source"
+    }));
+
+  return {
+    ...proposal,
+    sourceReferences: references
+  };
 }
 
 function logFailure(
@@ -415,6 +489,134 @@ export async function applyForgeCourseImprovement(input: ForgeCourseImprovementA
     status: "draft",
     title: input.suggestion.proposed.slice(0, 140),
     type: "reading"
+  });
+}
+
+export async function generateForgeLessonContent(
+  input: ForgeLessonContentInput
+): Promise<ForgeLessonContentProposal> {
+  const profile = await requireRole("teacher", `/app/teacher/courses/${input.courseId}/builder`);
+  const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
+
+  if (!course) {
+    throw new Error("Formation introuvable ou non modifiable.");
+  }
+
+  const { lesson, module, nextLesson, previousLesson } = getLessonContext(course, input.lessonId);
+
+  if (!lesson) {
+    throw new Error("Leçon introuvable ou non modifiable.");
+  }
+
+  const sources = await forgeSourceRepository.getSources(profile.id, course.id);
+  const sourceIds = sources.map((source) => source.id);
+  const sanitized = sanitizeLessonContentInput({
+    ...input,
+    content: input.content ?? lesson.content,
+    description: input.description ?? lesson.description,
+    sourceIds,
+    title: input.title || lesson.title
+  });
+  const promptType = getLessonPromptType(sanitized.mode);
+  const startedAt = Date.now();
+  assertForgeAIRateLimit(profile.id, promptType);
+
+  try {
+    const query = [
+      course.title,
+      course.domain.name,
+      module?.title,
+      lesson.title,
+      lesson.description,
+      lesson.objectives?.join(" "),
+      sanitized.content
+    ]
+      .filter(Boolean)
+      .join(" ");
+    const context = await getCourseContext(profile.id, sourceIds, {
+      maxSnippets: 6,
+      query
+    });
+    const contextSourceLabels = new Map(
+      context.snippets.map((snippet) => [snippet.sourceId, snippet.sourceTitle])
+    );
+    const provider = getForgeAIProvider();
+    const response = await provider.generateJson({
+      input: sanitized,
+      promptType,
+      systemPrompt: forgeLessonContentSystemPrompt,
+      userPrompt: buildLessonContentUserPrompt({
+        context,
+        course,
+        input: sanitized,
+        lesson,
+        module,
+        nextLesson,
+        previousLesson,
+        sourcesCount: sources.length
+      })
+    });
+    const proposal = filterSourceReferences(
+      validateForgeLessonContentProposal(response.json),
+      contextSourceLabels
+    );
+    const referencedSourceIds = proposal.sourceReferences.map((reference) => reference.sourceId);
+
+    await logForgeGeneration({
+      contextId: lesson.id,
+      contextType: "lesson",
+      durationMs: response.durationMs,
+      model: response.model,
+      promptType,
+      provider: response.provider,
+      sourceIds: referencedSourceIds,
+      status: "success",
+      userId: profile.id
+    });
+
+    console.info("[forge-ai] lesson content proposal generated", {
+      durationMs: response.durationMs,
+      lessonId: lesson.id,
+      model: response.model,
+      provider: response.provider,
+      sourceCount: referencedSourceIds.length
+    });
+
+    return proposal;
+  } catch (error) {
+    await logFailure(profile.id, promptType, startedAt, error, {
+      contextId: lesson.id,
+      contextType: "lesson",
+      sourceIds
+    });
+    throw error;
+  }
+}
+
+export async function applyForgeLessonProposal(input: ForgeLessonProposalApplyInput) {
+  const profile = await requireRole("teacher", `/app/teacher/courses/${input.courseId}/builder`);
+  const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
+
+  if (!course) {
+    throw new Error("Formation introuvable ou non modifiable.");
+  }
+
+  const { lesson } = getLessonContext(course, input.lessonId);
+
+  if (!lesson) {
+    throw new Error("Leçon introuvable ou non modifiable.");
+  }
+
+  const proposal = validateForgeLessonContentProposal(input.proposal);
+
+  return teacherCourseRepository.updateLesson(profile.id, course.id, lesson.id, {
+    content: proposal.contentMarkdown,
+    description: proposal.summary,
+    durationMinutes: proposal.estimatedMinutes,
+    objectives: proposal.objectives,
+    status: lesson.status === "published" ? "published" : "draft",
+    title: proposal.title,
+    type: lesson.type
   });
 }
 

@@ -1678,13 +1678,12 @@
 
 .teacher-management-card {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-5);
   padding: var(--space-5);
 }
 
 .teacher-management-card__heading,
 .teacher-management-card__actions,
-.teacher-management-card__footer,
 .teacher-table-card__heading,
 .teacher-inline-form__heading,
 .teacher-builder__toolbar,
@@ -1698,9 +1697,24 @@
 
 .teacher-management-card__meta {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-3);
   margin: 0;
+}
+
+.teacher-management-card__heading > div {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.teacher-management-card__heading p {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .teacher-management-card__meta div {
@@ -1731,8 +1745,7 @@
 }
 
 .teacher-management-card__actions a,
-.teacher-management-card__actions span,
-.teacher-management-card__footer span {
+.teacher-management-card__actions span {
   display: inline-flex;
   min-height: 36px;
   align-items: center;
@@ -1746,6 +1759,23 @@
   font-weight: var(--font-weight-bold);
 }
 
+.teacher-management-card__actions:not(.teacher-management-card__actions--secondary) a {
+  border-color: color-mix(in srgb, var(--accent-primary) 26%, var(--border-soft));
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--surface-panel));
+}
+
+.teacher-management-card__actions--secondary {
+  gap: var(--space-2);
+}
+
+.teacher-management-card__actions--secondary a,
+.teacher-management-card__actions--secondary span {
+  min-height: 34px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
 .teacher-management-card__actions span[aria-disabled="true"] {
   color: var(--text-muted);
   opacity: 0.76;
@@ -1754,12 +1784,6 @@
 .teacher-management-card__actions a:hover {
   border-color: var(--border-strong);
   background: var(--surface-elevated);
-}
-
-.teacher-management-card__footer {
-  justify-content: flex-start;
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--border-soft);
 }
 
 .teacher-form,
@@ -2579,6 +2603,62 @@
   line-height: 1.7;
 }
 
+.forge-lesson-diff {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.forge-lesson-diff section,
+.forge-source-references {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  padding: var(--space-4);
+}
+
+.forge-lesson-diff section > span {
+  color: var(--accent-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.forge-source-references h5 {
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+}
+
+.forge-source-references ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.forge-source-references li {
+  display: grid;
+  gap: var(--space-1);
+  border-left: 3px solid color-mix(in srgb, var(--accent-primary) 38%, var(--border-soft));
+  padding-left: var(--space-3);
+}
+
+.forge-source-references strong {
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+}
+
+.forge-source-references span,
+.forge-source-references p {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
 .forge-source-manager,
 .forge-source-list,
 .forge-existing-course,
@@ -2775,6 +2855,7 @@
   .teacher-metrics,
   .teacher-course-management-grid,
   .forge-diff,
+  .forge-lesson-diff,
   .forge-ai-layout,
   .teacher-resource-forms,
   .teacher-form-grid {
@@ -2793,6 +2874,8 @@
   }
 
   .teacher-builder__toolbar .btn,
+  .teacher-management-card__actions a,
+  .teacher-management-card__actions span,
   .forge-proposal__selection .btn,
   .forge-lesson-assistant__controls .btn,
   .teacher-inline-form__heading .btn,
@@ -2817,7 +2900,7 @@
   }
 
   .teacher-management-card__heading,
-  .teacher-management-card__footer {
+  .teacher-management-card__actions {
     align-items: flex-start;
     flex-direction: column;
   }

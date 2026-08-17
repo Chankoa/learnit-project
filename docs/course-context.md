@@ -61,19 +61,37 @@ Organisation :
 teacherId/courseId-or-brief/timestamp-filename
 ```
 
-## Retrieval V1
+## Retrieval V1.5
 
 `lib/forge-ai/retrieval.ts` sépare le stockage des sources de leur utilisation IA.
 
-V1 :
+V1.5 :
 
 - lecture serveur via Supabase Storage ;
 - extraction directe pour TXT et Markdown ;
 - découpage en snippets courts ;
+- scoring lexical simple selon la requête de contexte ;
+- sélection plus pertinente pour une leçon précise ;
 - PDF signalé comme source associée, sans extraction textuelle complète ;
 - aucun moteur vectoriel maison.
 
 Les documents sont toujours injectés dans le prompt comme données de contexte, pas comme instructions système.
+
+## Références visibles
+
+Les propositions de leçon peuvent retourner :
+
+```ts
+sourceReferences: Array<{
+  sourceId: string,
+  label: string,
+  excerpt?: string
+}>
+```
+
+Le service filtre ces références : une référence n'est affichée et journalisée que si le `sourceId` existe dans les snippets réellement récupérés.
+
+Si Forge génère à partir de connaissances générales ou si aucune source pertinente n'est fournie, l'UI affiche explicitement qu'aucune source documentaire n'est citée.
 
 ## Traçabilité
 
@@ -87,6 +105,8 @@ Elle relie :
 - `course_sources.id`
 
 Cela permet d'afficher plus tard les références ayant contribué à une proposition.
+
+Sprint 8.2 utilise déjà cette table pour journaliser les sources réellement référencées par une génération de leçon.
 
 ## RLS
 
@@ -109,5 +129,5 @@ Un autre Teacher ne peut pas lire, uploader, modifier ou supprimer ces sources.
 - Pas d'extraction PDF complète en V1.
 - Pas de DOCX malgré le type prévu dans le modèle TypeScript.
 - Pas de recherche vectorielle.
-- Pas de citations affichées au Teacher.
+- Citations affichées uniquement pour les sources réellement référencées, sans garantie de page/section pour les PDF.
 - Pas de partage de sources entre Teachers.

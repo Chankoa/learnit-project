@@ -150,34 +150,84 @@ Seules les suggestions de type `module` ou `lesson` peuvent être appliquées au
 
 ## Assistant leçon
 
-Depuis l'Éditeur de parcours, **Demander à Forge** propose :
+Depuis l'Éditeur de parcours, **Modifier avec Forge AI** propose :
 
-- plan ;
-- introduction ;
-- synthèse ;
-- simplification.
+- générer le contenu ;
+- améliorer le contenu existant ;
+- simplifier ;
+- développer ;
+- générer une introduction ;
+- générer une synthèse ;
+- proposer des exemples ;
+- proposer un exercice ;
+- analyser la cohérence pédagogique.
 
-Le bouton **Insérer dans le contenu** remplit le textarea, mais ne sauvegarde pas. Le Teacher doit cliquer sur **Enregistrer la leçon**.
+Forge charge uniquement le contexte utile :
+
+- informations de formation ;
+- domaine ;
+- module parent ;
+- leçon cible ;
+- durée et contenu actuels ;
+- leçons précédente et suivante ;
+- sources associées au cours ;
+- passages récupérés par le Retrieval Service.
+
+La sortie structurée est :
+
+```ts
+{
+  title: string,
+  summary: string,
+  objectives: string[],
+  contentMarkdown: string,
+  keyPoints: string[],
+  estimatedMinutes: number,
+  sourceReferences: Array<{
+    sourceId: string,
+    label: string,
+    excerpt?: string
+  }>
+}
+```
+
+L'UI affiche **Contenu actuel** vs **Proposition Forge**. Le Teacher peut modifier la proposition avant de cliquer sur **Accepter**. Le mode **Analyser cette leçon** ne peut pas être appliqué automatiquement : il produit des recommandations à traiter manuellement.
 
 ## Retrieval
 
-Le Sprint 8.1 ajoute un `Retrieval Service` remplaçable.
+Le Sprint 8.1 ajoute un `Retrieval Service` remplaçable. Sprint 8.2 le fait évoluer en RAG applicatif V1.5.
 
-V1 :
+V1.5 :
 
 - sources stockées en Supabase Storage dans `course-sources` ;
 - TXT/Markdown téléchargés côté serveur et découpés en extraits courts ;
+- snippets triés par score lexical à partir du titre de leçon, module, objectifs et contenu ;
 - PDF référencés comme sources associées, sans fausses citations ni extraction intégrale ;
 - maximum 8 sources attachées à une génération ;
 - maximum 6 snippets transmis au provider.
 
-Cette V1 évite un moteur vectoriel maison. Un provider de file search/vector search pourra remplacer `lib/forge-ai/retrieval.ts`.
+Workflow :
+
+```txt
+Intent Teacher
+-> contexte de leçon
+-> retrieval sources
+-> prompt Forge
+-> structured output
+-> preview
+-> validation
+-> application explicite
+```
+
+Cette V1.5 évite un moteur vectoriel maison. Un provider de file search/vector search pourra remplacer `lib/forge-ai/retrieval.ts`.
 
 ## Traçabilité
 
 `ai_generations` stocke les métadonnées des générations.
 
 `ai_generation_sources` relie une génération aux sources utilisées.
+
+Pour les leçons, seules les sources réellement référencées dans `sourceReferences` et présentes dans le contexte récupéré sont liées à la génération.
 
 Le contenu complet des prompts et des sorties n'est pas stocké en V1.
 
@@ -202,6 +252,7 @@ Le contenu complet des prompts et des sorties n'est pas stocké en V1.
 - Pas de génération massive.
 - Pas de publication automatique.
 - Pas de versioning complet des propositions.
+- Les références visibles restent au niveau source/extrait, sans citations vérifiées page par page pour les PDF.
 
 ## Fallback
 

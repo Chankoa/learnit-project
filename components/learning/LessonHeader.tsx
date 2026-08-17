@@ -23,7 +23,7 @@ export function LessonHeader({ course, lesson, module }: LessonHeaderProps) {
   return (
     <header className="lesson-header">
       <nav className="lesson-breadcrumb" aria-label="Fil d'Ariane">
-        <Link href="/dashboard">Tableau de bord</Link>
+        <Link href="/app/learner">Espace apprenant</Link>
         <ChevronRight size={14} aria-hidden="true" />
         <Link href={`/learn/${course.slug}`}>{course.title}</Link>
         {module ? (

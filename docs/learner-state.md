@@ -60,6 +60,16 @@ The CTA label is:
 - `Continuer` for `in-progress`
 - `Revoir` for `completed`
 
+## Lesson navigation
+
+Sprint 8.2 corrige la navigation haute des leçons.
+
+- Le breadcrumb d'une leçon pointe directement vers `/app/learner` pour **Espace apprenant**.
+- Le libellé haut de `LearningShell` est également un lien vers `/app/learner`.
+- Le retour à la formation reste `/learn/[courseSlug]`.
+
+Cette navigation ne dépend pas de `history.back()`.
+
 ## RLS
 
 The learner state tables use `user_id = auth.uid()` policies:

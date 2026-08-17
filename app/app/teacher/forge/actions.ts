@@ -4,8 +4,10 @@ import { revalidatePath } from "next/cache";
 
 import {
   applyForgeCourseImprovement,
+  applyForgeLessonProposal,
   generateForgeCourseProposal,
   generateForgeCourseImprovement,
+  generateForgeLessonContent,
   generateForgeLessonSuggestion,
   importForgeCourseProposal,
   uploadForgeCourseSource,
@@ -19,6 +21,9 @@ import type {
   ForgeCourseImprovementApplyInput,
   ForgeCourseImprovementInput,
   ForgeCourseProposal,
+  ForgeLessonContentInput,
+  ForgeLessonContentProposal,
+  ForgeLessonProposalApplyInput,
   ForgeLessonSuggestion,
   ForgeLessonSuggestionInput
 } from "@/types/forge-ai";
@@ -159,6 +164,54 @@ export async function generateForgeLessonSuggestionAction(
     const suggestion = await generateForgeLessonSuggestion(input);
     return {
       data: suggestion,
+      ok: true
+    };
+  } catch (error) {
+    return {
+      error: getErrorMessage(error),
+      ok: false
+    };
+  }
+}
+
+export async function generateLessonWithForgeAction(
+  input: ForgeLessonContentInput
+): Promise<ForgeActionResult<ForgeLessonContentProposal>> {
+  try {
+    const proposal = await generateForgeLessonContent(input);
+    return {
+      data: proposal,
+      ok: true
+    };
+  } catch (error) {
+    return {
+      error: getErrorMessage(error),
+      ok: false
+    };
+  }
+}
+
+export async function analyzeLessonWithForgeAction(
+  input: Omit<ForgeLessonContentInput, "mode">
+): Promise<ForgeActionResult<ForgeLessonContentProposal>> {
+  return generateLessonWithForgeAction({
+    ...input,
+    mode: "analyze"
+  });
+}
+
+export async function applyLessonProposalAction(
+  input: ForgeLessonProposalApplyInput
+): Promise<ForgeActionResult<{ message: string }>> {
+  try {
+    await applyForgeLessonProposal(input);
+    revalidatePath(`/app/teacher/courses/${input.courseId}/builder`);
+    revalidatePath(`/app/teacher/courses/${input.courseId}/edit`);
+    revalidatePath("/formations");
+    revalidatePath("/app/teacher/courses");
+
+    return {
+      data: { message: "Proposition appliquée à la leçon." },
       ok: true
     };
   } catch (error) {

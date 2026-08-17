@@ -4,6 +4,12 @@ export type ForgePromptType =
   | "course_structure"
   | "course_improvement"
   | "course_import"
+  | "lesson_generate"
+  | "lesson_improve"
+  | "lesson_expand"
+  | "lesson_examples"
+  | "lesson_exercise"
+  | "lesson_analyze"
   | "lesson_plan"
   | "lesson_intro"
   | "lesson_summary"
@@ -140,6 +146,49 @@ export type ForgeLessonAction =
   | "intro"
   | "summary"
   | "simplify";
+
+export type ForgeLessonContentMode =
+  | "generate"
+  | "improve"
+  | "simplify"
+  | "expand"
+  | "intro"
+  | "summary"
+  | "examples"
+  | "exercise"
+  | "analyze";
+
+export type ForgeSourceReference = {
+  excerpt?: string;
+  label: string;
+  sourceId: string;
+};
+
+export type ForgeLessonContentInput = {
+  content?: string;
+  courseId: string;
+  description?: string;
+  lessonId: string;
+  mode: ForgeLessonContentMode;
+  sourceIds?: string[];
+  title?: string;
+};
+
+export type ForgeLessonContentProposal = {
+  contentMarkdown: string;
+  estimatedMinutes: number;
+  keyPoints: string[];
+  objectives: string[];
+  sourceReferences: ForgeSourceReference[];
+  summary: string;
+  title: string;
+};
+
+export type ForgeLessonProposalApplyInput = {
+  courseId: string;
+  lessonId: string;
+  proposal: ForgeLessonContentProposal;
+};
 
 export type ForgeLessonSuggestionInput = {
   action: ForgeLessonAction;

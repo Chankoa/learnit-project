@@ -92,7 +92,9 @@ export function LearningShell({
               {isMobileMenuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
             </button>
             <div>
-              <span>Espace apprenant</span>
+              <Link className="learning-header__home-link" href="/app/learner">
+                Espace apprenant
+              </Link>
               {variant === "lesson" ? (
                 <p className="learning-header__page-title">{pageTitle}</p>
               ) : (

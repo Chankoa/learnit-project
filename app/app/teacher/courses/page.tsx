@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  BookOpenText,
   Eye,
   GraduationCap,
   Layers3,
@@ -47,13 +46,13 @@ export default async function TeacherCoursesPage() {
         description="Consultez vos parcours, leurs statuts, leurs contenus et leur dernière mise à jour."
         actions={
           <>
-            <Link className="btn btn-secondary" href="/app/teacher/courses/forge">
-              <Sparkles size={17} aria-hidden="true" />
-              Créer avec Forge AI
-            </Link>
             <Link className="btn btn-primary" href="/app/teacher/courses/new">
               <Plus size={17} aria-hidden="true" />
               Créer une formation
+            </Link>
+            <Link className="btn btn-secondary" href="/app/teacher/courses/forge">
+              <Sparkles size={17} aria-hidden="true" />
+              Créer avec Forge AI
             </Link>
           </>
         }
@@ -67,6 +66,7 @@ export default async function TeacherCoursesPage() {
                 <div>
                   <span>{course.domain.name}</span>
                   <h2>{course.title}</h2>
+                  <p>{course.description}</p>
                 </div>
                 <span className="state-badge" data-state={course.status}>
                   {teacherCourseStatusLabels[course.status]}
@@ -74,10 +74,6 @@ export default async function TeacherCoursesPage() {
               </div>
 
               <dl className="teacher-management-card__meta">
-                <div>
-                  <dt>Domaine</dt>
-                  <dd>{course.domain.name}</dd>
-                </div>
                 <div>
                   <dt>Modules</dt>
                   <dd>{formatModuleCount(course.modules.length)}</dd>
@@ -97,13 +93,20 @@ export default async function TeacherCoursesPage() {
               </dl>
 
               <div className="teacher-management-card__actions">
-                <Link href={`/app/teacher/courses/${course.id}/edit`}>
-                  <Pencil size={16} aria-hidden="true" />
-                  Modifier les infos
-                </Link>
                 <Link href={`/app/teacher/courses/${course.id}/builder`}>
                   <Layers3 size={16} aria-hidden="true" />
                   Éditer le parcours
+                </Link>
+                <Link href={`/app/teacher/courses/${course.id}/edit#forge-ai`}>
+                  <Sparkles size={16} aria-hidden="true" />
+                  Modifier avec Forge AI
+                </Link>
+              </div>
+
+              <div className="teacher-management-card__actions teacher-management-card__actions--secondary">
+                <Link href={`/app/teacher/courses/${course.id}/edit`}>
+                  <Pencil size={16} aria-hidden="true" />
+                  Modifier les infos
                 </Link>
                 {course.status === "published" && course.slug ? (
                   <Link href={`/formations/${course.slug}`}>
@@ -116,17 +119,6 @@ export default async function TeacherCoursesPage() {
                     Aperçu après publication
                   </span>
                 )}
-              </div>
-
-              <div className="teacher-management-card__footer">
-                <span>
-                  <Layers3 size={15} aria-hidden="true" />
-                  {formatModuleCount(course.modules.length)}
-                </span>
-                <span>
-                  <BookOpenText size={15} aria-hidden="true" />
-                  {formatLessonCount(countTeacherLessons(course))}
-                </span>
               </div>
             </article>
           ))

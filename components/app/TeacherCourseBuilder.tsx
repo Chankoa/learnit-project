@@ -474,7 +474,6 @@ export function TeacherCourseBuilder({
                   courseId={course.id}
                   description={selectedLesson.description}
                   lessonId={selectedLesson.id}
-                  targetTextareaId={lessonContentTextareaId}
                   title={selectedLesson.title}
                 />
               ) : null}

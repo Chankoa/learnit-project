@@ -5,6 +5,7 @@ Sprint 6.1 stabilise la terminologie UX, les domaines créés à la volée et le
 Sprint 7 ajoute le CMS pédagogique léger : contenu Markdown, ressources liées aux leçons et upload Storage.
 Sprint 8 ajoute Forge AI comme copilote optionnel, sans publication ni écrasement automatique.
 Sprint 8.1 ajoute le Course Brief, les sources documentaires et l'analyse Forge d'une formation existante.
+Sprint 8.2 ajoute la génération contextualisée de leçon et améliore les cartes de formations Teacher.
 
 ## Terminologie UX
 
@@ -13,6 +14,7 @@ Sprint 8.1 ajoute le Course Brief, les sources documentaires et l'analyse Forge 
 - **Structure** : ensemble des modules et leçons.
 - **Modifier les infos** : édition des informations générales d'une formation.
 - **Éditer le parcours** : gestion des modules et leçons.
+- **Modifier avec Forge AI** : ouvrir le workflow contextualisé sur un cours ou une leçon existante.
 
 ## Ownership
 
@@ -106,6 +108,38 @@ Pour une formation existante, Forge reçoit :
 - sources associées.
 
 La réponse Forge est affichée en preview/diff. Aucune modification n'est appliquée tant que le Teacher n'a pas cliqué sur **Accepter en brouillon**. Seules les propositions simples de module ou de leçon sont applicables automatiquement en V1 ; les renommages, réorganisations et recommandations restent à traiter dans l'Éditeur de parcours.
+
+Depuis une carte de `/app/teacher/courses`, les actions principales sont :
+
+- **Éditer le parcours** ;
+- **Modifier avec Forge AI**.
+
+Les actions secondaires sont :
+
+- **Modifier les infos** ;
+- **Voir** si la formation est publiée.
+
+Les cartes évitent désormais la duplication des compteurs modules/leçons.
+
+## Génération contextualisée de leçon
+
+Dans l'Éditeur de parcours, une leçon sélectionnée expose **Modifier avec Forge AI**.
+
+Modes V1 :
+
+- générer ;
+- améliorer ;
+- simplifier ;
+- développer ;
+- introduction ;
+- synthèse ;
+- exemples ;
+- exercice ;
+- analyse pédagogique.
+
+Forge reçoit le contexte minimal utile : formation, domaine, module parent, leçon cible, contenu courant, durée, leçons voisines et sources du cours via Retrieval V1.5.
+
+La proposition est structurée, éditable en preview et peut être acceptée explicitement. Le mode analyse reste non mutatif.
 
 ## États de publication
 
