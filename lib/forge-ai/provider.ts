@@ -36,6 +36,27 @@ export type ForgeAIProvider = {
   generateJson: (request: ForgeAIJsonRequest) => Promise<ForgeAIJsonResponse>;
 };
 
+export type ForgeAIProviderErrorCode =
+  | "auth_refused"
+  | "invalid_endpoint"
+  | "missing_config"
+  | "provider_unavailable"
+  | "rate_limited"
+  | "request_failed"
+  | "timeout";
+
+export class ForgeAIProviderError extends Error {
+  code: ForgeAIProviderErrorCode;
+  status?: number;
+
+  constructor(code: ForgeAIProviderErrorCode, message: string, status?: number) {
+    super(message);
+    this.name = "ForgeAIProviderError";
+    this.code = code;
+    this.status = status;
+  }
+}
+
 function isCourseBrief(input: ForgeAIJsonRequest["input"]): input is CourseBrief {
   return "subject" in input && "targetAudience" in input;
 }
@@ -259,13 +280,75 @@ const mockProvider: ForgeAIProvider = {
   }
 };
 
+function logOpenAICompatibleConfig(config: ReturnType<typeof getForgeAIConfig>) {
+  console.info("[forge-ai] Forge AI config", {
+    apiKey: config.apiKey ? "present" : "missing",
+    baseUrl: config.baseUrlSource,
+    model: config.model ? "present" : "missing",
+    provider: config.provider
+  });
+}
+
+function getProviderError(status: number) {
+  if (status === 401 || status === 403) {
+    return new ForgeAIProviderError(
+      "auth_refused",
+      `Provider IA authentication refused (${status}).`,
+      status
+    );
+  }
+
+  if (status === 404 || status === 405) {
+    return new ForgeAIProviderError(
+      "invalid_endpoint",
+      `Provider IA endpoint invalid or incompatible (${status}).`,
+      status
+    );
+  }
+
+  if (status === 429) {
+    return new ForgeAIProviderError(
+      "rate_limited",
+      "Provider IA quota or rate limit reached.",
+      status
+    );
+  }
+
+  if (status >= 500 && status <= 599) {
+    return new ForgeAIProviderError(
+      "provider_unavailable",
+      `Provider IA temporarily unavailable (${status}).`,
+      status
+    );
+  }
+
+  return new ForgeAIProviderError(
+    "request_failed",
+    `Provider IA request failed (${status}).`,
+    status
+  );
+}
+
+function isAbortError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error as { name?: unknown }).name === "AbortError"
+  );
+}
+
 function getOpenAICompatibleProvider(): ForgeAIProvider {
   return {
     async generateJson(request) {
       const config = getForgeAIConfig();
+      logOpenAICompatibleConfig(config);
 
       if (!config.apiKey || !config.model) {
-        throw new Error("Provider IA non configuré. Renseignez AI_API_KEY et AI_MODEL côté serveur.");
+        throw new ForgeAIProviderError(
+          "missing_config",
+          "Provider IA non configuré. Renseignez AI_API_KEY et AI_MODEL côté serveur."
+        );
       }
 
       const startedAt = Date.now();
@@ -292,7 +375,7 @@ function getOpenAICompatibleProvider(): ForgeAIProvider {
         });
 
         if (!response.ok) {
-          throw new Error(`Provider IA indisponible (${response.status}).`);
+          throw getProviderError(response.status);
         }
 
         const payload = (await response.json()) as {
@@ -310,6 +393,16 @@ function getOpenAICompatibleProvider(): ForgeAIProvider {
           model: config.model,
           provider: config.provider
         };
+      } catch (error) {
+        if (error instanceof ForgeAIProviderError) {
+          throw error;
+        }
+
+        if (isAbortError(error)) {
+          throw new ForgeAIProviderError("timeout", "Provider IA request timed out.");
+        }
+
+        throw error;
       } finally {
         clearTimeout(timeout);
       }

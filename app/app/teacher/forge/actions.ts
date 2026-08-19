@@ -13,6 +13,7 @@ import {
   uploadForgeCourseSource,
   deleteForgeCourseSource
 } from "@/lib/forge-ai/service";
+import { ForgeAIProviderError } from "@/lib/forge-ai/provider";
 import type {
   CourseBrief,
   CourseSource,
@@ -53,12 +54,31 @@ function getErrorMessage(error: unknown) {
     return "Forge AI est indisponible pour le moment.";
   }
 
+  if (error instanceof ForgeAIProviderError) {
+    switch (error.code) {
+      case "missing_config":
+        return "Forge AI n'est pas configuré pour ce déploiement.";
+      case "auth_refused":
+        return "Le provider IA a refusé l'authentification. Vérifiez la clé API.";
+      case "invalid_endpoint":
+        return "L'endpoint du provider IA est invalide ou incompatible.";
+      case "rate_limited":
+        return "Le quota ou la limite d'utilisation du provider IA a été atteint.";
+      case "provider_unavailable":
+        return "Le provider IA est temporairement indisponible.";
+      case "timeout":
+        return "La génération IA a expiré. Réessayez.";
+      default:
+        return "Forge AI est indisponible pour le moment.";
+    }
+  }
+
   if (error.message.includes("JSON") || error.message.includes("Sortie IA invalide")) {
     return "Forge a renvoyé une proposition inexploitable. Régénérez une proposition.";
   }
 
   if (error.message.includes("Provider IA")) {
-    return "Forge AI n'est pas encore configuré pour ce déploiement.";
+    return "Forge AI est indisponible pour le moment.";
   }
 
   if (error.message.includes("Limite temporaire")) {

@@ -13,10 +13,12 @@ function getProviderName(value: string | undefined): ForgeAIProviderName {
 
 export function getForgeAIConfig() {
   const provider = getProviderName(process.env.AI_PROVIDER);
+  const customBaseUrl = process.env.AI_BASE_URL;
 
   return {
     apiKey: process.env.AI_API_KEY,
-    baseUrl: process.env.AI_BASE_URL || "https://api.openai.com/v1/chat/completions",
+    baseUrl: customBaseUrl || "https://api.openai.com/v1/chat/completions",
+    baseUrlSource: customBaseUrl ? "custom" : "default",
     maxInputChars: getPositiveInteger(process.env.FORGE_AI_MAX_INPUT_CHARS, 3000),
     model: process.env.AI_MODEL || (provider === "mock" ? "forge-mock-v1" : ""),
     provider,
