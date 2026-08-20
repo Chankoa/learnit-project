@@ -70,9 +70,9 @@ AI_BASE_URL=https://api.openai.com/v1
 FORGE_AI_MAX_OUTPUT_TOKENS=1200
 ```
 
-Dans Vercel, ajoutez ces variables dans **Settings > Environment Variables** pour les environnements Production, Preview et Development selon le besoin. `OPENAI_API_KEY` est uniquement lu côté serveur. `AI_MODEL` et `AI_API_KEY` restent pris en charge comme alias de migration.
+Dans Vercel, ajoutez ces variables dans **Settings > Environment Variables** pour les environnements Production, Preview et Development selon le besoin. `OPENAI_API_KEY` est uniquement lu côté serveur. `AI_MODEL` et `AI_API_KEY` restent pris en charge uniquement comme aliases de migration et ne doivent pas être ajoutés à une nouvelle configuration.
 
-`AI_BASE_URL` est une base URL, pas un endpoint complet. L'adapter construit lui-même `POST /responses`. Les anciennes valeurs terminant par `/chat/completions` ou `/responses` sont normalisées côté serveur, mais la configuration à conserver est `/v1`.
+`AI_BASE_URL` est une base URL, pas un endpoint complet. L'adapter construit lui-même `POST /responses`. Les valeurs terminant par `/chat/completions` ou `/responses` sont refusées par le validateur ; la configuration à conserver est `/v1`.
 
 Le provider demande des Structured Outputs stricts via `text.format: { type: "json_schema", strict: true }`, puis applique encore les validateurs métier dans `lib/forge-ai/validation.ts`. Les erreurs HTTP sont journalisées côté serveur sans secret : statut, endpoint sans query string, modèle, type/code/message OpenAI tronqué.
 

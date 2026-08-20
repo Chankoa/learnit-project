@@ -21,7 +21,7 @@ npm run build
 | Variable | Consumed by | Scope | Sensitive | Required when | Expected value / default |
 | --- | --- | --- | --- | --- |
 | `NEXT_PUBLIC_APP_URL` | `lib/config/runtime.ts`, Auth actions, SEO | Public | No | Production and Preview recommended | Absolute canonical URL; falls back to `https://${VERCEL_URL}`, localhost only in development. |
-| `NEXT_PUBLIC_SITE_URL` | `lib/config/runtime.ts` | Public legacy alias | No | Optional | Deprecated alias of app URL. |
+| `NEXT_PUBLIC_SITE_URL` | `lib/config/runtime.ts` | Public legacy alias | No | Existing deployments only | Deprecated fallback; do not configure for new deployments. |
 | `NEXT_PUBLIC_SUPABASE_URL` | `lib/config/runtime.ts`, Supabase clients | Public | No | `DATA_SOURCE=supabase` | Absolute `https://<project>.supabase.co` URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `lib/config/runtime.ts`, Supabase clients | Public | No | `DATA_SOURCE=supabase` | Supabase publishable key. |
 | `SUPABASE_SERVICE_ROLE_KEY` | `lib/config/runtime.ts`, `lib/supabase/admin.ts` | Server-only | Yes | Account deletion only | Optional; never use to bypass RLS. |
@@ -30,8 +30,10 @@ npm run build
 | `NEXT_PUBLIC_ENABLE_AUTH` | `lib/config/runtime.ts` | Public | No | Optional | `true` or `false`; default `true`. |
 | `NEXT_PUBLIC_ENABLE_ADMIN` | `lib/config/runtime.ts` | Public | No | Optional | `true` or `false`; default `true`; not an authorization control. |
 | `AI_PROVIDER` | `lib/config/runtime.ts`, `lib/forge-ai/config.ts` | Server-only | No | Optional | `mock` default, `openai`, or `openai-compatible`. |
-| `AI_MODEL` | `lib/config/runtime.ts`, Forge provider | Server-only | No | Real AI provider | Model identifier such as `gpt-5-mini`; `OPENAI_MODEL` is supported as an alias. |
-| `AI_API_KEY` | `lib/config/runtime.ts`, Forge provider | Server-only | Yes | Real AI provider | Provider secret; `OPENAI_API_KEY` is supported as an alias. |
+| `OPENAI_MODEL` | `lib/config/runtime.ts`, Forge provider | Server-only | No | Real AI provider | Canonical model identifier such as `gpt-5-mini`. |
+| `OPENAI_API_KEY` | `lib/config/runtime.ts`, Forge provider | Server-only | Yes | Real AI provider | Canonical provider secret. |
+| `AI_MODEL` | `lib/config/runtime.ts` | Server-only legacy alias | No | Existing deployments only | Deprecated fallback for `OPENAI_MODEL`; do not configure for new deployments. |
+| `AI_API_KEY` | `lib/config/runtime.ts` | Server-only legacy alias | Yes | Existing deployments only | Deprecated fallback for `OPENAI_API_KEY`; do not configure for new deployments. |
 | `AI_BASE_URL` | `lib/config/runtime.ts`, Forge provider | Server-only | No | Optional | Absolute API base URL; default `https://api.openai.com/v1`. |
 | `AI_TIMEOUT_MS` | `lib/config/runtime.ts`, Forge provider | Server-only | No | Optional | Positive integer; default `25000`. |
 | `FORGE_AI_MAX_INPUT_CHARS` | `lib/config/runtime.ts`, Forge service | Server-only | No | Optional | Positive integer; default `3000`. |
@@ -40,7 +42,7 @@ npm run build
 | `VERCEL_URL` | `lib/config/runtime.ts` | Vercel system | No | Optional | Hostname fallback; resolver adds `https://`. |
 | `VERCEL_ENV` | `lib/config/runtime.ts` | Vercel system | No | Optional | `development`, `preview`, or `production`; prevents localhost in hosted environments. |
 
-`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `OPENAI_API_KEY`, `OPENAI_MODEL`, and `NEXT_PUBLIC_SITE_URL` are migration aliases. Prefer the variables shown in `.env.example`; remove aliases after all Vercel environments are migrated. Netlify `URL` and `DEPLOY_PRIME_URL` are no longer read by the runtime.
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, `AI_API_KEY`, and `AI_MODEL` are migration aliases. New environments must use the canonical variables in `.env.example`: `NEXT_PUBLIC_APP_URL`, `OPENAI_API_KEY`, and `OPENAI_MODEL`. Netlify `URL` and `DEPLOY_PRIME_URL` are no longer read by the runtime.
 
 ## Environment policy
 
@@ -75,6 +77,10 @@ npm run config:check
 ```
 
 Pulled files are ignored by Git. Use the Vercel dashboard or CLI to set a variable separately for Development, Preview, and Production, then redeploy because `NEXT_PUBLIC_*` values are compiled into the client bundle.
+
+## Canonical environment migration
+
+Do not copy secrets through chat, source files, or logs. In each Vercel environment, first create `OPENAI_API_KEY` and `OPENAI_MODEL`, then verify `NEXT_PUBLIC_APP_URL` points to the intended HTTPS host. Deploy and confirm `npm run config:check` reports the canonical names and Forge AI works. Only then remove `AI_API_KEY`, `AI_MODEL`, and `NEXT_PUBLIC_SITE_URL`. The runtime keeps these aliases temporarily and emits a warning whenever one is detected.
 
 ## Secrets, logging, and rotation
 

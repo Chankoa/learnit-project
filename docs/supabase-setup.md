@@ -22,7 +22,6 @@ Local development can use mock data or a dedicated Supabase project. Production 
 
 ```env
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=https://project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=replace-with-publishable-key
 NEXT_PUBLIC_DATA_SOURCE=mock

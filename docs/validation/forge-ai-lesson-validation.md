@@ -111,8 +111,8 @@ Variables serveur nécessaires :
 
 ```txt
 AI_PROVIDER=openai-compatible
-AI_MODEL=<modele-json-compatible>
-AI_API_KEY=<cle-secrete-serveur>
+OPENAI_MODEL=<modele-json-compatible>
+OPENAI_API_KEY=<cle-secrete-serveur>
 AI_BASE_URL=<optionnel>
 ```
 
@@ -276,7 +276,7 @@ Réponse actuelle : non déterminée.
 ## Anomalies techniques observées
 
 1. Provider réel non configuré localement.
-   - Cause probable : variables `AI_PROVIDER`, `AI_MODEL`, `AI_API_KEY` absentes de `.env.local`.
+   - Cause probable : variables `AI_PROVIDER`, `OPENAI_MODEL`, `OPENAI_API_KEY` absentes de `.env.local`.
    - Impact : toute génération locale passe par `forge-mock-v1`.
 
 2. Formation cible seed non éditable par Teacher.

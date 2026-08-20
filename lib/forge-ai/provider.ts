@@ -715,7 +715,7 @@ function getOpenAICompatibleProvider(): ForgeAIProvider {
       if (!config.apiKey || !config.model) {
         throw new ForgeAIProviderError(
           "missing_config",
-          "Provider IA non configuré. Renseignez AI_API_KEY et AI_MODEL côté serveur."
+          "Provider IA non configuré. Renseignez OPENAI_API_KEY et OPENAI_MODEL côté serveur."
         );
       }
 

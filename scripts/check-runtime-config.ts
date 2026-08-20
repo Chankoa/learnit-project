@@ -26,8 +26,8 @@ if (validation.errors.length > 0) {
     ["NEXT_PUBLIC_SUPABASE_KEY", config.supabase.publishableKey ? "OK" : "not configured"],
     ["NEXT_PUBLIC_APP_URL", config.appUrl ? "OK" : "not configured"],
     ["AI_PROVIDER", config.ai.provider],
-    ["AI_MODEL", config.ai.model ? "OK" : "not configured"],
-    ["AI_API_KEY", config.ai.apiKey ? "PRESENT" : "not configured"]
+    ["OPENAI_MODEL", config.ai.model ? "OK" : "not configured"],
+    ["OPENAI_API_KEY", config.ai.apiKey ? "PRESENT" : "not configured"]
   ] as const;
 
   for (const [name, status] of checks) {
