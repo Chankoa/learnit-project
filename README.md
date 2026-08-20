@@ -5,3 +5,7 @@ LearnIt is a Next.js learning platform prototype designed to present a web train
 The project combines a public course landing page, a learner dashboard, structured modules, MDX lessons, reusable UI components and a light/dark visual system.
 
 It is built as both a functional educational interface and a portfolio case study for REKODE.
+
+## Deployment
+
+Vercel is the primary deployment target. See [docs/deployment-vercel.md](docs/deployment-vercel.md) for the environment matrix, Vercel CLI workflow, Supabase callback configuration, secret rotation, and the required `npm run config:check` validation.

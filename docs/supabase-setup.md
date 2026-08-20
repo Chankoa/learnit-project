@@ -18,41 +18,37 @@ The clients are created lazily. Importing the files does not require Supabase en
 
 ## Environment variables
 
-Local development should keep mock data enabled until repositories are migrated:
+Local development can use mock data or a dedicated Supabase project. Production and Vercel Preview must never use localhost for `NEXT_PUBLIC_APP_URL`.
 
 ```env
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-# Legacy fallback supported temporarily:
-# NEXT_PUBLIC_SUPABASE_ANON_KEY=
-# Server-only. Never expose with NEXT_PUBLIC_*.
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_URL=https://project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=replace-with-publishable-key
 NEXT_PUBLIC_DATA_SOURCE=mock
 NEXT_PUBLIC_DEMO_MODE=true
 NEXT_PUBLIC_ENABLE_AUTH=true
 NEXT_PUBLIC_ENABLE_ADMIN=true
 ```
 
-Supabase and Vercel now use `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` by preference. `NEXT_PUBLIC_SUPABASE_ANON_KEY` remains supported only as a temporary legacy fallback.
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is the public key used by browser and session-aware server clients. `SUPABASE_SERVICE_ROLE_KEY` is optional, server-only, and used solely by `lib/supabase/admin.ts` for authenticated account deletion. It is not needed for catalogue reads, Auth, RLS, Storage, Teacher ownership, or Learner isolation.
 
 The variable names must be identical in `.env.example`, `.env.local`, and production environment variables. Their values can differ by environment. Netlify deployments must receive the same public variables in Site configuration > Environment variables.
 
-`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is the public key used by browser and session-aware server clients. `SUPABASE_SERVICE_ROLE_KEY` is server-only and is used solely by `lib/supabase/admin.ts` for sensitive operations such as account deletion. Never expose a Supabase `service_role` key through a `NEXT_PUBLIC_*` variable, include it in client-side code, or log it.
+Never expose a Supabase `service_role` key through a `NEXT_PUBLIC_*` variable, include it in client-side code, or log it. The standard publishable-key clients retain RLS enforcement; do not introduce service role as a Vercel workaround.
 
 ## Auth URL configuration
 
 Supabase Auth must know the URLs that can receive authentication redirects. Configure these in Supabase Dashboard > Authentication > URL Configuration:
 
 - Site URL, local: `http://localhost:3000`
-- Site URL, production: the canonical Netlify or custom domain URL
+- Site URL, production: `https://learnit-project.vercel.app` or the canonical custom domain
 - Redirect URL, local callback: `http://localhost:3000/auth/callback`
-- Redirect URL, production callback: `https://<your-site>.netlify.app/auth/callback`
+- Redirect URL, production callback: `https://learnit-project.vercel.app/auth/callback`
 - Redirect URL, custom domain callback: `https://<your-domain>/auth/callback`
-- Optional Netlify deploy previews: `https://**--<your-site>.netlify.app/auth/callback`
+- Optional Vercel previews: `https://*-<team-or-account>.vercel.app/auth/callback` if preview email flows are deliberately enabled
 
-Do not leave production Auth redirects pointing at localhost. `NEXT_PUBLIC_APP_URL` should be the canonical app URL in production. If it is missing on Netlify, `lib/config/runtime.ts` falls back to Netlify-provided `URL` or `DEPLOY_PRIME_URL` for server-side Auth emails, but the explicit variable remains preferred for stable production callbacks.
+Do not leave production Auth redirects pointing at localhost. `NEXT_PUBLIC_APP_URL` should be the canonical app URL in production. `lib/config/runtime.ts` falls back to `https://${VERCEL_URL}` only when the explicit value is absent; the explicit value remains preferred for stable production callbacks.
 
 The `/auth/callback` route calls `exchangeCodeForSession()` and redirects only to safe relative `next` paths. Failed exchanges are logged as `[auth] callback session exchange failed` without logging tokens.
 

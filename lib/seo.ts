@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { getPublicAppUrl } from "@/lib/config/runtime";
+
 const defaultSiteUrl = "https://learnit.dev";
 const defaultImage = "/images/learnit-hub-hero.png";
 
@@ -12,7 +14,7 @@ type PageMetadataInput = {
 };
 
 export function getSiteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? defaultSiteUrl;
+  return getPublicAppUrl() || defaultSiteUrl;
 }
 
 export function createPageMetadata({

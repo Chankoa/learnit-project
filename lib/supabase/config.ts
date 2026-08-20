@@ -1,14 +1,15 @@
+import { getRuntimeConfig } from "@/lib/config/runtime";
+
 const supabaseUrlKey = "NEXT_PUBLIC_SUPABASE_URL";
 const supabasePublishableKey = "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY";
 const supabaseLegacyAnonKey = "NEXT_PUBLIC_SUPABASE_ANON_KEY";
 
 export function getSupabaseKey() {
-  return process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  return getRuntimeConfig().supabase.publishableKey;
 }
 
 export function getSupabaseConfig() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = getSupabaseKey();
+  const { publishableKey: supabaseKey, url: supabaseUrl } = getRuntimeConfig().supabase;
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
@@ -27,5 +28,6 @@ export function assertSupabaseConfig() {
 }
 
 export function isSupabaseConfigured() {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && getSupabaseKey());
+  const { publishableKey, url } = getRuntimeConfig().supabase;
+  return Boolean(url && publishableKey);
 }

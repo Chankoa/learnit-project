@@ -444,6 +444,7 @@ function buildResponsesPayload(config: ReturnType<typeof getForgeAIConfig>, requ
         role: "user"
       }
     ],
+    max_output_tokens: config.maxOutputTokens,
     model: config.model,
     text: {
       format: {
@@ -678,6 +679,7 @@ function getOpenAIProvider(): ForgeAIProvider {
       try {
         const result = await generateText({
           abortSignal: controller.signal,
+          maxOutputTokens: config.maxOutputTokens,
           model: openai.responses(config.model),
           prompt: `${request.userPrompt}\n\nRépondez uniquement avec un objet JSON valide respectant ce schéma JSON : ${JSON.stringify(
             outputSchema.schema

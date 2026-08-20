@@ -54,6 +54,7 @@ OPENAI_API_KEY=
 AI_BASE_URL=https://api.openai.com/v1
 AI_TIMEOUT_MS=25000
 FORGE_AI_MAX_INPUT_CHARS=3000
+FORGE_AI_MAX_OUTPUT_TOKENS=1200
 FORGE_AI_RATE_LIMIT_PER_HOUR=8
 ```
 
@@ -66,6 +67,7 @@ AI_PROVIDER=openai
 OPENAI_MODEL=gpt-5-mini
 OPENAI_API_KEY=<secret serveur>
 AI_BASE_URL=https://api.openai.com/v1
+FORGE_AI_MAX_OUTPUT_TOKENS=1200
 ```
 
 Dans Vercel, ajoutez ces variables dans **Settings > Environment Variables** pour les environnements Production, Preview et Development selon le besoin. `OPENAI_API_KEY` est uniquement lu côté serveur. `AI_MODEL` et `AI_API_KEY` restent pris en charge comme alias de migration.
@@ -73,6 +75,8 @@ Dans Vercel, ajoutez ces variables dans **Settings > Environment Variables** pou
 `AI_BASE_URL` est une base URL, pas un endpoint complet. L'adapter construit lui-même `POST /responses`. Les anciennes valeurs terminant par `/chat/completions` ou `/responses` sont normalisées côté serveur, mais la configuration à conserver est `/v1`.
 
 Le provider demande des Structured Outputs stricts via `text.format: { type: "json_schema", strict: true }`, puis applique encore les validateurs métier dans `lib/forge-ai/validation.ts`. Les erreurs HTTP sont journalisées côté serveur sans secret : statut, endpoint sans query string, modèle, type/code/message OpenAI tronqué.
+
+Les protections de coût V1 sont `FORGE_AI_MAX_INPUT_CHARS`, `FORGE_AI_MAX_OUTPUT_TOKENS`, `AI_TIMEOUT_MS` et `FORGE_AI_RATE_LIMIT_PER_HOUR`. Le rate limit actuel est en mémoire : il est suffisant en développement et test, mais non fiable dans un environnement Vercel distribué. Une limite persistante est nécessaire avant une exposition publique importante. Les métadonnées de génération conservent déjà le modèle, l'action, le statut et la durée ; l'usage de tokens et le coût estimé restent à ajouter.
 
 ## Course Brief
 
