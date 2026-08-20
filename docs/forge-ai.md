@@ -42,21 +42,37 @@ Fichiers principaux :
 Providers V1 :
 
 - `mock` : provider déterministe, utile sans clé externe.
-- `openai-compatible` : endpoint Chat Completions compatible OpenAI.
+- `openai` : provider OpenAI officiel via Vercel AI SDK.
+- `openai-compatible` : provider compatible OpenAI Responses API.
 
 Variables serveur :
 
 ```txt
-AI_PROVIDER=mock
-AI_MODEL=
-AI_API_KEY=
-AI_BASE_URL=
+AI_PROVIDER=openai
+OPENAI_MODEL=gpt-5-mini
+OPENAI_API_KEY=
+AI_BASE_URL=https://api.openai.com/v1
 AI_TIMEOUT_MS=25000
 FORGE_AI_MAX_INPUT_CHARS=3000
 FORGE_AI_RATE_LIMIT_PER_HOUR=8
 ```
 
 Aucune clé IA ne doit être exposée en `NEXT_PUBLIC_*`.
+
+Configuration Vercel recommandée pour OpenAI :
+
+```txt
+AI_PROVIDER=openai
+OPENAI_MODEL=gpt-5-mini
+OPENAI_API_KEY=<secret serveur>
+AI_BASE_URL=https://api.openai.com/v1
+```
+
+Dans Vercel, ajoutez ces variables dans **Settings > Environment Variables** pour les environnements Production, Preview et Development selon le besoin. `OPENAI_API_KEY` est uniquement lu côté serveur. `AI_MODEL` et `AI_API_KEY` restent pris en charge comme alias de migration.
+
+`AI_BASE_URL` est une base URL, pas un endpoint complet. L'adapter construit lui-même `POST /responses`. Les anciennes valeurs terminant par `/chat/completions` ou `/responses` sont normalisées côté serveur, mais la configuration à conserver est `/v1`.
+
+Le provider demande des Structured Outputs stricts via `text.format: { type: "json_schema", strict: true }`, puis applique encore les validateurs métier dans `lib/forge-ai/validation.ts`. Les erreurs HTTP sont journalisées côté serveur sans secret : statut, endpoint sans query string, modèle, type/code/message OpenAI tronqué.
 
 ## Course Brief
 

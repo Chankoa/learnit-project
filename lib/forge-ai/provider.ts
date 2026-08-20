@@ -1,5 +1,8 @@
 import "server-only";
 
+import { createOpenAI } from "@ai-sdk/openai";
+import { generateText } from "ai";
+
 import { getForgeAIConfig } from "@/lib/forge-ai/config";
 import { parseJsonObject } from "@/lib/forge-ai/validation";
 import type {
@@ -289,6 +292,223 @@ function logOpenAICompatibleConfig(config: ReturnType<typeof getForgeAIConfig>) 
   });
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stringValue(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+function truncateForLog(value: string, maxLength = 240) {
+  const compact = value.replace(/\s+/g, " ").trim();
+  return compact.length > maxLength ? `${compact.slice(0, maxLength)}...` : compact;
+}
+
+function getResponsesEndpoint(baseUrl: string) {
+  return `${baseUrl.replace(/\/+$/, "")}/responses`;
+}
+
+function getSafeEndpointForLog(endpoint: string) {
+  try {
+    const url = new URL(endpoint);
+    url.search = "";
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return endpoint.split("?")[0] ?? endpoint;
+  }
+}
+
+function objectSchema(properties: Record<string, unknown>) {
+  return {
+    additionalProperties: false,
+    properties,
+    required: Object.keys(properties),
+    type: "object"
+  };
+}
+
+function arraySchema(items: Record<string, unknown>) {
+  return {
+    items,
+    type: "array"
+  };
+}
+
+const stringSchema = { type: "string" };
+const numberSchema = { type: "number" };
+const courseLevelSchema = { enum: ["beginner", "intermediate", "advanced"], type: "string" };
+
+const courseProposalSchema = objectSchema({
+  audience: stringSchema,
+  level: courseLevelSchema,
+  modules: arraySchema(
+    objectSchema({
+      description: stringSchema,
+      lessons: arraySchema(
+        objectSchema({
+          estimatedMinutes: numberSchema,
+          objective: stringSchema,
+          title: stringSchema
+        })
+      ),
+      title: stringSchema
+    })
+  ),
+  objectives: arraySchema(stringSchema),
+  prerequisites: arraySchema(stringSchema),
+  sourceCount: numberSchema,
+  summary: stringSchema,
+  title: stringSchema
+});
+
+const courseImprovementSchema = objectSchema({
+  sourceCount: numberSchema,
+  suggestions: arraySchema(
+    objectSchema({
+      current: stringSchema,
+      proposed: stringSchema,
+      rationale: stringSchema,
+      type: {
+        enum: ["module", "lesson", "rename", "reorder", "gap", "duration"],
+        type: "string"
+      }
+    })
+  ),
+  summary: stringSchema,
+  title: stringSchema
+});
+
+const lessonContentSchema = objectSchema({
+  contentMarkdown: stringSchema,
+  estimatedMinutes: numberSchema,
+  keyPoints: arraySchema(stringSchema),
+  objectives: arraySchema(stringSchema),
+  sourceReferences: arraySchema(
+    objectSchema({
+      excerpt: stringSchema,
+      label: stringSchema,
+      sourceId: stringSchema
+    })
+  ),
+  summary: stringSchema,
+  title: stringSchema
+});
+
+const lessonSuggestionSchema = objectSchema({
+  action: { enum: ["plan", "intro", "summary", "simplify"], type: "string" },
+  content: stringSchema,
+  title: stringSchema
+});
+
+function getStructuredOutputSchema(request: ForgeAIJsonRequest) {
+  if (request.promptType === "course_structure") {
+    return {
+      name: "forge_course_structure",
+      schema: courseProposalSchema
+    };
+  }
+
+  if (request.promptType === "course_improvement") {
+    return {
+      name: "forge_course_improvement",
+      schema: courseImprovementSchema
+    };
+  }
+
+  if (isLessonContentInput(request.input)) {
+    return {
+      name: "forge_lesson_content",
+      schema: lessonContentSchema
+    };
+  }
+
+  return {
+    name: "forge_lesson_suggestion",
+    schema: lessonSuggestionSchema
+  };
+}
+
+function buildResponsesPayload(config: ReturnType<typeof getForgeAIConfig>, request: ForgeAIJsonRequest) {
+  const outputSchema = getStructuredOutputSchema(request);
+
+  return {
+    input: [
+      {
+        content: [{ text: request.systemPrompt, type: "input_text" }],
+        role: "system"
+      },
+      {
+        content: [{ text: request.userPrompt, type: "input_text" }],
+        role: "user"
+      }
+    ],
+    model: config.model,
+    text: {
+      format: {
+        name: outputSchema.name,
+        schema: outputSchema.schema,
+        strict: true,
+        type: "json_schema"
+      }
+    }
+  };
+}
+
+type ProviderErrorDetails = {
+  code: string;
+  message: string;
+  type: string;
+};
+
+async function readProviderErrorDetails(response: Response): Promise<ProviderErrorDetails> {
+  const fallback = {
+    code: "missing",
+    message: "",
+    type: "missing"
+  };
+
+  const text = await response.text();
+
+  if (!text) {
+    return fallback;
+  }
+
+  try {
+    const payload = JSON.parse(text) as unknown;
+    const error = isRecord(payload) && isRecord(payload.error) ? payload.error : undefined;
+
+    return {
+      code: stringValue(error?.code) || "missing",
+      message: truncateForLog(stringValue(error?.message)),
+      type: stringValue(error?.type) || "missing"
+    };
+  } catch {
+    return {
+      ...fallback,
+      message: truncateForLog(text)
+    };
+  }
+}
+
+function logProviderHttpError(
+  response: Response,
+  endpoint: string,
+  model: string,
+  details: ProviderErrorDetails
+) {
+  console.error("[forge-ai] provider request failed", {
+    endpoint: getSafeEndpointForLog(endpoint),
+    errorCode: details.code,
+    errorMessage: details.message,
+    errorType: details.type,
+    model,
+    status: response.status,
+    statusText: response.statusText
+  });
+}
+
 function getProviderError(status: number) {
   if (status === 401 || status === 403) {
     return new ForgeAIProviderError(
@@ -329,6 +549,101 @@ function getProviderError(status: number) {
   );
 }
 
+function getResponseStatus(payload: Record<string, unknown>) {
+  return stringValue(payload.status);
+}
+
+function getResponseErrorMessage(payload: Record<string, unknown>) {
+  const error = isRecord(payload.error) ? payload.error : undefined;
+  return stringValue(error?.message) || stringValue(payload.error);
+}
+
+function extractTextFromContentItem(item: unknown) {
+  if (!isRecord(item)) {
+    return { refusal: "", text: "" };
+  }
+
+  const type = stringValue(item.type);
+  const refusal = stringValue(item.refusal);
+
+  if (type.includes("refusal") || refusal) {
+    return { refusal: refusal || "Provider refused the request.", text: "" };
+  }
+
+  if (isRecord(item.parsed)) {
+    return { refusal: "", text: JSON.stringify(item.parsed) };
+  }
+
+  return { refusal: "", text: stringValue(item.text) };
+}
+
+function extractStructuredOutput(payload: unknown) {
+  if (!isRecord(payload)) {
+    throw new Error("Réponse IA invalide : objet attendu.");
+  }
+
+  const status = getResponseStatus(payload);
+
+  if (status === "failed") {
+    throw new ForgeAIProviderError(
+      "request_failed",
+      `Provider IA response failed: ${truncateForLog(getResponseErrorMessage(payload), 160)}`
+    );
+  }
+
+  if (status === "incomplete") {
+    throw new ForgeAIProviderError(
+      "request_failed",
+      "Provider IA response incomplete."
+    );
+  }
+
+  const outputText = stringValue(payload.output_text);
+
+  if (outputText.trim()) {
+    return outputText;
+  }
+
+  const output = Array.isArray(payload.output) ? payload.output : [];
+  const textParts: string[] = [];
+  const refusals: string[] = [];
+
+  for (const outputItem of output) {
+    if (!isRecord(outputItem)) {
+      continue;
+    }
+
+    const content = Array.isArray(outputItem.content) ? outputItem.content : [];
+
+    for (const contentItem of content) {
+      const extracted = extractTextFromContentItem(contentItem);
+
+      if (extracted.refusal) {
+        refusals.push(extracted.refusal);
+      }
+
+      if (extracted.text.trim()) {
+        textParts.push(extracted.text);
+      }
+    }
+  }
+
+  if (refusals.length > 0) {
+    throw new ForgeAIProviderError(
+      "request_failed",
+      `Provider IA refused request: ${truncateForLog(refusals[0] ?? "", 160)}`
+    );
+  }
+
+  const text = textParts.join("\n").trim();
+
+  if (!text) {
+    throw new Error("Réponse IA vide.");
+  }
+
+  return text;
+}
+
 function isAbortError(error: unknown) {
   return (
     typeof error === "object" &&
@@ -336,6 +651,57 @@ function isAbortError(error: unknown) {
     "name" in error &&
     (error as { name?: unknown }).name === "AbortError"
   );
+}
+
+function getOpenAIProvider(): ForgeAIProvider {
+  return {
+    async generateJson(request) {
+      const config = getForgeAIConfig();
+      logOpenAICompatibleConfig(config);
+
+      if (!config.apiKey || !config.model) {
+        throw new ForgeAIProviderError(
+          "missing_config",
+          "Provider IA non configuré. Renseignez OPENAI_API_KEY et OPENAI_MODEL côté serveur."
+        );
+      }
+
+      const startedAt = Date.now();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
+      const outputSchema = getStructuredOutputSchema(request);
+      const openai = createOpenAI({
+        apiKey: config.apiKey,
+        baseURL: config.baseUrl
+      });
+
+      try {
+        const result = await generateText({
+          abortSignal: controller.signal,
+          model: openai.responses(config.model),
+          prompt: `${request.userPrompt}\n\nRépondez uniquement avec un objet JSON valide respectant ce schéma JSON : ${JSON.stringify(
+            outputSchema.schema
+          )}`,
+          system: request.systemPrompt
+        });
+
+        return {
+          durationMs: Date.now() - startedAt,
+          json: parseJsonObject(result.text),
+          model: config.model,
+          provider: config.provider
+        };
+      } catch (error) {
+        if (isAbortError(error)) {
+          throw new ForgeAIProviderError("timeout", "Provider IA request timed out.");
+        }
+
+        throw error;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+  };
 }
 
 function getOpenAICompatibleProvider(): ForgeAIProvider {
@@ -354,18 +720,11 @@ function getOpenAICompatibleProvider(): ForgeAIProvider {
       const startedAt = Date.now();
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
+      const endpoint = getResponsesEndpoint(config.baseUrl);
 
       try {
-        const response = await fetch(config.baseUrl, {
-          body: JSON.stringify({
-            messages: [
-              { content: request.systemPrompt, role: "system" },
-              { content: request.userPrompt, role: "user" }
-            ],
-            model: config.model,
-            response_format: { type: "json_object" },
-            temperature: 0.35
-          }),
+        const response = await fetch(endpoint, {
+          body: JSON.stringify(buildResponsesPayload(config, request)),
           headers: {
             Authorization: `Bearer ${config.apiKey}`,
             "Content-Type": "application/json"
@@ -375,17 +734,13 @@ function getOpenAICompatibleProvider(): ForgeAIProvider {
         });
 
         if (!response.ok) {
+          const details = await readProviderErrorDetails(response);
+          logProviderHttpError(response, endpoint, config.model, details);
           throw getProviderError(response.status);
         }
 
-        const payload = (await response.json()) as {
-          choices?: Array<{ message?: { content?: string } }>;
-        };
-        const content = payload.choices?.[0]?.message?.content;
-
-        if (!content) {
-          throw new Error("Réponse IA vide.");
-        }
+        const payload = (await response.json()) as unknown;
+        const content = extractStructuredOutput(payload);
 
         return {
           durationMs: Date.now() - startedAt,
@@ -412,5 +767,9 @@ function getOpenAICompatibleProvider(): ForgeAIProvider {
 
 export function getForgeAIProvider(): ForgeAIProvider {
   const config = getForgeAIConfig();
+  if (config.provider === "openai") {
+    return getOpenAIProvider();
+  }
+
   return config.provider === "openai-compatible" ? getOpenAICompatibleProvider() : mockProvider;
 }
