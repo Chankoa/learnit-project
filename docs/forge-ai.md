@@ -76,7 +76,9 @@ Dans Vercel, ajoutez ces variables dans **Settings > Environment Variables** pou
 
 Le provider demande des Structured Outputs stricts via `text.format: { type: "json_schema", strict: true }`, puis applique encore les validateurs métier dans `lib/forge-ai/validation.ts`. Les erreurs HTTP sont journalisées côté serveur sans secret : statut, endpoint sans query string, modèle, type/code/message OpenAI tronqué.
 
-Les protections de coût V1 sont `FORGE_AI_MAX_INPUT_CHARS`, `FORGE_AI_MAX_OUTPUT_TOKENS`, `AI_TIMEOUT_MS` et `FORGE_AI_RATE_LIMIT_PER_HOUR`. Le rate limit actuel est en mémoire : il est suffisant en développement et test, mais non fiable dans un environnement Vercel distribué. Une limite persistante est nécessaire avant une exposition publique importante. Les métadonnées de génération conservent déjà le modèle, l'action, le statut et la durée ; l'usage de tokens et le coût estimé restent à ajouter.
+Les protections de coût V1 sont `FORGE_AI_MAX_INPUT_CHARS`, `FORGE_AI_MAX_OUTPUT_TOKENS`, `AI_TIMEOUT_MS` et `FORGE_AI_RATE_LIMIT_PER_HOUR`. La limite par défaut reste `1200` tokens, mais `course_structure` utilise un plafond borné de `2400` tokens afin que le schéma strict puisse contenir modules et leçons sans interruption. Le rate limit actuel est en mémoire : il est suffisant en développement et test, mais non fiable dans un environnement Vercel distribué. Une limite persistante est nécessaire avant une exposition publique importante. Les métadonnées de génération conservent déjà le modèle, l'action, le statut et la durée ; l'usage de tokens et le coût estimé restent à ajouter.
+
+Quand OpenAI retourne un statut `incomplete`, Forge journalise uniquement le statut, l'identifiant de réponse, le modèle, les types et le nombre d'items de sortie, la longueur du texte, le motif structuré `incomplete_details.reason` et les compteurs de tokens. Les prompts, contenus pédagogiques, sources et secrets ne sont jamais journalisés. Le provider distingue ensuite une limite de sortie, une réponse incomplète, vide, refusée ou structurée invalide.
 
 ## Course Brief
 

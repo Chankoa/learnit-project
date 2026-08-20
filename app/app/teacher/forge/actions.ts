@@ -64,6 +64,15 @@ function getErrorMessage(error: unknown) {
         return "L'endpoint du provider IA est invalide ou incompatible.";
       case "rate_limited":
         return "Le quota ou la limite d'utilisation du provider IA a été atteint.";
+      case "output_token_limit":
+        return "La génération a été interrompue car la réponse était trop longue.";
+      case "response_incomplete":
+        return "La génération IA n'a pas pu être finalisée. Réessayez.";
+      case "response_empty":
+      case "structured_output_invalid":
+        return "La proposition générée n'a pas pu être validée.";
+      case "response_refusal":
+        return "Le provider IA a refusé cette génération.";
       case "provider_unavailable":
         return "Le provider IA est temporairement indisponible.";
       case "timeout":

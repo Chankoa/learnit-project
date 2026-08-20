@@ -41,6 +41,11 @@ export type ForgeAIProvider = {
 
 export type ForgeAIProviderErrorCode =
   | "auth_refused"
+  | "output_token_limit"
+  | "response_empty"
+  | "response_incomplete"
+  | "response_refusal"
+  | "structured_output_invalid"
   | "invalid_endpoint"
   | "missing_config"
   | "provider_unavailable"
@@ -430,6 +435,12 @@ function getStructuredOutputSchema(request: ForgeAIJsonRequest) {
   };
 }
 
+function getMaxOutputTokens(config: ReturnType<typeof getForgeAIConfig>, request: ForgeAIJsonRequest) {
+  return request.promptType === "course_structure"
+    ? Math.max(config.maxOutputTokens, 2400)
+    : config.maxOutputTokens;
+}
+
 function buildResponsesPayload(config: ReturnType<typeof getForgeAIConfig>, request: ForgeAIJsonRequest) {
   const outputSchema = getStructuredOutputSchema(request);
 
@@ -444,7 +455,7 @@ function buildResponsesPayload(config: ReturnType<typeof getForgeAIConfig>, requ
         role: "user"
       }
     ],
-    max_output_tokens: config.maxOutputTokens,
+    max_output_tokens: getMaxOutputTokens(config, request),
     model: config.model,
     text: {
       format: {
@@ -559,6 +570,36 @@ function getResponseErrorMessage(payload: Record<string, unknown>) {
   return stringValue(error?.message) || stringValue(payload.error);
 }
 
+function getIncompleteReason(payload: Record<string, unknown>) {
+  const details = isRecord(payload.incomplete_details) ? payload.incomplete_details : undefined;
+  return stringValue(details?.reason) || "unknown";
+}
+
+function numberValue(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function logResponseDiagnostics(payload: Record<string, unknown>, model: string) {
+  const output = Array.isArray(payload.output) ? payload.output : [];
+  const usage = isRecord(payload.usage) ? payload.usage : undefined;
+
+  console.info("[forge-ai] response diagnostics", {
+    incompleteReason: getIncompleteReason(payload),
+    model,
+    outputItemCount: output.length,
+    outputTextLength: stringValue(payload.output_text).length,
+    outputTypes: output
+      .filter(isRecord)
+      .map((item) => stringValue(item.type))
+      .filter(Boolean),
+    responseId: stringValue(payload.id) || "unknown",
+    status: getResponseStatus(payload) || "unknown",
+    usageInputTokens: numberValue(usage?.input_tokens),
+    usageOutputTokens: numberValue(usage?.output_tokens),
+    usageTotalTokens: numberValue(usage?.total_tokens)
+  });
+}
+
 function extractTextFromContentItem(item: unknown) {
   if (!isRecord(item)) {
     return { refusal: "", text: "" };
@@ -578,9 +619,9 @@ function extractTextFromContentItem(item: unknown) {
   return { refusal: "", text: stringValue(item.text) };
 }
 
-function extractStructuredOutput(payload: unknown) {
+function extractStructuredOutput(payload: unknown, model: string) {
   if (!isRecord(payload)) {
-    throw new Error("Réponse IA invalide : objet attendu.");
+    throw new ForgeAIProviderError("structured_output_invalid", "Réponse IA invalide : objet attendu.");
   }
 
   const status = getResponseStatus(payload);
@@ -593,9 +634,19 @@ function extractStructuredOutput(payload: unknown) {
   }
 
   if (status === "incomplete") {
+    logResponseDiagnostics(payload, model);
+    const incompleteReason = getIncompleteReason(payload);
+
+    if (incompleteReason === "max_output_tokens") {
+      throw new ForgeAIProviderError(
+        "output_token_limit",
+        "Provider IA response stopped after reaching the output token limit."
+      );
+    }
+
     throw new ForgeAIProviderError(
-      "request_failed",
-      "Provider IA response incomplete."
+      "response_incomplete",
+      `Provider IA response incomplete (${incompleteReason}).`
     );
   }
 
@@ -631,7 +682,7 @@ function extractStructuredOutput(payload: unknown) {
 
   if (refusals.length > 0) {
     throw new ForgeAIProviderError(
-      "request_failed",
+      "response_refusal",
       `Provider IA refused request: ${truncateForLog(refusals[0] ?? "", 160)}`
     );
   }
@@ -639,7 +690,7 @@ function extractStructuredOutput(payload: unknown) {
   const text = textParts.join("\n").trim();
 
   if (!text) {
-    throw new Error("Réponse IA vide.");
+    throw new ForgeAIProviderError("response_empty", "Provider IA returned an empty response.");
   }
 
   return text;
@@ -742,11 +793,22 @@ function getOpenAICompatibleProvider(): ForgeAIProvider {
         }
 
         const payload = (await response.json()) as unknown;
-        const content = extractStructuredOutput(payload);
+        const content = extractStructuredOutput(payload, config.model);
+
+        let json: unknown;
+
+        try {
+          json = parseJsonObject(content);
+        } catch (error) {
+          throw new ForgeAIProviderError(
+            "structured_output_invalid",
+            error instanceof Error ? error.message : "Réponse IA structurée invalide."
+          );
+        }
 
         return {
           durationMs: Date.now() - startedAt,
-          json: parseJsonObject(content),
+          json,
           model: config.model,
           provider: config.provider
         };
