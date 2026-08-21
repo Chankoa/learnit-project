@@ -1,3 +1,5 @@
+import { FORGE_AI_MAX_OUTPUT_TOKENS_LIMIT } from "@/lib/forge-ai/token-budget";
+
 const localAppUrl = "http://localhost:3000";
 
 export type ConfiguredDataSource = "mock" | "supabase";
@@ -90,6 +92,23 @@ function getPositiveInteger(
   }
 
   return Number(normalized);
+}
+
+function getBoundedPositiveInteger(
+  value: string | undefined,
+  name: string,
+  fallback: number,
+  maximum: number,
+  errors: string[]
+) {
+  const parsed = getPositiveInteger(value, name, fallback, errors);
+
+  if (parsed > maximum) {
+    errors.push(`${name} must not exceed ${maximum}.`);
+    return maximum;
+  }
+
+  return parsed;
 }
 
 function normalizeAbsoluteUrl(value: string, name: string, errors: string[]) {
@@ -232,10 +251,11 @@ function getConfig(environment: RuntimeEnvironment, validation: RuntimeConfigVal
         3000,
         errors
       ),
-      maxOutputTokens: getPositiveInteger(
+      maxOutputTokens: getBoundedPositiveInteger(
         environment.FORGE_AI_MAX_OUTPUT_TOKENS,
         "FORGE_AI_MAX_OUTPUT_TOKENS",
-        1200,
+        FORGE_AI_MAX_OUTPUT_TOKENS_LIMIT,
+        FORGE_AI_MAX_OUTPUT_TOKENS_LIMIT,
         errors
       ),
       model: configuredModel ?? (provider === "mock" ? "forge-mock-v1" : ""),

@@ -4,6 +4,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
 
 import { getForgeAIConfig } from "@/lib/forge-ai/config";
+import { getMaxOutputTokens } from "@/lib/forge-ai/token-budget";
 import { parseJsonObject } from "@/lib/forge-ai/validation";
 import type {
   CourseBrief,
@@ -30,9 +31,12 @@ type ForgeAIJsonRequest = {
 
 type ForgeAIJsonResponse = {
   durationMs: number;
+  inputTokens?: number;
   json: unknown;
   model: string;
+  outputTokens?: number;
   provider: string;
+  totalTokens?: number;
 };
 
 export type ForgeAIProvider = {
@@ -55,13 +59,24 @@ export type ForgeAIProviderErrorCode =
 
 export class ForgeAIProviderError extends Error {
   code: ForgeAIProviderErrorCode;
+  inputTokens?: number;
+  outputTokens?: number;
   status?: number;
+  totalTokens?: number;
 
-  constructor(code: ForgeAIProviderErrorCode, message: string, status?: number) {
+  constructor(
+    code: ForgeAIProviderErrorCode,
+    message: string,
+    status?: number,
+    usage?: Pick<ForgeAIJsonResponse, "inputTokens" | "outputTokens" | "totalTokens">
+  ) {
     super(message);
     this.name = "ForgeAIProviderError";
     this.code = code;
+    this.inputTokens = usage?.inputTokens;
+    this.outputTokens = usage?.outputTokens;
     this.status = status;
+    this.totalTokens = usage?.totalTokens;
   }
 }
 
@@ -435,12 +450,6 @@ function getStructuredOutputSchema(request: ForgeAIJsonRequest) {
   };
 }
 
-function getMaxOutputTokens(config: ReturnType<typeof getForgeAIConfig>, request: ForgeAIJsonRequest) {
-  return request.promptType === "course_structure"
-    ? Math.max(config.maxOutputTokens, 2400)
-    : config.maxOutputTokens;
-}
-
 function buildResponsesPayload(config: ReturnType<typeof getForgeAIConfig>, request: ForgeAIJsonRequest) {
   const outputSchema = getStructuredOutputSchema(request);
 
@@ -455,7 +464,7 @@ function buildResponsesPayload(config: ReturnType<typeof getForgeAIConfig>, requ
         role: "user"
       }
     ],
-    max_output_tokens: getMaxOutputTokens(config, request),
+    max_output_tokens: getMaxOutputTokens(request.promptType, config.maxOutputTokens),
     model: config.model,
     text: {
       format: {
@@ -579,9 +588,19 @@ function numberValue(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+function getUsage(payload: Record<string, unknown>) {
+  const usage = isRecord(payload.usage) ? payload.usage : undefined;
+
+  return {
+    inputTokens: numberValue(usage?.input_tokens),
+    outputTokens: numberValue(usage?.output_tokens),
+    totalTokens: numberValue(usage?.total_tokens)
+  };
+}
+
 function logResponseDiagnostics(payload: Record<string, unknown>, model: string) {
   const output = Array.isArray(payload.output) ? payload.output : [];
-  const usage = isRecord(payload.usage) ? payload.usage : undefined;
+  const usage = getUsage(payload);
 
   console.info("[forge-ai] response diagnostics", {
     incompleteReason: getIncompleteReason(payload),
@@ -594,9 +613,9 @@ function logResponseDiagnostics(payload: Record<string, unknown>, model: string)
       .filter(Boolean),
     responseId: stringValue(payload.id) || "unknown",
     status: getResponseStatus(payload) || "unknown",
-    usageInputTokens: numberValue(usage?.input_tokens),
-    usageOutputTokens: numberValue(usage?.output_tokens),
-    usageTotalTokens: numberValue(usage?.total_tokens)
+    usageInputTokens: usage.inputTokens,
+    usageOutputTokens: usage.outputTokens,
+    usageTotalTokens: usage.totalTokens
   });
 }
 
@@ -636,17 +655,22 @@ function extractStructuredOutput(payload: unknown, model: string) {
   if (status === "incomplete") {
     logResponseDiagnostics(payload, model);
     const incompleteReason = getIncompleteReason(payload);
+    const usage = getUsage(payload);
 
     if (incompleteReason === "max_output_tokens") {
       throw new ForgeAIProviderError(
         "output_token_limit",
-        "Provider IA response stopped after reaching the output token limit."
+        "Provider IA response stopped after reaching the output token limit.",
+        undefined,
+        usage
       );
     }
 
     throw new ForgeAIProviderError(
       "response_incomplete",
-      `Provider IA response incomplete (${incompleteReason}).`
+      `Provider IA response incomplete (${incompleteReason}).`,
+      undefined,
+      usage
     );
   }
 
@@ -730,7 +754,7 @@ function getOpenAIProvider(): ForgeAIProvider {
       try {
         const result = await generateText({
           abortSignal: controller.signal,
-          maxOutputTokens: config.maxOutputTokens,
+          maxOutputTokens: getMaxOutputTokens(request.promptType, config.maxOutputTokens),
           model: openai.responses(config.model),
           prompt: `${request.userPrompt}\n\nRépondez uniquement avec un objet JSON valide respectant ce schéma JSON : ${JSON.stringify(
             outputSchema.schema
@@ -740,8 +764,11 @@ function getOpenAIProvider(): ForgeAIProvider {
 
         return {
           durationMs: Date.now() - startedAt,
+          inputTokens: result.usage.inputTokens,
           json: parseJsonObject(result.text),
           model: config.model,
+          outputTokens: result.usage.outputTokens,
+          totalTokens: result.usage.totalTokens,
           provider: config.provider
         };
       } catch (error) {
@@ -808,6 +835,7 @@ function getOpenAICompatibleProvider(): ForgeAIProvider {
 
         return {
           durationMs: Date.now() - startedAt,
+          ...(isRecord(payload) ? getUsage(payload) : {}),
           json,
           model: config.model,
           provider: config.provider

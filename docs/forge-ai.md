@@ -54,7 +54,7 @@ OPENAI_API_KEY=
 AI_BASE_URL=https://api.openai.com/v1
 AI_TIMEOUT_MS=25000
 FORGE_AI_MAX_INPUT_CHARS=3000
-FORGE_AI_MAX_OUTPUT_TOKENS=1200
+FORGE_AI_MAX_OUTPUT_TOKENS=4000
 FORGE_AI_RATE_LIMIT_PER_HOUR=8
 ```
 
@@ -67,7 +67,7 @@ AI_PROVIDER=openai
 OPENAI_MODEL=gpt-5-mini
 OPENAI_API_KEY=<secret serveur>
 AI_BASE_URL=https://api.openai.com/v1
-FORGE_AI_MAX_OUTPUT_TOKENS=1200
+FORGE_AI_MAX_OUTPUT_TOKENS=4000
 ```
 
 Dans Vercel, ajoutez ces variables dans **Settings > Environment Variables** pour les environnements Production, Preview et Development selon le besoin. `OPENAI_API_KEY` est uniquement lu côté serveur. `AI_MODEL` et `AI_API_KEY` restent pris en charge uniquement comme aliases de migration et ne doivent pas être ajoutés à une nouvelle configuration.
@@ -76,7 +76,7 @@ Dans Vercel, ajoutez ces variables dans **Settings > Environment Variables** pou
 
 Le provider demande des Structured Outputs stricts via `text.format: { type: "json_schema", strict: true }`, puis applique encore les validateurs métier dans `lib/forge-ai/validation.ts`. Les erreurs HTTP sont journalisées côté serveur sans secret : statut, endpoint sans query string, modèle, type/code/message OpenAI tronqué.
 
-Les protections de coût V1 sont `FORGE_AI_MAX_INPUT_CHARS`, `FORGE_AI_MAX_OUTPUT_TOKENS`, `AI_TIMEOUT_MS` et `FORGE_AI_RATE_LIMIT_PER_HOUR`. La limite par défaut reste `1200` tokens, mais `course_structure` utilise un plafond borné de `2400` tokens afin que le schéma strict puisse contenir modules et leçons sans interruption. Le rate limit actuel est en mémoire : il est suffisant en développement et test, mais non fiable dans un environnement Vercel distribué. Une limite persistante est nécessaire avant une exposition publique importante. Les métadonnées de génération conservent déjà le modèle, l'action, le statut et la durée ; l'usage de tokens et le coût estimé restent à ajouter.
+Les protections de coût V1 sont `FORGE_AI_MAX_INPUT_CHARS`, `FORGE_AI_MAX_OUTPUT_TOKENS`, `AI_TIMEOUT_MS` et `FORGE_AI_RATE_LIMIT_PER_HOUR`. `FORGE_AI_MAX_OUTPUT_TOKENS` est un plafond global, par défaut `4000` et borné à `4000`. Les budgets par action restent inférieurs à ce plafond : `course_structure` `2400`, `course_analysis` et `course_improvement` `1800`, `lesson_generate` `3600`, `lesson_outline` et `lesson_plan` `1200`, `lesson_intro` et `lesson_summary` `900`, `lesson_simplify` `1600`. Les autres actions de leçon sont plafonnées à `1600`. Le rate limit actuel est en mémoire : il est suffisant en développement et test, mais non fiable dans un environnement Vercel distribué. Une limite persistante est nécessaire avant une exposition publique importante. Les métadonnées de génération conservent le modèle, l'action, le statut, la durée et, lorsque le provider les fournit, les tokens d'entrée, sortie et total. Elles n'incluent jamais les prompts, contenus, sources ni secrets.
 
 Quand OpenAI retourne un statut `incomplete`, Forge journalise uniquement le statut, l'identifiant de réponse, le modèle, les types et le nombre d'items de sortie, la longueur du texte, le motif structuré `incomplete_details.reason` et les compteurs de tokens. Les prompts, contenus pédagogiques, sources et secrets ne sont jamais journalisés. Le provider distingue ensuite une limite de sortie, une réponse incomplète, vide, refusée ou structurée invalide.
 

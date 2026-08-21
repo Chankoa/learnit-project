@@ -8,11 +8,14 @@ type ForgeGenerationLogInput = {
   contextType: "course" | "lesson" | "teacher_studio";
   durationMs?: number;
   errorCode?: string;
+  inputTokens?: number;
   model: string;
+  outputTokens?: number;
   promptType: ForgePromptType;
   provider: string;
   sourceIds?: string[];
   status: ForgeGenerationStatus;
+  totalTokens?: number;
   userId: string;
 };
 
@@ -30,10 +33,13 @@ export async function logForgeGeneration(input: ForgeGenerationLogInput) {
       context_type: input.contextType,
       duration_ms: input.durationMs ?? null,
       error_code: input.errorCode ?? null,
+      input_tokens: input.inputTokens ?? null,
       model: input.model,
+      output_tokens: input.outputTokens ?? null,
       prompt_type: input.promptType,
       provider: input.provider,
       status: input.status,
+      total_tokens: input.totalTokens ?? null,
       user_id: input.userId
     })
     .select("id")

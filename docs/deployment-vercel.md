@@ -37,7 +37,7 @@ npm run build
 | `AI_BASE_URL` | `lib/config/runtime.ts`, Forge provider | Server-only | No | Optional | Absolute API base URL; default `https://api.openai.com/v1`. |
 | `AI_TIMEOUT_MS` | `lib/config/runtime.ts`, Forge provider | Server-only | No | Optional | Positive integer; default `25000`. |
 | `FORGE_AI_MAX_INPUT_CHARS` | `lib/config/runtime.ts`, Forge service | Server-only | No | Optional | Positive integer; default `3000`. |
-| `FORGE_AI_MAX_OUTPUT_TOKENS` | `lib/config/runtime.ts`, Forge provider | Server-only | No | Optional | Positive integer; default `1200`. |
+| `FORGE_AI_MAX_OUTPUT_TOKENS` | `lib/config/runtime.ts`, Forge provider | Server-only | No | Optional | Global output-token cap; default and maximum `4000`. |
 | `FORGE_AI_RATE_LIMIT_PER_HOUR` | `lib/config/runtime.ts`, `lib/forge-ai/rate-limit.ts` | Server-only | No | Optional | Positive integer; default `8`. |
 | `VERCEL_URL` | `lib/config/runtime.ts` | Vercel system | No | Optional | Hostname fallback; resolver adds `https://`. |
 | `VERCEL_ENV` | `lib/config/runtime.ts` | Vercel system | No | Optional | `development`, `preview`, or `production`; prevents localhost in hosted environments. |

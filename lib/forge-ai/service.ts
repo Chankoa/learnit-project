@@ -3,7 +3,7 @@ import "server-only";
 import { requireRole } from "@/lib/auth/server";
 import { getForgeAIConfig } from "@/lib/forge-ai/config";
 import { logForgeGeneration } from "@/lib/forge-ai/generation-log";
-import { getForgeAIProvider } from "@/lib/forge-ai/provider";
+import { ForgeAIProviderError, getForgeAIProvider } from "@/lib/forge-ai/provider";
 import { getCourseContext } from "@/lib/forge-ai/retrieval";
 import {
   buildCourseImprovementUserPrompt,
@@ -214,6 +214,7 @@ function logFailure(
   }
 ) {
   const message = error instanceof Error ? error.message : "unknown";
+  const usage = error instanceof ForgeAIProviderError ? error : undefined;
   console.error("[forge-ai] generation failed", {
     durationMs: Date.now() - startedAt,
     promptType,
@@ -225,7 +226,9 @@ function logFailure(
     contextType: context?.contextType ?? "teacher_studio",
     durationMs: Date.now() - startedAt,
     errorCode: message.slice(0, 120),
+    inputTokens: usage?.inputTokens,
     model: getForgeAIConfig().model || "unknown",
+    outputTokens: usage?.outputTokens,
     promptType,
     provider: getForgeAIConfig().provider,
     sourceIds: context?.sourceIds,
@@ -234,6 +237,7 @@ function logFailure(
       : message.includes("Limite temporaire")
         ? "rate_limited"
         : "error",
+      totalTokens: usage?.totalTokens,
     userId
   });
 }
@@ -299,11 +303,14 @@ export async function generateForgeCourseProposal(
     await logForgeGeneration({
       contextType: "teacher_studio",
       durationMs: response.durationMs,
+      inputTokens: response.inputTokens,
       model: response.model,
+      outputTokens: response.outputTokens,
       promptType: "course_structure",
       provider: response.provider,
       sourceIds: sanitized.sourceIds,
       status: "success",
+      totalTokens: response.totalTokens,
       userId: profile.id
     });
 
@@ -427,11 +434,14 @@ export async function generateForgeCourseImprovement(
       contextId: course.id,
       contextType: "course",
       durationMs: response.durationMs,
+      inputTokens: response.inputTokens,
       model: response.model,
+      outputTokens: response.outputTokens,
       promptType: "course_improvement",
       provider: response.provider,
       sourceIds: sanitized.brief.sourceIds,
       status: "success",
+      totalTokens: response.totalTokens,
       userId: profile.id
     });
 
@@ -566,11 +576,14 @@ export async function generateForgeLessonContent(
       contextId: lesson.id,
       contextType: "lesson",
       durationMs: response.durationMs,
+      inputTokens: response.inputTokens,
       model: response.model,
+      outputTokens: response.outputTokens,
       promptType,
       provider: response.provider,
       sourceIds: referencedSourceIds,
       status: "success",
+      totalTokens: response.totalTokens,
       userId: profile.id
     });
 
@@ -661,10 +674,13 @@ export async function generateForgeLessonSuggestion(
       contextId: lesson.id,
       contextType: "lesson",
       durationMs: response.durationMs,
+      inputTokens: response.inputTokens,
       model: response.model,
+      outputTokens: response.outputTokens,
       promptType: `lesson_${sanitized.action}` as ForgePromptType,
       provider: response.provider,
       status: "success",
+      totalTokens: response.totalTokens,
       userId: profile.id
     });
 

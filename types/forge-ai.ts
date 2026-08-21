@@ -2,6 +2,7 @@ import type { CourseLevel } from "@/types/course";
 
 export type ForgePromptType =
   | "course_structure"
+  | "course_analysis"
   | "course_improvement"
   | "course_import"
   | "lesson_generate"
@@ -10,6 +11,7 @@ export type ForgePromptType =
   | "lesson_examples"
   | "lesson_exercise"
   | "lesson_analyze"
+  | "lesson_outline"
   | "lesson_plan"
   | "lesson_intro"
   | "lesson_summary"
