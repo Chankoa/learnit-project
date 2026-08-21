@@ -3,13 +3,11 @@ import { Save } from "lucide-react";
 import { TeacherDomainPicker } from "@/components/app/TeacherDomainPicker";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
 import type { TeacherCourseFormValues } from "@/lib/teacher-service";
-import { courseLevelLabels, teacherCourseStatusLabels } from "@/lib/teacher";
+import { courseLevelLabels } from "@/lib/teacher";
 import type { Domain } from "@/types/course";
-import type { TeacherCourse } from "@/types/teaching";
 
 type TeacherCourseFormProps = {
   action: (formData: FormData) => void | Promise<void>;
-  course?: TeacherCourse;
   domains: Domain[];
   error?: string;
   initialValues: TeacherCourseFormValues;
@@ -23,7 +21,6 @@ const levelOptions = Object.entries(courseLevelLabels) as Array<
 
 export function TeacherCourseForm({
   action,
-  course,
   domains,
   error,
   initialValues,
@@ -42,31 +39,6 @@ export function TeacherCourseForm({
         <div className="teacher-toast" role="status">
           {message}
         </div>
-      ) : null}
-
-      {course ? (
-        <section className="teacher-form-section">
-          <div>
-            <span>Publication</span>
-            <h2>État actuel</h2>
-          </div>
-          <div className="teacher-form-grid teacher-form-grid--compact">
-            <div className="teacher-field">
-              <span>Statut</span>
-              <strong className="state-badge" data-state={course.status}>
-                {teacherCourseStatusLabels[course.status]}
-              </strong>
-            </div>
-            <div className="teacher-field">
-              <span>Slug</span>
-              <strong>{course.slug ? `/${course.slug}` : "Non défini"}</strong>
-            </div>
-            <div className="teacher-field">
-              <span>Publication</span>
-              <strong>{course.publishedAt ? "Publiée" : "Non publiée"}</strong>
-            </div>
-          </div>
-        </section>
       ) : null}
 
       <section className="teacher-form-section" id="course-information">

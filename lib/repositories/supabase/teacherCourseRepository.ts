@@ -926,6 +926,26 @@ async function publishCourse(teacherId: string, courseId: string, durationMinute
   }
 }
 
+async function unpublishCourse(teacherId: string, courseId: string) {
+  assertUuid(courseId, "Formation");
+
+  const supabase = await getClient();
+  const { error } = await supabase
+    .from("courses")
+    .update({
+      status: "draft",
+      visibility: "private",
+      availability: "preview",
+      published_at: null
+    })
+    .eq("id", courseId)
+    .eq("teacher_id", teacherId);
+
+  if (error) {
+    throw new Error(`Dépublication de la formation impossible : ${error.message}`);
+  }
+}
+
 export const supabaseTeacherCourseRepository: TeacherCourseRepository = {
   getDomains,
   createDomain,
@@ -941,5 +961,6 @@ export const supabaseTeacherCourseRepository: TeacherCourseRepository = {
   updateLesson,
   moveLesson,
   deleteLesson,
-  publishCourse
+  publishCourse,
+  unpublishCourse
 };

@@ -6,7 +6,8 @@ import {
   Layers3,
   Pencil,
   Plus,
-  Sparkles
+  Sparkles,
+  Users
 } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
@@ -73,31 +74,18 @@ export default async function TeacherCoursesPage() {
                 </span>
               </div>
 
-              <dl className="teacher-management-card__meta">
-                <div>
-                  <dt>Modules</dt>
-                  <dd>{formatModuleCount(course.modules.length)}</dd>
-                </div>
-                <div>
-                  <dt>Leçons</dt>
-                  <dd>{formatLessonCount(countTeacherLessons(course))}</dd>
-                </div>
-                <div>
-                  <dt>Inscrits</dt>
-                  <dd>{course.enrolledLearnerCount ?? 0}</dd>
-                </div>
-                <div>
-                  <dt>Mise à jour</dt>
-                  <dd>{formatTeacherDate(course.updatedAt)}</dd>
-                </div>
-              </dl>
+              <p className="teacher-management-card__summary">
+                {formatModuleCount(course.modules.length)} · {formatLessonCount(countTeacherLessons(course))} · {course.enrolledLearnerCount ?? 0} {(course.enrolledLearnerCount ?? 0) > 1 ? "inscrits" : "inscrit"}
+                <br />
+                Mis à jour le {formatTeacherDate(course.updatedAt)}
+              </p>
 
               <div className="teacher-management-card__actions">
                 <Link href={`/app/teacher/courses/${course.id}/builder`}>
                   <Layers3 size={16} aria-hidden="true" />
                   Éditer le parcours
                 </Link>
-                <Link href={`/app/teacher/courses/${course.id}/edit#forge-ai`}>
+                <Link href={`/app/teacher/courses/${course.id}/edit`}>
                   <Sparkles size={16} aria-hidden="true" />
                   Modifier le parcours avec Forge AI
                 </Link>
@@ -114,11 +102,15 @@ export default async function TeacherCoursesPage() {
                     Voir sur le site
                   </Link>
                 ) : (
-                  <span aria-disabled="true">
+                  <Link href={`/app/teacher/courses/${course.id}/preview`} target="_blank">
                     <Eye size={16} aria-hidden="true" />
-                    Prévisualisation de brouillon dans l'éditeur
-                  </span>
+                    Prévisualiser
+                  </Link>
                 )}
+                <Link href={`/app/teacher/courses/${course.id}/enrollments`}>
+                  <Users size={16} aria-hidden="true" />
+                  Voir les inscrits
+                </Link>
               </div>
             </article>
           ))

@@ -232,13 +232,13 @@ export function getPublicationIssues(course: TeacherCourse) {
     issues.push("Ajoutez au moins une leçon.");
   }
 
-  const lessonWithoutContent = course.modules
-    .flatMap((module) => module.lessons)
-    .find((lesson) => !lesson.content?.trim());
-
-  if (lessonWithoutContent) {
-    issues.push(`Ajoutez le contenu de la leçon « ${lessonWithoutContent.title} ».`);
-  }
+  course.modules.forEach((module) => {
+    module.lessons
+      .filter((lesson) => !lesson.content?.trim())
+      .forEach((lesson) => {
+        issues.push(`Module « ${module.title} » → leçon « ${lesson.title} » sans contenu.`);
+      });
+  });
 
   return issues;
 }
@@ -468,5 +468,17 @@ export async function publishTeacherCourse(courseId: string) {
 
   await teacherCourseRepository.publishCourse(profile.id, courseId, getTeacherCourseDuration(course));
 
+  return course;
+}
+
+export async function unpublishTeacherCourse(courseId: string) {
+  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/edit`);
+  const course = await teacherCourseRepository.getTeacherCourse(profile.id, courseId);
+
+  if (!course || course.status !== "published") {
+    throw new Error("Formation introuvable ou non publiée.");
+  }
+
+  await teacherCourseRepository.unpublishCourse(profile.id, courseId);
   return course;
 }

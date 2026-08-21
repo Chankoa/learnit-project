@@ -1,23 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Eye, Layers3, Send, Sparkles } from "lucide-react";
+import { Layers3 } from "lucide-react";
 
 import {
   publishTeacherCourseAction,
+  unpublishTeacherCourseAction,
   updateTeacherCourseAction
 } from "@/app/app/teacher/courses/actions";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
-import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { ForgeCourseContextPanel } from "@/components/app/ForgeCourseContextPanel";
+import { TeacherCourseCockpit } from "@/components/app/TeacherCourseCockpit";
 import { TeacherCourseForm } from "@/components/app/TeacherCourseForm";
-import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
 import { getForgeCourseSources } from "@/lib/forge-ai/service";
 import {
   countTeacherLessons,
   formatLessonCount,
   formatModuleCount,
+  formatTeacherCount,
   getPublicationIssues,
+  getTeacherCourseDuration,
   getTeacherCourseFormDefaults,
   getTeacherStudioCourse,
   getTeacherStudioDomains
@@ -25,13 +27,8 @@ import {
 import { createPageMetadata } from "@/lib/seo";
 
 type EditTeacherCoursePageProps = {
-  params: Promise<{
-    courseId: string;
-  }>;
-  searchParams?: Promise<{
-    error?: string | string[];
-    message?: string | string[];
-  }>;
+  params: Promise<{ courseId: string }>;
+  searchParams?: Promise<{ error?: string | string[]; message?: string | string[] }>;
 };
 
 export const dynamic = "force-dynamic";
@@ -40,9 +37,7 @@ function getSingleParam(value?: string | string[]) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-export async function generateMetadata({
-  params
-}: EditTeacherCoursePageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: EditTeacherCoursePageProps): Promise<Metadata> {
   const { courseId } = await params;
   const course = await getTeacherStudioCourse(courseId, `/app/teacher/courses/${courseId}/edit`);
 
@@ -53,9 +48,7 @@ export async function generateMetadata({
         path: `/app/teacher/courses/${course.id}/edit`,
         noIndex: true
       })
-    : {
-        title: "Formation introuvable"
-      };
+    : { title: "Formation introuvable" };
 }
 
 export default async function EditTeacherCoursePage({
@@ -74,9 +67,19 @@ export default async function EditTeacherCoursePage({
     notFound();
   }
 
+  const lessonCount = countTeacherLessons(course);
   const publicationIssues = getPublicationIssues(course);
+  const issueLinks = new Map(
+    course.modules.flatMap((module) =>
+      module.lessons
+        .filter((lesson) => !lesson.content?.trim())
+        .map((lesson) => [
+          `Module « ${module.title} » → leçon « ${lesson.title} » sans contenu.`,
+          `/app/teacher/courses/${course.id}/builder?lesson=${lesson.id}`
+        ])
+    )
+  );
   const isPublished = course.status === "published";
-  const canPublish = publicationIssues.length === 0;
 
   return (
     <div className="app-page teacher-page">
@@ -87,123 +90,70 @@ export default async function EditTeacherCoursePage({
           { label: course.title }
         ]}
       />
-
-      <AppPageHeader
-        eyebrow="Édition"
-        title="Modifier la formation"
-        description="Mettez à jour les informations générales, organisez la structure, puis publiez lorsque le parcours est prêt."
-        actions={
-          <>
-            <Link className="btn btn-secondary" href="#forge-ai">
-              <Sparkles size={17} aria-hidden="true" />
-              Travailler avec Forge AI
-            </Link>
-            <Link className="btn btn-secondary" href={`/app/teacher/courses/${course.id}/builder`}>
-              <Layers3 size={17} aria-hidden="true" />
-              Éditer le parcours
-            </Link>
-          </>
+      <TeacherCourseCockpit
+        courseTitle={course.title}
+        enrollmentLabel={formatTeacherCount(course.enrolledLearnerCount ?? 0, "inscrit", "inscrits")}
+        forgeContent={<ForgeCourseContextPanel course={course} domains={domains} initialSources={sources} />}
+        informationContent={
+          <TeacherCourseForm
+            action={updateTeacherCourseAction.bind(null, course.id)}
+            domains={domains}
+            error={getSingleParam(query?.error)}
+            initialValues={getTeacherCourseFormDefaults(course)}
+            message={getSingleParam(query?.message)}
+            mode="edit"
+          />
         }
-      />
-
-      <TeacherCourseForm
-        action={updateTeacherCourseAction.bind(null, course.id)}
-        course={course}
-        domains={domains}
-        error={getSingleParam(query?.error)}
-        initialValues={getTeacherCourseFormDefaults(course)}
-        message={getSingleParam(query?.message)}
-        mode="edit"
-      />
-
-      <section className="teacher-form-section">
-        <div>
-          <span>Structure</span>
-          <h2>Modules et leçons</h2>
-        </div>
-        <div className="teacher-form-grid teacher-form-grid--compact">
-          <div className="teacher-field">
-            <span>Modules</span>
-            <strong>{formatModuleCount(course.modules.length)}</strong>
-          </div>
-          <div className="teacher-field">
-            <span>Leçons</span>
-            <strong>{formatLessonCount(countTeacherLessons(course))}</strong>
-          </div>
-          <div className="teacher-form-actions">
-            <Link className="btn btn-secondary" href={`/app/teacher/courses/${course.id}/builder`}>
-              <Layers3 size={17} aria-hidden="true" />
-              Éditer le parcours
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="teacher-form-section">
-        <div>
-          <span>Publication</span>
-          <h2>État de publication</h2>
-        </div>
-
-        {!isPublished && publicationIssues.length > 0 ? (
-          <div className="teacher-form-error" role="status">
-            <strong>Éléments à compléter avant publication</strong>
-            <ul>
-              {publicationIssues.map((issue) => (
-                <li key={issue}>{issue}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
-        <div className="teacher-form-grid teacher-form-grid--compact">
-          <div className="teacher-field teacher-field--wide">
-            <span>État</span>
-            <strong>
-              {isPublished
-                ? "Formation publiée dans le catalogue."
-                : "Formation en brouillon, invisible du catalogue."}
-            </strong>
-          </div>
-          <div className="teacher-form-actions">
-            {isPublished && course.slug ? (
-              <Link className="btn btn-secondary" href={`/formations/${course.slug}`}>
-                <Eye size={17} aria-hidden="true" />
-                Voir dans le catalogue
-              </Link>
-            ) : null}
-            {isPublished ? (
-              <Link className="btn btn-secondary" href="#course-information">
-                Modifier les infos
-              </Link>
+        isPublished={isPublished}
+        lessonCountLabel={formatLessonCount(lessonCount)}
+        moduleCountLabel={formatModuleCount(course.modules.length)}
+        previewHref={
+          isPublished && course.slug
+            ? `/formations/${course.slug}`
+            : `/app/teacher/courses/${course.id}/preview`
+        }
+        publicationChecklist={[
+          { complete: Boolean(course.title.trim() && course.domain.id), label: "Informations générales" },
+          { complete: Boolean(course.description.trim()), label: "Description" },
+          { complete: true, label: "Image de couverture (facultative)" },
+          { complete: course.modules.length > 0, label: "Modules présents" },
+          { complete: lessonCount > 0, label: "Leçons présentes" },
+          {
+            complete: course.modules.every((module) => module.lessons.every((lesson) => lesson.content?.trim())),
+            label: "Contenu des leçons"
+          }
+        ]}
+        publicationIssues={publicationIssues.map((label) => ({ href: issueLinks.get(label), label }))}
+        publishAction={publishTeacherCourseAction.bind(null, course.id)}
+        structureContent={
+          <section className="teacher-form-section teacher-course-structure-summary">
+            <div>
+              <span>Parcours</span>
+              <h2>{formatModuleCount(course.modules.length)} · {formatLessonCount(lessonCount)}</h2>
+              <p>{getTeacherCourseDuration(course)} min de durée estimée.</p>
+            </div>
+            {course.modules.length > 0 ? (
+              <ol className="teacher-course-structure-summary__list">
+                {course.modules.map((module) => (
+                  <li key={module.id}>
+                    <strong>{module.title}</strong>
+                    <span>{formatLessonCount(module.lessons.length)}</span>
+                  </li>
+                ))}
+              </ol>
             ) : (
-              <form action={publishTeacherCourseAction.bind(null, course.id)}>
-                <TeacherSubmitButton
-                  className="btn btn-primary"
-                  pendingLabel="Publication..."
-                >
-                  <Send size={17} aria-hidden="true" />
-                  Publier la formation
-                </TeacherSubmitButton>
-              </form>
+              <p className="teacher-field-note">Ajoutez votre premier module pour commencer à structurer la formation.</p>
             )}
-          </div>
-        </div>
-
-        {!isPublished && !canPublish ? (
-          <p className="teacher-field-note">
-            La publication restera bloquée tant que les critères minimum ne sont pas respectés.
-          </p>
-        ) : null}
-
-        <p className="teacher-field-note">
-          La dépublication reste non destructive et sera cadrée avec le maintien des enrollments dans un sprint dédié.
-        </p>
-      </section>
-
-      <div id="forge-ai">
-        <ForgeCourseContextPanel course={course} domains={domains} initialSources={sources} />
-      </div>
+            <div className="teacher-form-actions">
+              <Link className="btn btn-primary" href={`/app/teacher/courses/${course.id}/builder`}>
+                <Layers3 size={17} aria-hidden="true" />
+                Éditer le parcours
+              </Link>
+            </div>
+          </section>
+        }
+        unpublishAction={unpublishTeacherCourseAction.bind(null, course.id)}
+      />
     </div>
   );
 }

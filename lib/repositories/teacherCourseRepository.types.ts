@@ -97,4 +97,5 @@ export type TeacherCourseRepository = {
   ) => Promise<void>;
   deleteLesson: (teacherId: string, courseId: string, lessonId: string) => Promise<void>;
   publishCourse: (teacherId: string, courseId: string, durationMinutes?: number) => Promise<void>;
+  unpublishCourse: (teacherId: string, courseId: string) => Promise<void>;
 };

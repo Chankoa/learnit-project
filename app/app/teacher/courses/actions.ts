@@ -15,6 +15,7 @@ import {
   moveTeacherLesson,
   moveTeacherModule,
   publishTeacherCourse,
+  unpublishTeacherCourse,
   updateTeacherCourse,
   updateTeacherLesson,
   updateTeacherModule,
@@ -387,6 +388,20 @@ export async function publishTeacherCourseAction(courseId: string) {
     const course = await publishTeacherCourse(courseId);
     revalidateTeacherCourse(courseId, course.slug);
     destination = getEditPath(courseId, { message: "Formation publiée dans le catalogue." });
+  } catch (error) {
+    destination = getEditPath(courseId, { error: getErrorMessage(error) });
+  }
+
+  redirect(destination);
+}
+
+export async function unpublishTeacherCourseAction(courseId: string) {
+  let destination = getEditPath(courseId);
+
+  try {
+    const course = await unpublishTeacherCourse(courseId);
+    revalidateTeacherCourse(courseId, course.slug);
+    destination = getEditPath(courseId, { message: "Formation dépubliée. Les inscriptions sont conservées." });
   } catch (error) {
     destination = getEditPath(courseId, { error: getErrorMessage(error) });
   }

@@ -1717,6 +1717,13 @@
   -webkit-line-clamp: 2;
 }
 
+.teacher-management-card__summary {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
 .teacher-management-card__meta div {
   display: grid;
   gap: var(--space-1);
@@ -1922,6 +1929,253 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   justify-content: flex-end;
+}
+
+.teacher-course-cockpit {
+  position: sticky;
+  z-index: 10;
+  top: var(--space-3);
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-card) 94%, transparent);
+  box-shadow: var(--shadow-xs);
+  padding: var(--space-5);
+  backdrop-filter: blur(12px);
+}
+
+.teacher-course-cockpit__identity,
+.teacher-course-cockpit__actions,
+.teacher-course-preview__actions,
+.teacher-publication-dialog__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.teacher-course-cockpit__identity {
+  justify-content: space-between;
+}
+
+.teacher-course-cockpit__identity > div {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.teacher-course-cockpit h1,
+.teacher-course-preview h1 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-black);
+}
+
+.teacher-course-cockpit__meta {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.teacher-course-tabs {
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.teacher-course-tabs button {
+  flex: 0 0 auto;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.teacher-course-tabs button[aria-selected="true"] {
+  border-bottom-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.teacher-course-tabs button:focus-visible,
+.teacher-publication-dialog button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.teacher-course-structure-summary > div:first-child {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.teacher-course-structure-summary > div:first-child p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.teacher-course-structure-summary__list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.teacher-course-structure-summary__list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-top: 1px solid var(--border-soft);
+  padding-top: var(--space-3);
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+}
+
+.teacher-course-structure-summary__list span {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}
+
+.teacher-publication-dialog {
+  width: min(100% - 2rem, 38rem);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5);
+  color: var(--text-strong);
+}
+
+.teacher-publication-dialog::backdrop {
+  background: color-mix(in srgb, var(--text-strong) 42%, transparent);
+}
+
+.teacher-publication-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.teacher-publication-dialog__header > div {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.teacher-publication-dialog__header span {
+  color: var(--accent-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.teacher-publication-dialog h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.teacher-publication-dialog__header > button {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-strong);
+}
+
+.teacher-publication-dialog > p {
+  color: var(--text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+.teacher-publication-dialog__success {
+  color: var(--status-success) !important;
+  font-weight: var(--font-weight-bold);
+}
+
+.teacher-publication-dialog__incomplete {
+  color: var(--status-danger) !important;
+  font-weight: var(--font-weight-bold);
+}
+
+.teacher-publication-checklist {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.teacher-publication-readiness {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.teacher-publication-readiness li[data-complete="true"] {
+  color: var(--status-success);
+}
+
+.teacher-publication-readiness li[data-complete="false"] {
+  color: var(--status-danger);
+}
+
+.teacher-publication-checklist li {
+  border-left: 3px solid var(--status-danger);
+  padding-left: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.teacher-publication-checklist a {
+  color: var(--accent-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.teacher-publication-dialog__actions {
+  justify-content: flex-end;
+  margin-top: var(--space-5);
+}
+
+.teacher-course-preview {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  padding: clamp(var(--space-5), 6vw, var(--space-8));
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.teacher-course-preview > p {
+  max-width: 52rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+}
+
+.teacher-course-preview__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
 }
 
 .teacher-toast {
@@ -2900,6 +3154,8 @@
   }
 
   .teacher-builder__toolbar .btn,
+  .teacher-course-cockpit__actions .btn,
+  .teacher-publication-dialog__actions .btn,
   .teacher-management-card__actions a,
   .teacher-management-card__actions span,
   .forge-proposal__selection .btn,
@@ -2917,6 +3173,25 @@
   .teacher-builder-lesson .teacher-icon-actions {
     grid-column: 2;
     justify-content: flex-start;
+  }
+
+  .teacher-course-cockpit {
+    position: static;
+  }
+
+  .teacher-course-cockpit__identity {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .teacher-course-cockpit__actions,
+  .teacher-publication-dialog__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .teacher-publication-dialog__actions form {
+    width: 100%;
   }
 }
 

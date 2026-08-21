@@ -77,3 +77,5 @@ export const deleteLesson = (teacherId: string, courseId: string, lessonId: stri
   getTeacherCourseRepository().deleteLesson(teacherId, courseId, lessonId);
 export const publishCourse = (teacherId: string, courseId: string, durationMinutes?: number) =>
   getTeacherCourseRepository().publishCourse(teacherId, courseId, durationMinutes);
+export const unpublishCourse = (teacherId: string, courseId: string) =>
+  getTeacherCourseRepository().unpublishCourse(teacherId, courseId);
