@@ -101,6 +101,10 @@ type ResourceRow = {
   updated_at: string;
 };
 
+type EnrollmentCountRow = {
+  course_id: string;
+};
+
 const courseSelect =
   "id,domain_id,teacher_id,slug,title,subtitle,description,level,status,visibility,availability,cover_image,cover_storage_path,duration_minutes,format,published_at,created_at,updated_at,domains(id,slug,name,description,icon,display_order)";
 const moduleSelect =
@@ -180,7 +184,8 @@ function mapModule(row: ModuleRow, lessons: TeacherLesson[]): TeacherModule {
 
 function mapCourse(
   row: CourseRow & { domains: DomainRow | null },
-  modules: TeacherModule[]
+  modules: TeacherModule[],
+  enrolledLearnerCount = 0
 ): TeacherCourse {
   if (!row.domains) {
     throw new Error(`La formation ${row.id} n'a pas de domaine lisible.`);
@@ -201,6 +206,7 @@ function mapCourse(
     requirements: [],
     coverImage: row.cover_image ?? undefined,
     coverStoragePath: row.cover_storage_path ?? undefined,
+    enrolledLearnerCount,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     publishedAt: row.published_at ?? undefined,
@@ -274,7 +280,8 @@ async function hydrateCourses(supabase: SupabaseClient, rows: CourseRow[]) {
   const [
     { data: moduleData, error: moduleError },
     { data: lessonData, error: lessonError },
-    { data: resourceData, error: resourceError }
+    { data: resourceData, error: resourceError },
+    { data: enrollmentData, error: enrollmentError }
   ] =
     await Promise.all([
       supabase
@@ -291,17 +298,23 @@ async function hydrateCourses(supabase: SupabaseClient, rows: CourseRow[]) {
         .from("resources")
         .select(resourceSelect)
         .in("course_id", courseIds)
-        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: false }),
+      supabase.from("enrollments").select("course_id").in("course_id", courseIds)
     ]);
 
-  if (moduleError || lessonError || resourceError) {
-    const error = moduleError ?? lessonError ?? resourceError;
+  if (moduleError || lessonError || resourceError || enrollmentError) {
+    const error = moduleError ?? lessonError ?? resourceError ?? enrollmentError;
     throw new Error(`Lecture de la structure impossible : ${error?.message}`);
   }
 
   const modules = moduleData as ModuleRow[];
   const lessons = lessonData as LessonRow[];
   const resources = (resourceData as ResourceRow[]).map(mapResource);
+  const enrollmentCounts = new Map<string, number>();
+
+  for (const enrollment of enrollmentData as EnrollmentCountRow[]) {
+    enrollmentCounts.set(enrollment.course_id, (enrollmentCounts.get(enrollment.course_id) ?? 0) + 1);
+  }
 
   return courseRows.map((course) => {
     const courseModules = modules
@@ -321,7 +334,7 @@ async function hydrateCourses(supabase: SupabaseClient, rows: CourseRow[]) {
       )
       .sort((first, second) => first.order - second.order);
 
-    return mapCourse(course, courseModules);
+    return mapCourse(course, courseModules, enrollmentCounts.get(course.id) ?? 0);
   });
 }
 

@@ -232,6 +232,14 @@ export function getPublicationIssues(course: TeacherCourse) {
     issues.push("Ajoutez au moins une leçon.");
   }
 
+  const lessonWithoutContent = course.modules
+    .flatMap((module) => module.lessons)
+    .find((lesson) => !lesson.content?.trim());
+
+  if (lessonWithoutContent) {
+    issues.push(`Ajoutez le contenu de la leçon « ${lessonWithoutContent.title} ».`);
+  }
+
   return issues;
 }
 

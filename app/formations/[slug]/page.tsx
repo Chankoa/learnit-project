@@ -63,12 +63,12 @@ export default async function FormationPage({ params }: FormationPageProps) {
   const primaryCta = !profile
     ? {
         href: `/login?next=${encodeURIComponent(`/learn/${course.slug}`)}`,
-        label: "Se connecter pour commencer"
+        label: "Se connecter pour s'inscrire"
       }
     : profile.role === "learner"
       ? {
           href: learningState?.enrollment ? learningState.ctaHref : `/learn/${course.slug}`,
-          label: learningState?.enrollment ? learningState.ctaLabel : "S'inscrire"
+          label: learningState?.enrollment ? learningState.ctaLabel : "S'inscrire à la formation"
         }
       : {
           href: getProfileHomePath(profile.role),

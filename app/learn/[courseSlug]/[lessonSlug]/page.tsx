@@ -73,6 +73,14 @@ export default async function LessonPage({ params }: LessonPageProps) {
     <LearningShell
       identity={{ name: profile.name, initials, avatarUrl: profile.avatarUrl }}
       learner={learner}
+      mobileDrawerContent={
+        <LessonSidebar
+          course={data.course}
+          currentLessonId={lesson.id}
+          modules={data.modules}
+          percentage={data.percentage}
+        />
+      }
       pageTitle={data.course.title}
       variant="lesson"
     >

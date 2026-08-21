@@ -140,8 +140,8 @@ export function ForgeLessonAssistant({
     <section className="forge-lesson-assistant" aria-live="polite">
       <div>
         <span>Forge AI</span>
-        <h3>Modifier avec Forge AI</h3>
-        <p>Forge utilise le contexte du cours, le module, les leçons voisines et les sources associées. Rien n'est appliqué sans validation.</p>
+        <h3>Assistant de cette leçon</h3>
+        <p>Contexte : « {title} ». Portée : cette leçon uniquement. Forge utilise le cours, le module, les leçons voisines et les sources associées.</p>
       </div>
 
       <div className="forge-lesson-assistant__controls">
@@ -172,7 +172,7 @@ export function ForgeLessonAssistant({
 
       {proposal && draft ? (
         <article className="forge-lesson-suggestion">
-          <span>Preview obligatoire</span>
+          <span>Proposition IA à valider</span>
           <h4>{proposal.title}</h4>
           <div className="forge-lesson-diff">
             <section>
@@ -268,7 +268,7 @@ export function ForgeLessonAssistant({
               type="button"
             >
               <CheckCircle2 size={16} aria-hidden="true" />
-              Accepter
+              Accepter et enregistrer
             </button>
           </div>
         </article>

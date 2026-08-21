@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { LogoMark } from "@/components/ui/LogoMark";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -23,6 +23,7 @@ type LearningShellProps = {
     initials: string;
     avatarUrl?: string;
   };
+  mobileDrawerContent?: ReactNode;
   pageTitle: string;
   variant?: "default" | "lesson";
 };
@@ -31,15 +32,40 @@ export function LearningShell({
   children,
   learner,
   identity,
+  mobileDrawerContent,
   pageTitle,
   variant = "default"
 }: LearningShellProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const drawerRef = useRef<HTMLElement>(null);
 
   function closeMobileMenu() {
     setIsMobileMenuOpen(false);
   }
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    drawerRef.current?.focus();
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeMobileMenu();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isMobileMenuOpen]);
 
   return (
     <div className="learning-shell" data-variant={variant}>
@@ -116,33 +142,45 @@ export function LearningShell({
         </header>
 
         {isMobileMenuOpen ? (
-          <nav
-            className="learning-mobile-drawer"
-            id="learning-mobile-drawer"
-            aria-label="Navigation apprenant mobile"
-          >
-            {learnerNavigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = isNavigationItemActive(item, pathname);
+          <div className="learning-mobile-drawer-overlay" onClick={closeMobileMenu}>
+            <nav
+              aria-label="Navigation apprenant mobile"
+              className="learning-mobile-drawer"
+              id="learning-mobile-drawer"
+              onClick={(event) => event.stopPropagation()}
+              ref={drawerRef}
+              tabIndex={-1}
+            >
+              <div className="learning-mobile-drawer__heading">
+                <strong>Navigation</strong>
+                <button aria-label="Fermer la navigation" onClick={closeMobileMenu} type="button">
+                  <X size={20} aria-hidden="true" />
+                </button>
+              </div>
+              {learnerNavigation.map((item) => {
+                const Icon = item.icon;
+                const isActive = isNavigationItemActive(item, pathname);
 
-              return (
-                <Link
-                  aria-current={isActive ? "page" : undefined}
-                  data-active={isActive}
-                  href={item.href}
-                  key={item.label}
-                  onClick={closeMobileMenu}
-                >
-                  <Icon size={18} aria-hidden="true" />
-                  {item.label}
-                </Link>
-              );
-            })}
-            <Link href="/" onClick={closeMobileMenu}>
-              <ChevronLeft size={18} aria-hidden="true" />
-              Retour au site
-            </Link>
-          </nav>
+                return (
+                  <Link
+                    aria-current={isActive ? "page" : undefined}
+                    data-active={isActive}
+                    href={item.href}
+                    key={item.label}
+                    onClick={closeMobileMenu}
+                  >
+                    <Icon size={18} aria-hidden="true" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+              {mobileDrawerContent ? <div className="learning-mobile-drawer__context">{mobileDrawerContent}</div> : null}
+              <Link href="/" onClick={closeMobileMenu}>
+                <ChevronLeft size={18} aria-hidden="true" />
+                Retour au site
+              </Link>
+            </nav>
+          </div>
         ) : null}
 
         <main className="learning-main" id="main-content">{children}</main>

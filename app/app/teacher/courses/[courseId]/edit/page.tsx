@@ -147,7 +147,12 @@ export default async function EditTeacherCoursePage({
 
         {!isPublished && publicationIssues.length > 0 ? (
           <div className="teacher-form-error" role="status">
-            {publicationIssues[0]}
+            <strong>Éléments à compléter avant publication</strong>
+            <ul>
+              {publicationIssues.map((issue) => (
+                <li key={issue}>{issue}</li>
+              ))}
+            </ul>
           </div>
         ) : null}
 
@@ -192,7 +197,7 @@ export default async function EditTeacherCoursePage({
         ) : null}
 
         <p className="teacher-field-note">
-          Dépublication non destructive reportée : elle doit être cadrée avec le comportement des apprenants déjà inscrits.
+          La dépublication reste non destructive et sera cadrée avec le maintien des enrollments dans un sprint dédié.
         </p>
       </section>
 

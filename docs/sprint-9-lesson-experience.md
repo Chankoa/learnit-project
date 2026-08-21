@@ -82,6 +82,5 @@ Le test reel OpenAI et le parcours navigateur authentifie restent a executer dan
 ## Dette restante
 
 - Accepter ou refuser individuellement les sections Forge.
-- Ajouter une copie de bloc de code si les usages le justifient.
 - Rendre le rate limit Forge persistant avant une exposition importante.
 - Traiter la densite globale, les formulaires et la navigation Teacher dans Sprint 9.1, sans etendre ce sprint a une refonte complete du studio.

@@ -84,7 +84,7 @@ export default async function TeacherCoursesPage() {
                 </div>
                 <div>
                   <dt>Inscrits</dt>
-                  <dd>{course.enrolledLearnerCount ?? "Non exposé"}</dd>
+                  <dd>{course.enrolledLearnerCount ?? 0}</dd>
                 </div>
                 <div>
                   <dt>Mise à jour</dt>
@@ -99,7 +99,7 @@ export default async function TeacherCoursesPage() {
                 </Link>
                 <Link href={`/app/teacher/courses/${course.id}/edit#forge-ai`}>
                   <Sparkles size={16} aria-hidden="true" />
-                  Modifier avec Forge AI
+                  Modifier le parcours avec Forge AI
                 </Link>
               </div>
 
@@ -109,14 +109,14 @@ export default async function TeacherCoursesPage() {
                   Modifier les infos
                 </Link>
                 {course.status === "published" && course.slug ? (
-                  <Link href={`/formations/${course.slug}`}>
+                  <Link href={`/formations/${course.slug}`} target="_blank">
                     <Eye size={16} aria-hidden="true" />
-                    Voir
+                    Voir sur le site
                   </Link>
                 ) : (
                   <span aria-disabled="true">
                     <Eye size={16} aria-hidden="true" />
-                    Aperçu après publication
+                    Prévisualisation de brouillon dans l'éditeur
                   </span>
                 )}
               </div>

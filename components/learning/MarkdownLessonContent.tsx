@@ -1,6 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import { isValidElement, type ReactNode } from "react";
 import remarkGfm from "remark-gfm";
+import { CodeBlock } from "@/components/learning/CodeBlock";
 
 type MarkdownLessonContentProps = {
   content?: string;
@@ -95,6 +96,16 @@ export function MarkdownLessonContent({ content }: MarkdownLessonContentProps) {
                 {children}
               </code>
             );
+          },
+          pre({ children }) {
+            if (!isValidElement(children)) {
+              return <pre>{children}</pre>;
+            }
+
+            const codeProps = children.props as { className?: string; children?: ReactNode };
+            const language = codeProps.className?.replace("language-", "");
+
+            return <CodeBlock code={textFromChildren(codeProps.children).replace(/\n$/, "")} language={language} />;
           }
         }}
       >
