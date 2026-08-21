@@ -4749,6 +4749,170 @@ a.lesson-sidebar__lesson:hover {
   padding-left: 1.4rem;
 }
 
+.lesson-content--mdx {
+  max-width: 72ch;
+}
+
+.lesson-content--mdx > h2 {
+  margin-top: var(--space-6);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-soft);
+  font-size: clamp(1.45rem, 3vw, 1.85rem);
+  line-height: var(--leading-snug);
+}
+
+.lesson-content--mdx > h3 {
+  margin-top: var(--space-2);
+  color: var(--text-strong);
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+}
+
+.lesson-content--mdx > p,
+.lesson-content--mdx li {
+  max-width: 68ch;
+  line-height: 1.82;
+}
+
+.lesson-content--mdx > ol,
+.lesson-content--mdx > ul {
+  padding: var(--space-3) var(--space-5) var(--space-3) 2.25rem;
+  border-left: 3px solid color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: color-mix(in srgb, var(--surface-card) 82%, var(--surface-bg));
+}
+
+.lesson-content--mdx blockquote {
+  margin: 0;
+  border-left: 3px solid var(--border-strong);
+  padding-left: var(--space-4);
+  color: var(--text-muted);
+}
+
+.lesson-callout {
+  display: grid;
+  gap: var(--space-2);
+  border: 1px solid color-mix(in srgb, var(--status-info) 28%, var(--border-soft));
+  border-left: 4px solid var(--status-info);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--status-info) 7%, var(--surface-card));
+  padding: var(--space-4) var(--space-5);
+}
+
+.lesson-callout[data-type="tip"] {
+  border-color: color-mix(in srgb, var(--accent-tertiary) 32%, var(--border-soft));
+  border-left-color: var(--accent-tertiary);
+  background: color-mix(in srgb, var(--accent-tertiary) 8%, var(--surface-card));
+}
+
+.lesson-callout[data-type="warning"] {
+  border-color: color-mix(in srgb, var(--status-warning) 34%, var(--border-soft));
+  border-left-color: var(--status-warning);
+  background: color-mix(in srgb, var(--status-warning) 9%, var(--surface-card));
+}
+
+.lesson-callout[data-type="exercise"] {
+  border-color: color-mix(in srgb, var(--accent-primary) 38%, var(--border-soft));
+  border-left-color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 8%, var(--surface-card));
+}
+
+.lesson-callout strong {
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+}
+
+.lesson-callout p {
+  margin: 0;
+  color: var(--text-default);
+  line-height: var(--leading-relaxed);
+}
+
+.lesson-content--mdx pre {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: #111a2a;
+  padding: var(--space-5);
+  color: #edf4ff;
+  line-height: 1.65;
+  tab-size: 2;
+}
+
+.lesson-content--mdx pre code {
+  display: block;
+  min-width: max-content;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-family: var(--font-mono);
+}
+
+.lesson-content--mdx :not(pre) > code {
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-primary) 11%, transparent);
+  padding: 0.12em 0.35em;
+  color: var(--text-strong);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.lesson-content--mdx table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  font-size: var(--text-sm);
+}
+
+.lesson-content--mdx th,
+.lesson-content--mdx td {
+  min-width: 9rem;
+  border-bottom: 1px solid var(--border-soft);
+  padding: var(--space-3);
+  text-align: left;
+  vertical-align: top;
+}
+
+.lesson-content--mdx th {
+  color: var(--text-strong);
+  font-weight: var(--font-weight-bold);
+}
+
+.lesson-content--mdx hr {
+  width: 100%;
+  margin: var(--space-3) 0;
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+@media (max-width: 680px) {
+  .lesson-content--mdx {
+    gap: var(--space-5);
+  }
+
+  .lesson-content--mdx > h2 {
+    margin-top: var(--space-4);
+    font-size: var(--text-xl);
+  }
+
+  .lesson-callout,
+  .lesson-content--mdx pre {
+    padding: var(--space-4);
+  }
+
+  .lesson-content--mdx > ol,
+  .lesson-content--mdx > ul {
+    padding-right: var(--space-4);
+    padding-left: 2rem;
+  }
+}
+
 .mdx-callout {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

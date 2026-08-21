@@ -520,13 +520,16 @@ export async function generateForgeLessonContent(
 
   const sources = await forgeSourceRepository.getSources(profile.id, course.id);
   const sourceIds = sources.map((source) => source.id);
-  const sanitized = sanitizeLessonContentInput({
+  const sanitized = {
+    ...sanitizeLessonContentInput({
     ...input,
     content: input.content ?? lesson.content,
     description: input.description ?? lesson.description,
     sourceIds,
     title: input.title || lesson.title
-  });
+    }),
+    lessonType: lesson.type
+  };
   const promptType = getLessonPromptType(sanitized.mode);
   const startedAt = Date.now();
   assertForgeAIRateLimit(profile.id, promptType);

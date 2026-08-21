@@ -2627,6 +2627,27 @@
   text-transform: uppercase;
 }
 
+.forge-lesson-rendered-preview {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  padding: var(--space-4);
+}
+
+.forge-lesson-rendered-preview > span {
+  color: var(--accent-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.forge-lesson-rendered-preview .lesson-content {
+  gap: var(--space-5);
+  padding-block: 0;
+}
+
 .forge-source-references h5 {
   color: var(--text-strong);
   font-size: var(--text-sm);
@@ -2817,6 +2838,11 @@
   color: var(--text-muted);
   font-size: var(--text-sm);
   line-height: var(--leading-relaxed);
+}
+
+.teacher-preview-lesson .lesson-content {
+  gap: var(--space-5);
+  padding-block: 0;
 }
 
 .state-badge[data-state="draft"] {

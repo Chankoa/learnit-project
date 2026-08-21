@@ -80,6 +80,10 @@ Les protections de coût V1 sont `FORGE_AI_MAX_INPUT_CHARS`, `FORGE_AI_MAX_OUTPU
 
 Quand OpenAI retourne un statut `incomplete`, Forge journalise uniquement le statut, l'identifiant de réponse, le modèle, les types et le nombre d'items de sortie, la longueur du texte, le motif structuré `incomplete_details.reason` et les compteurs de tokens. Les prompts, contenus pédagogiques, sources et secrets ne sont jamais journalisés. Le provider distingue ensuite une limite de sortie, une réponse incomplète, vide, refusée ou structurée invalide.
 
+## Format de leçon
+
+Pour `lesson_generate`, Forge demande un Structured Output pédagogique plutôt que du Markdown libre : introduction, sections, exemples, code, callouts, mise en pratique, points à retenir et approfondissement facultatif. Le serveur valide ce contrat puis utilise `lessonProposalToMarkdown()` pour construire `lessons.content`. Le budget de sortie reste plafonné à `3600` tokens pour cette action, sans viser systématiquement ce maximum. Le formateur prévisualise et accepte toujours la proposition avant mutation.
+
 ## Course Brief
 
 Le brief contient :

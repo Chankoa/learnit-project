@@ -23,6 +23,10 @@ function isExternalHref(href: string) {
 }
 
 export function ResourceList({ resources }: ResourceListProps) {
+  if (resources.length === 0) {
+    return null;
+  }
+
   return (
     <section className="lesson-resources" aria-labelledby="lesson-resources-title">
       <div className="lesson-section-heading">
@@ -34,10 +38,7 @@ export function ResourceList({ resources }: ResourceListProps) {
       </div>
 
       <div className="lesson-resource-list">
-        {resources.length === 0 ? (
-          <div className="lesson-resource-empty">Aucune ressource associée à cette leçon.</div>
-        ) : (
-          resources.map((resource) => {
+        {resources.map((resource) => {
             const isFile = Boolean(resource.storagePath || resource.fileName);
             const external = isExternalHref(resource.href);
 
@@ -69,8 +70,7 @@ export function ResourceList({ resources }: ResourceListProps) {
                 )}
               </a>
             );
-          })
-        )}
+          })}
       </div>
     </section>
   );

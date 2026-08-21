@@ -9,6 +9,10 @@ type LessonNavigationProps = {
   nextLesson?: Lesson;
 };
 
+function getLessonStateLabel(lesson: Lesson) {
+  return lesson.status === "completed" ? "Terminée" : "À faire";
+}
+
 export function LessonNavigation({
   courseSlug,
   previousLesson,
@@ -20,7 +24,7 @@ export function LessonNavigation({
         <Link href={`/learn/${courseSlug}/${previousLesson.slug}`}>
           <ArrowLeft size={18} aria-hidden="true" />
           <span>
-            <small>Leçon précédente</small>
+            <small>Leçon précédente · {getLessonStateLabel(previousLesson)}</small>
             <strong>{previousLesson.title}</strong>
           </span>
         </Link>
@@ -31,7 +35,7 @@ export function LessonNavigation({
       {nextLesson ? (
         <Link href={`/learn/${courseSlug}/${nextLesson.slug}`}>
           <span>
-            <small>Leçon suivante</small>
+            <small>Leçon suivante · {getLessonStateLabel(nextLesson)}</small>
             <strong>{nextLesson.title}</strong>
           </span>
           <ArrowRight size={18} aria-hidden="true" />

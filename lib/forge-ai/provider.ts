@@ -4,6 +4,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
 
 import { getForgeAIConfig } from "@/lib/forge-ai/config";
+import { lessonProposalToMarkdown } from "@/lib/forge-ai/lesson-markdown";
 import { getMaxOutputTokens } from "@/lib/forge-ai/token-budget";
 import { parseJsonObject } from "@/lib/forge-ai/validation";
 import type {
@@ -239,31 +240,11 @@ function getMockLessonContentProposal(input: ForgeLessonContentInput): ForgeLess
       ? "Analyse pédagogique de la leçon et recommandations à valider."
       : `Proposition contextualisée pour ${title}.`;
 
-  const contentByMode: Record<ForgeLessonContentInput["mode"], string> = {
-    analyze:
-      `## Analyse pédagogique\n\nLa leçon **${title}** gagne à expliciter le résultat attendu dès l'ouverture.\n\n## Recommandations\n\n- Relier la leçon à l'objectif du module.\n- Ajouter un exemple concret avant l'exercice.\n- Terminer par une vérification simple.`,
-    examples:
-      `## Exemples guidés\n\n### Exemple 1\n\nPrésenter un cas simple, puis montrer la décision pédagogique à prendre.\n\n### Exemple 2\n\nComparer une version incomplète et une version réussie pour rendre les critères visibles.`,
-    exercise:
-      `## Exercice\n\nProduisez une version courte du livrable de la leçon.\n\n### Consigne\n\n1. Reprenez le contexte donné.\n2. Appliquez la méthode étape par étape.\n3. Vérifiez le résultat avec les critères ci-dessous.\n\n### Critères de réussite\n\n- Le livrable répond à l'objectif.\n- Les choix sont justifiés.\n- Les prochaines améliorations sont identifiées.`,
-    expand:
-      `## ${title}\n\nCette leçon développe la méthode progressivement : d'abord le contexte, puis les étapes, puis une mise en pratique.\n\n## Méthode\n\n1. Clarifier le résultat attendu.\n2. Identifier les contraintes.\n3. Appliquer la procédure sur un cas simple.\n4. Vérifier la production.`,
-    generate:
-      `## Objectif\n\nÀ la fin de cette leçon, l'apprenant sait appliquer **${title}** dans un cas concret.\n\n## Étapes\n\n1. Comprendre le contexte.\n2. Observer un exemple.\n3. Réaliser une première pratique guidée.\n4. Vérifier le résultat.\n\n## À retenir\n\nLa progression doit rester observable et actionnable.`,
-    improve:
-      `## Version améliorée\n\n${input.content || `La leçon **${title}** présente une méthode courte, illustrée par un exemple et suivie d'une mise en pratique.`}\n\n## Points de vigilance\n\n- Garder une seule idée principale par section.\n- Montrer un exemple avant de demander de produire.\n- Conclure avec un critère de réussite.`,
-    intro:
-      `## Introduction\n\nDans cette leçon, vous allez aborder **${title}** à partir d'un cas concret.\n\nL'objectif est de comprendre la méthode, puis de l'appliquer immédiatement dans une situation simple.`,
-    simplify:
-      `## Version simplifiée\n\nLa leçon **${title}** doit aider l'apprenant à comprendre une méthode, l'observer dans un exemple, puis l'utiliser lui-même.\n\n## À retenir\n\n- Une idée par étape.\n- Un exemple concret.\n- Une action finale vérifiable.`,
-    summary:
-      `## Synthèse\n\nLa leçon **${title}** permet de passer d'une explication à une action concrète.\n\nPoints clés :\n\n- comprendre l'objectif ;\n- appliquer les étapes ;\n- vérifier le résultat.`
-  };
-
-  return {
-    contentMarkdown: contentByMode[input.mode],
+  const proposal = {
     estimatedMinutes: 30,
-    keyPoints: [
+    furtherReading: "",
+    intro: `Vous allez découvrir ${title} à partir d'une situation concrète, puis utiliser la méthode dans un cas simple.`,
+    keyTakeaways: [
       "Clarifier le résultat attendu",
       "Montrer un exemple concret",
       "Faire vérifier la production"
@@ -273,6 +254,27 @@ function getMockLessonContentProposal(input: ForgeLessonContentInput): ForgeLess
       "Appliquer la méthode sur un cas simple",
       "Évaluer le résultat avec des critères observables"
     ],
+    practice:
+      input.mode === "exercise"
+        ? "Reprenez un cas simple, appliquez les étapes proposées, puis vérifiez votre résultat avec un critère observable."
+        : "",
+    sections: [
+      {
+        callout: "Commencez par un cas simple avant de traiter une situation plus complexe.",
+        calloutType: "tip" as const,
+        code:
+          input.mode === "examples" || input.mode === "generate"
+            ? "const result = applyMethod(context);\nverify(result);"
+            : "",
+        codeLanguage: "ts",
+        content:
+          input.content ||
+          "Identifiez le résultat attendu, appliquez la méthode pas à pas, puis vérifiez le résultat avant de poursuivre.",
+        example:
+          "Comparez une première tentative avec le résultat attendu pour rendre les critères de réussite visibles.",
+        title: input.mode === "analyze" ? "Recommandations pédagogiques" : "Comprendre la méthode"
+      }
+    ],
     sourceReferences: (input.sourceIds ?? []).slice(0, 3).map((sourceId, index) => ({
       excerpt: "Extrait récupéré par le Retrieval Service.",
       label: `Source ${index + 1}`,
@@ -280,6 +282,11 @@ function getMockLessonContentProposal(input: ForgeLessonContentInput): ForgeLess
     })),
     summary: baseSummary,
     title: input.mode === "analyze" ? `Analyse Forge - ${title}` : title
+  };
+
+  return {
+    ...proposal,
+    contentMarkdown: lessonProposalToMarkdown(proposal)
   };
 }
 
@@ -401,10 +408,23 @@ const courseImprovementSchema = objectSchema({
 });
 
 const lessonContentSchema = objectSchema({
-  contentMarkdown: stringSchema,
   estimatedMinutes: numberSchema,
-  keyPoints: arraySchema(stringSchema),
+  furtherReading: stringSchema,
+  intro: stringSchema,
+  keyTakeaways: arraySchema(stringSchema),
   objectives: arraySchema(stringSchema),
+  practice: stringSchema,
+  sections: arraySchema(
+    objectSchema({
+      callout: stringSchema,
+      calloutType: { enum: ["none", "note", "tip", "warning"], type: "string" },
+      code: stringSchema,
+      codeLanguage: stringSchema,
+      content: stringSchema,
+      example: stringSchema,
+      title: stringSchema
+    })
+  ),
   sourceReferences: arraySchema(
     objectSchema({
       excerpt: stringSchema,

@@ -1,4 +1,5 @@
 import type { CourseLevel } from "@/types/course";
+import type { LessonType } from "@/types/learning";
 
 export type ForgePromptType =
   | "course_structure"
@@ -171,16 +172,33 @@ export type ForgeLessonContentInput = {
   courseId: string;
   description?: string;
   lessonId: string;
+  lessonType?: LessonType;
   mode: ForgeLessonContentMode;
   sourceIds?: string[];
   title?: string;
 };
 
+export type ForgeLessonCalloutType = "none" | "note" | "tip" | "warning";
+
+export type ForgeLessonSection = {
+  callout: string;
+  calloutType: ForgeLessonCalloutType;
+  code: string;
+  codeLanguage: string;
+  content: string;
+  example: string;
+  title: string;
+};
+
 export type ForgeLessonContentProposal = {
   contentMarkdown: string;
   estimatedMinutes: number;
-  keyPoints: string[];
+  furtherReading: string;
+  intro: string;
+  keyTakeaways: string[];
   objectives: string[];
+  practice: string;
+  sections: ForgeLessonSection[];
   sourceReferences: ForgeSourceReference[];
   summary: string;
   title: string;

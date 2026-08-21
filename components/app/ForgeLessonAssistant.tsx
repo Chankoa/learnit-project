@@ -8,6 +8,7 @@ import {
   applyLessonProposalAction,
   generateLessonWithForgeAction
 } from "@/app/app/teacher/forge/actions";
+import { MarkdownLessonContent } from "@/components/learning/MarkdownLessonContent";
 import type {
   ForgeLessonContentMode,
   ForgeLessonContentProposal
@@ -37,6 +38,15 @@ const modeLabels: Record<ForgeLessonContentMode, string> = {
   simplify: "Simplifier",
   summary: "Générer une synthèse"
 };
+
+const forgeActionModes: ForgeLessonContentMode[] = [
+  "generate",
+  "improve",
+  "examples",
+  "exercise",
+  "simplify",
+  "summary"
+];
 
 function toLines(values: string[]) {
   return values.join("\n");
@@ -138,16 +148,16 @@ export function ForgeLessonAssistant({
         <label className="teacher-field">
           <span>Action</span>
           <select value={mode} onChange={(event) => setMode(event.target.value as ForgeLessonContentMode)}>
-            {Object.entries(modeLabels).map(([value, label]) => (
+            {forgeActionModes.map((value) => (
               <option key={value} value={value}>
-                {label}
+                {modeLabels[value]}
               </option>
             ))}
           </select>
         </label>
-        <button className="btn btn-secondary" disabled={isPending} onClick={() => generate()} type="button">
+        <button className="btn btn-primary" disabled={isPending} onClick={() => generate()} type="button">
           {isPending ? <Loader2 className="auth-button-spinner" size={16} aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}
-          {isPending ? "Forge prépare une proposition..." : "Modifier avec Forge AI"}
+          {isPending ? "Forge prépare une proposition..." : mode === "generate" ? "Générer la leçon" : "Préparer la proposition"}
         </button>
       </div>
 
@@ -211,6 +221,10 @@ export function ForgeLessonAssistant({
                   onChange={(event) => updateDraft({ contentMarkdown: event.target.value })}
                 />
               </label>
+              <div className="forge-lesson-rendered-preview">
+                <span>Aperçu apprenant</span>
+                <MarkdownLessonContent content={draft.contentMarkdown} />
+              </div>
             </section>
           </div>
 

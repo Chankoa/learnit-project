@@ -29,6 +29,7 @@ import {
 import { TeacherConfirmForm } from "@/components/app/TeacherConfirmForm";
 import { ForgeLessonAssistant } from "@/components/app/ForgeLessonAssistant";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
+import { MarkdownLessonContent } from "@/components/learning/MarkdownLessonContent";
 import {
   formatLessonCount,
   formatModuleCount,
@@ -86,13 +87,6 @@ function getBuilderHref(
 
 function toLines(values?: string[]) {
   return values?.join("\n") ?? "";
-}
-
-function getLessonPreviewParagraphs(value?: string) {
-  return (value || "Contenu en préparation.")
-    .split(/\n{2,}/)
-    .map((line) => line.replace(/^#+\s*/, "").trim())
-    .filter(Boolean);
 }
 
 export function TeacherCourseBuilder({
@@ -382,7 +376,7 @@ export function TeacherCourseBuilder({
                     })}
                   >
                     <Eye size={16} aria-hidden="true" />
-                    Prévisualiser
+                    Prévisualiser le rendu
                   </Link>
                 </div>
               </div>
@@ -671,9 +665,7 @@ export function TeacherCourseBuilder({
 
               <section>
                 <h3>Contenu</h3>
-                {getLessonPreviewParagraphs(previewLesson.content).map((line) => (
-                  <p key={line}>{line}</p>
-                ))}
+                <MarkdownLessonContent content={previewLesson.content} />
               </section>
             </article>
           </div>

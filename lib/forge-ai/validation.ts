@@ -3,9 +3,12 @@ import type {
   ForgeCourseImprovement,
   ForgeCourseProposal,
   ForgeLessonAction,
+  ForgeLessonCalloutType,
   ForgeLessonContentProposal,
+  ForgeLessonSection,
   ForgeLessonSuggestion
 } from "@/types/forge-ai";
+import { lessonProposalToMarkdown } from "@/lib/forge-ai/lesson-markdown";
 
 const courseLevels = ["beginner", "intermediate", "advanced"] satisfies CourseLevel[];
 const lessonActions = ["plan", "intro", "summary", "simplify"] satisfies ForgeLessonAction[];
@@ -21,6 +24,10 @@ function stringValue(value: unknown, fallback = "") {
 function optionalString(value: unknown) {
   const next = stringValue(value);
   return next || undefined;
+}
+
+function contentString(value: unknown) {
+  return typeof value === "string" ? value.replace(/\r\n/g, "\n").trim() : "";
 }
 
 function stringArray(value: unknown, maxItems: number) {
@@ -196,13 +203,46 @@ export function validateForgeLessonContentProposal(value: unknown): ForgeLessonC
     };
   });
 
-  return {
-    contentMarkdown: requiredString(value.contentMarkdown, "contenu Markdown"),
+  const sectionsSource = Array.isArray(value.sections) ? value.sections : [];
+  const sections = sectionsSource.slice(0, 7).map((sectionValue, sectionIndex): ForgeLessonSection => {
+    if (!isRecord(sectionValue)) {
+      throw new Error(`Sortie IA invalide : section ${sectionIndex + 1} incorrecte.`);
+    }
+
+    const calloutType = stringValue(sectionValue.calloutType);
+
+    return {
+      callout: contentString(sectionValue.callout),
+      calloutType: ["none", "note", "tip", "warning"].includes(calloutType)
+        ? (calloutType as ForgeLessonCalloutType)
+        : "none",
+      code: contentString(sectionValue.code),
+      codeLanguage: stringValue(sectionValue.codeLanguage).slice(0, 24),
+      content: requiredString(sectionValue.content, `contenu de la section ${sectionIndex + 1}`),
+      example: contentString(sectionValue.example),
+      title: requiredString(sectionValue.title, `titre de la section ${sectionIndex + 1}`)
+    };
+  });
+
+  if (sections.length === 0) {
+    throw new Error("Sortie IA invalide : au moins une section est requise.");
+  }
+
+  const proposal = {
     estimatedMinutes: positiveMinutes(value.estimatedMinutes) ?? 20,
-    keyPoints: stringArray(value.keyPoints, 8),
+    furtherReading: contentString(value.furtherReading),
+    intro: requiredString(value.intro, "introduction"),
+    keyTakeaways: stringArray(value.keyTakeaways, 8),
     objectives: stringArray(value.objectives, 8),
+    practice: contentString(value.practice),
+    sections,
     sourceReferences,
     summary: requiredString(value.summary, "résumé"),
     title: requiredString(value.title, "titre")
+  };
+
+  return {
+    ...proposal,
+    contentMarkdown: lessonProposalToMarkdown(proposal)
   };
 }

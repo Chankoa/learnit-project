@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import { isValidElement, type ReactNode } from "react";
 import remarkGfm from "remark-gfm";
 
 type MarkdownLessonContentProps = {
@@ -7,6 +8,39 @@ type MarkdownLessonContentProps = {
 
 function isExternalHref(href?: string) {
   return Boolean(href && /^https?:\/\//i.test(href));
+}
+
+function textFromChildren(children: ReactNode): string {
+  if (typeof children === "string" || typeof children === "number") {
+    return String(children);
+  }
+
+  if (Array.isArray(children)) {
+    return children.map(textFromChildren).join("");
+  }
+
+  return isValidElement(children) ? textFromChildren(children.props.children) : "";
+}
+
+function getCallout(content: string) {
+  const match = content.match(/^\s*\[!(NOTE|TIP|WARNING|EXERCISE|KEY TAKEAWAYS)\]\s*/i);
+
+  if (!match) {
+    return undefined;
+  }
+
+  return {
+    label:
+      {
+        NOTE: "Note",
+        TIP: "Conseil",
+        WARNING: "Attention",
+        EXERCISE: "Mise en pratique",
+        "KEY TAKEAWAYS": "À retenir"
+      }[match[1].toUpperCase()] ?? "Repère",
+    type: match[1].toLowerCase().replace(/\s+/g, "-"),
+    value: content.replace(match[0], "").trim()
+  };
 }
 
 export function MarkdownLessonContent({ content }: MarkdownLessonContentProps) {
@@ -37,6 +71,29 @@ export function MarkdownLessonContent({ content }: MarkdownLessonContentProps) {
               >
                 {children}
               </a>
+            );
+          },
+          blockquote({ children }) {
+            const callout = getCallout(textFromChildren(children));
+
+            if (!callout) {
+              return <blockquote>{children}</blockquote>;
+            }
+
+            return (
+              <aside className="lesson-callout" data-type={callout.type}>
+                <strong>{callout.label}</strong>
+                <p>{callout.value}</p>
+              </aside>
+            );
+          },
+          code({ children, className, ...props }) {
+            const language = className?.replace("language-", "") || undefined;
+
+            return (
+              <code {...props} className={className} data-language={language}>
+                {children}
+              </code>
             );
           }
         }}
