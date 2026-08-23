@@ -16,7 +16,7 @@ type AppSidebarProps = {
 const roleLabels: Record<ApplicationRole, string> = {
   visitor: "Sélection",
   learner: "Apprenant",
-  teacher: "Enseignant",
+  teacher: "Créateur",
   admin: "Admin"
 };
 

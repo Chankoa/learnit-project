@@ -19,8 +19,8 @@ import { getTeacherStudioDashboard } from "@/lib/teacher-service";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Espace enseignant",
-  description: "Gérez vos formations, modules et leçons LearnIt.",
+  title: "Créer",
+  description: "Retrouvez et développez vos créations pédagogiques dans Forge.",
   path: "/app/teacher",
   noIndex: true
 });
@@ -36,35 +36,29 @@ export default async function TeacherAppPage() {
       <AppBreadcrumb
         items={[
           { label: "Accès plateforme", href: "/app" },
-          { label: "Espace enseignant" }
+          { label: "Créer" }
         ]}
       />
 
       <AppPageHeader
-        eyebrow="Tableau de bord enseignant"
+        eyebrow="Créer"
         title={`Bonjour ${profile?.name ?? "Utilisateur LearnIt"}`}
-        description="Pilotez vos formations réelles, surveillez les brouillons et reprenez les dernières modifications."
+        description="Retrouvez vos créations pédagogiques, reprenez un brouillon ou démarrez un nouveau parcours."
         actions={
-          <>
-            <Link className="btn btn-secondary" href="/app/teacher/courses/forge">
-              <Sparkles size={17} aria-hidden="true" />
-              Créer avec Forge AI
-            </Link>
-            <Link className="btn btn-primary" href="/app/teacher/courses/new">
-              <BookPlus size={17} aria-hidden="true" />
-              Créer une formation
-            </Link>
-          </>
+          <Link className="btn btn-primary" href="/app/teacher/courses/new">
+            <BookPlus size={17} aria-hidden="true" />
+            Nouvelle création
+          </Link>
         }
       />
 
-      <section className="learning-metrics teacher-metrics" aria-label="Indicateurs enseignant">
+      <section className="learning-metrics teacher-metrics" aria-label="Indicateurs de création">
         <article>
           <span className="learning-metric-icon learning-metric-icon--purple">
             <GraduationCap size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Mes formations</small>
+            <small>Mes créations</small>
             <strong>{dashboard.metrics.courseCount}</strong>
           </div>
         </article>
@@ -107,11 +101,11 @@ export default async function TeacherAppPage() {
         <section className="learning-panel">
           <div className="learning-panel__heading">
             <div>
-              <span>Formations récentes</span>
-              <h2>Dernières mises à jour</h2>
+              <span>Créations récentes</span>
+              <h2>Reprendre votre travail</h2>
             </div>
             <Link className="text-link" href="/app/teacher/courses">
-              Mes formations
+              Mes créations
               <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </div>
@@ -122,12 +116,20 @@ export default async function TeacherAppPage() {
                 <article className="teacher-row teacher-row--course" key={course.id}>
                   <div>
                     <span>{course.domain.name}</span>
-                    <h3>{course.title}</h3>
+                    <h3>
+                      <Link href={`/app/teacher/courses/${course.id}/edit`}>{course.title}</Link>
+                    </h3>
                     <p>{formatTeacherDateTime(course.updatedAt)}</p>
                   </div>
-                  <span className="state-badge" data-state={course.status}>
-                    {teacherCourseStatusLabels[course.status]}
-                  </span>
+                  <div className="teacher-row__actions">
+                    <span className="state-badge" data-state={course.status}>
+                      {teacherCourseStatusLabels[course.status]}
+                    </span>
+                    <Link className="text-link" href={`/app/teacher/courses/${course.id}/edit`}>
+                      {course.status === "draft" ? "Continuer" : "Gérer"}
+                      <ArrowRight size={16} aria-hidden="true" />
+                    </Link>
+                  </div>
                 </article>
               ))
             ) : (
@@ -135,12 +137,12 @@ export default async function TeacherAppPage() {
                 action={
                   <Link className="btn btn-primary" href="/app/teacher/courses/new">
                     <BookPlus size={17} aria-hidden="true" />
-                    Créer une formation
+                    Créer mon premier parcours
                   </Link>
                 }
-                description="Vous n'avez encore créé aucune formation. Commencez par un brouillon, ajoutez vos modules, puis publiez quand le parcours est prêt."
+                description="Vous n'avez encore aucune création. Commencez un parcours manuellement ou laissez Forge vous guider, puis validez chaque étape."
                 icon={GraduationCap}
-                title="Aucune formation"
+                title="Aucune création"
               />
             )}
           </div>

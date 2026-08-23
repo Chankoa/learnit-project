@@ -24,7 +24,7 @@ type AppShellProps = {
 const defaultTitles: Record<ApplicationRole, string> = {
   visitor: "Accès plateforme",
   learner: "Espace apprenant",
-  teacher: "Espace enseignant",
+  teacher: "Créer",
   admin: "Administration"
 };
 

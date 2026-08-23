@@ -67,8 +67,8 @@ export default async function TeacherCourseBuilderPage({
     <div className="app-page teacher-page">
       <AppBreadcrumb
         items={[
-          { label: "Espace enseignant", href: "/app/teacher" },
-          { label: "Mes formations", href: "/app/teacher/courses" },
+          { label: "Créer", href: "/app/teacher" },
+          { label: "Mes créations", href: "/app/teacher/courses" },
           { label: "Éditeur de parcours" }
         ]}
       />

@@ -11,7 +11,7 @@ import { createPageMetadata } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Créer avec Forge AI",
+  title: "Construire avec Forge",
   description: "Générer une proposition de structure de formation à valider humainement.",
   path: "/app/teacher/courses/forge",
   noIndex: true
@@ -24,20 +24,20 @@ export default async function ForgeCoursePage() {
     <div className="app-page teacher-page">
       <AppBreadcrumb
         items={[
-          { label: "Espace enseignant", href: "/app/teacher" },
-          { label: "Mes formations", href: "/app/teacher/courses" },
-          { label: "Créer avec Forge AI" }
+          { label: "Créer", href: "/app/teacher" },
+          { label: "Nouvelle création", href: "/app/teacher/courses/new" },
+          { label: "Avec Forge" }
         ]}
       />
 
       <AppPageHeader
-        eyebrow="Forge AI"
-        title="Créer avec Forge AI"
+        eyebrow="Nouvelle création"
+        title="Construire avec Forge"
         description="Transformez une intention pédagogique en proposition de parcours. Rien n'est écrit avant validation explicite."
         actions={
-          <Link className="btn btn-secondary" href="/app/teacher/courses">
+          <Link className="btn btn-secondary" href="/app/teacher/courses/new">
             <ArrowLeft size={17} aria-hidden="true" />
-            Mes formations
+            Changer de mode
           </Link>
         }
       />

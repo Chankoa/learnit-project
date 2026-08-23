@@ -28,7 +28,11 @@ import { createPageMetadata } from "@/lib/seo";
 
 type EditTeacherCoursePageProps = {
   params: Promise<{ courseId: string }>;
-  searchParams?: Promise<{ error?: string | string[]; message?: string | string[] }>;
+  searchParams?: Promise<{
+    error?: string | string[];
+    message?: string | string[];
+    tab?: string | string[];
+  }>;
 };
 
 export const dynamic = "force-dynamic";
@@ -80,13 +84,16 @@ export default async function EditTeacherCoursePage({
     )
   );
   const isPublished = course.status === "published";
+  const requestedTab = getSingleParam(query?.tab);
+  const initialTab =
+    requestedTab === "structure" || requestedTab === "forge" ? requestedTab : "information";
 
   return (
     <div className="app-page teacher-page">
       <AppBreadcrumb
         items={[
-          { label: "Espace enseignant", href: "/app/teacher" },
-          { label: "Mes formations", href: "/app/teacher/courses" },
+          { label: "Créer", href: "/app/teacher" },
+          { label: "Mes créations", href: "/app/teacher/courses" },
           { label: course.title }
         ]}
       />
@@ -104,6 +111,7 @@ export default async function EditTeacherCoursePage({
             mode="edit"
           />
         }
+        initialTab={initialTab}
         isPublished={isPublished}
         lessonCountLabel={formatLessonCount(lessonCount)}
         moduleCountLabel={formatModuleCount(course.modules.length)}

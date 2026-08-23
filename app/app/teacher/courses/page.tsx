@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  ArrowRight,
+  ChevronDown,
   Eye,
   GraduationCap,
   Layers3,
-  Pencil,
   Plus,
   Sparkles,
   Users
@@ -23,8 +24,8 @@ import { formatTeacherDate, teacherCourseStatusLabels } from "@/lib/teacher";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Mes formations enseignant",
-  description: "Gérez les formations créées par l'enseignant connecté.",
+  title: "Mes créations",
+  description: "Gérez vos créations pédagogiques et reprenez leur préparation.",
   path: "/app/teacher/courses",
   noIndex: true
 });
@@ -36,30 +37,24 @@ export default async function TeacherCoursesPage() {
     <div className="app-page teacher-page">
       <AppBreadcrumb
         items={[
-          { label: "Espace enseignant", href: "/app/teacher" },
-          { label: "Mes formations" }
+          { label: "Créer", href: "/app/teacher" },
+          { label: "Mes créations" }
         ]}
       />
 
       <AppPageHeader
-        eyebrow="Mes formations"
-        title="Formations créées"
-        description="Consultez vos parcours, leurs statuts, leurs contenus et leur dernière mise à jour."
+        eyebrow="Créer"
+        title="Mes créations"
+        description="Consultez vos parcours, leur statut éditorial, leur structure et leur dernière mise à jour."
         actions={
-          <>
-            <Link className="btn btn-primary" href="/app/teacher/courses/new">
-              <Plus size={17} aria-hidden="true" />
-              Créer une formation
-            </Link>
-            <Link className="btn btn-secondary" href="/app/teacher/courses/forge">
-              <Sparkles size={17} aria-hidden="true" />
-              Créer avec Forge AI
-            </Link>
-          </>
+          <Link className="btn btn-primary" href="/app/teacher/courses/new">
+            <Plus size={17} aria-hidden="true" />
+            Nouvelle création
+          </Link>
         }
       />
 
-      <section className="teacher-course-management-grid" aria-label="Formations créées">
+      <section className="teacher-course-management-grid" aria-label="Créations pédagogiques">
         {courses.length > 0 ? (
           courses.map((course) => (
             <article className="teacher-management-card" key={course.id}>
@@ -80,57 +75,60 @@ export default async function TeacherCoursesPage() {
                 Mis à jour le {formatTeacherDate(course.updatedAt)}
               </p>
 
-              <div className="teacher-management-card__actions">
-                <Link href={`/app/teacher/courses/${course.id}/builder`}>
-                  <Layers3 size={16} aria-hidden="true" />
-                  Éditer le parcours
+              <div className="creator-card-actions">
+                <Link className="btn btn-primary" href={`/app/teacher/courses/${course.id}/edit`}>
+                  {course.status === "draft" ? "Continuer" : "Gérer"}
+                  <ArrowRight size={16} aria-hidden="true" />
                 </Link>
-                <Link href={`/app/teacher/courses/${course.id}/edit`}>
-                  <Sparkles size={16} aria-hidden="true" />
-                  Modifier le parcours avec Forge AI
-                </Link>
-              </div>
-
-              <div className="teacher-management-card__actions teacher-management-card__actions--secondary">
-                <Link href={`/app/teacher/courses/${course.id}/edit`}>
-                  <Pencil size={16} aria-hidden="true" />
-                  Modifier les infos
-                </Link>
-                {course.status === "published" && course.slug ? (
-                  <Link href={`/formations/${course.slug}`} target="_blank">
-                    <Eye size={16} aria-hidden="true" />
-                    Voir sur le site
-                  </Link>
-                ) : (
-                  <Link href={`/app/teacher/courses/${course.id}/preview`} target="_blank">
-                    <Eye size={16} aria-hidden="true" />
-                    Prévisualiser
-                  </Link>
-                )}
-                <Link href={`/app/teacher/courses/${course.id}/enrollments`}>
-                  <Users size={16} aria-hidden="true" />
-                  Voir les inscrits
-                </Link>
+                <details>
+                  <summary className="btn btn-secondary">
+                    Autres actions
+                    <ChevronDown size={16} aria-hidden="true" />
+                  </summary>
+                  <div className="creator-card-actions__secondary">
+                    <Link href={`/app/teacher/courses/${course.id}/builder`}>
+                      <Layers3 size={16} aria-hidden="true" />
+                      Éditer le parcours
+                    </Link>
+                    <Link href={`/app/teacher/courses/${course.id}/edit?tab=forge`}>
+                      <Sparkles size={16} aria-hidden="true" />
+                      Travailler avec Forge
+                    </Link>
+                    {course.status === "published" && course.slug ? (
+                      <Link href={`/formations/${course.slug}`} rel="noreferrer" target="_blank">
+                        <Eye size={16} aria-hidden="true" />
+                        Voir sur le site
+                      </Link>
+                    ) : (
+                      <Link
+                        href={`/app/teacher/courses/${course.id}/preview`}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        <Eye size={16} aria-hidden="true" />
+                        Prévisualiser
+                      </Link>
+                    )}
+                    <Link href={`/app/teacher/courses/${course.id}/enrollments`}>
+                      <Users size={16} aria-hidden="true" />
+                      Apprenants
+                    </Link>
+                  </div>
+                </details>
               </div>
             </article>
           ))
         ) : (
           <AppEmptyState
             action={
-              <>
-                <Link className="btn btn-secondary" href="/app/teacher/courses/forge">
-                  <Sparkles size={17} aria-hidden="true" />
-                  Créer avec Forge AI
-                </Link>
-                <Link className="btn btn-primary" href="/app/teacher/courses/new">
-                  <Plus size={17} aria-hidden="true" />
-                  Créer une formation
-                </Link>
-              </>
+              <Link className="btn btn-primary" href="/app/teacher/courses/new">
+                <Plus size={17} aria-hidden="true" />
+                Créer mon premier parcours
+              </Link>
             }
-            description="Vous n'avez encore créé aucune formation. Un brouillon apparaîtra ici dès sa création."
+            description="Vous n'avez encore aucune création. Un brouillon apparaîtra ici dès que vous aurez commencé un parcours."
             icon={GraduationCap}
-            title="Aucune formation"
+            title="Aucune création"
           />
         )}
       </section>

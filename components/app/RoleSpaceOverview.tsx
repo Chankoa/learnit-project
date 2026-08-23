@@ -132,12 +132,12 @@ function getCardDescription(label: string, role: PlatformSpaceRole) {
       Profil: "Informations de compte et préférences d'apprentissage."
     },
     teacher: {
-      "Tableau de bord": "Pilotage des contenus et activité pédagogique.",
-      "Mes formations": "Gestion des parcours créés ou en préparation.",
-      "Créer une formation": "Structure initiale, domaine, niveau et promesse pédagogique.",
-      Leçons: "Organisation des modules, leçons et contenus MDX.",
+      "Vue d'ensemble": "Accès aux créations récentes et aux dernières modifications.",
+      "Mes créations": "Gestion des parcours créés ou en préparation.",
+      "Nouvelle création": "Démarrage manuel ou construction assistée par Forge.",
       Ressources: "Bibliothèque de supports, fichiers et exercices.",
-      Apprenants: "Suivi des inscrits, progression et livrables."
+      Apprenants: "Suivi des inscrits, progression et livrables.",
+      Profil: "Informations du compte et préférences du créateur."
     },
     admin: {
       "Tableau de bord": "Vue globale sur l'état de la plateforme.",

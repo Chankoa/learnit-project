@@ -21,6 +21,7 @@ type TeacherCourseCockpitProps = {
   enrollmentLabel: string;
   forgeContent: ReactNode;
   informationContent: ReactNode;
+  initialTab?: "information" | "structure" | "forge";
   isPublished: boolean;
   lessonCountLabel: string;
   moduleCountLabel: string;
@@ -37,6 +38,7 @@ export function TeacherCourseCockpit({
   enrollmentLabel,
   forgeContent,
   informationContent,
+  initialTab = "information",
   isPublished,
   lessonCountLabel,
   moduleCountLabel,
@@ -47,7 +49,7 @@ export function TeacherCourseCockpit({
   structureContent,
   unpublishAction
 }: TeacherCourseCockpitProps) {
-  const [activeTab, setActiveTab] = useState("information");
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [dialogMode, setDialogMode] = useState<"publish" | "unpublish" | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -72,7 +74,11 @@ export function TeacherCourseCockpit({
     setDialogMode(null);
   }
 
-  const tabs = [
+  const tabs: Array<{
+    id: "information" | "structure" | "forge";
+    label: string;
+    content: ReactNode;
+  }> = [
     { id: "information", label: "Informations", content: informationContent },
     { id: "structure", label: "Parcours", content: structureContent },
     { id: "forge", label: "Forge AI", content: forgeContent }
@@ -83,7 +89,7 @@ export function TeacherCourseCockpit({
       <section className="teacher-course-cockpit" aria-label="Pilotage de la formation">
         <div className="teacher-course-cockpit__identity">
           <div>
-            <span className="eyebrow">Formation sélectionnée</span>
+            <span className="eyebrow">Création sélectionnée</span>
             <h1>{courseTitle}</h1>
           </div>
           <span className="state-badge" data-state={isPublished ? "published" : "draft"}>

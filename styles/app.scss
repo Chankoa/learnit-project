@@ -1601,6 +1601,21 @@
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
+.teacher-row--course h3 a {
+  color: inherit;
+}
+
+.teacher-row--course h3 a:hover {
+  color: var(--accent-primary);
+}
+
+.teacher-row__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
 .teacher-row span,
 .teacher-timeline article span + div p,
 .teacher-management-card__heading > div > span,
@@ -1791,6 +1806,131 @@
 .teacher-management-card__actions a:hover {
   border-color: var(--border-strong);
   background: var(--surface-elevated);
+}
+
+.creator-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.creator-card-actions details {
+  min-width: min(100%, 13rem);
+}
+
+.creator-card-actions summary {
+  justify-content: center;
+  cursor: pointer;
+  list-style: none;
+}
+
+.creator-card-actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.creator-card-actions details[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.creator-card-actions__secondary {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  padding: var(--space-2);
+}
+
+.creator-card-actions__secondary a {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-3);
+  color: var(--text-default);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.creator-card-actions__secondary a:hover {
+  background: var(--surface-elevated);
+  color: var(--accent-primary);
+}
+
+.creator-start {
+  display: grid;
+  gap: var(--space-4);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-xs);
+}
+
+.creator-start__heading {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.creator-start__heading span,
+.creator-start__option > span {
+  color: var(--accent-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-extrabold);
+  text-transform: uppercase;
+}
+
+.creator-start__heading h2 {
+  color: var(--text-strong);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-black);
+}
+
+.creator-start__options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.creator-start__option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-3);
+  min-width: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-panel);
+  padding: var(--space-4);
+  color: var(--text-default);
+}
+
+.creator-start__option[data-selected="true"] {
+  border-color: color-mix(in srgb, var(--accent-primary) 38%, var(--border-soft));
+  background: color-mix(in srgb, var(--accent-primary) 7%, var(--surface-panel));
+}
+
+a.creator-start__option:hover {
+  border-color: var(--accent-primary);
+  background: var(--surface-elevated);
+}
+
+.creator-start__option > svg {
+  color: var(--accent-primary);
+}
+
+.creator-start__option strong {
+  color: var(--text-strong);
+}
+
+.creator-start__option p {
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
 }
 
 .teacher-form,
@@ -3290,6 +3430,7 @@
 @media (max-width: 760px) {
   .teacher-metrics,
   .teacher-course-management-grid,
+  .creator-start__options,
   .forge-diff,
   .forge-lesson-diff,
   .forge-ai-comparison,
@@ -3322,7 +3463,13 @@
   .forge-ai-panel__action .btn,
   .forge-ai-decision-bar .btn,
   .teacher-inline-form__heading .btn,
-  .teacher-form-actions .btn {
+  .teacher-form-actions .btn,
+  .creator-card-actions > .btn,
+  .creator-card-actions details {
+    width: 100%;
+  }
+
+  .creator-card-actions summary {
     width: 100%;
   }
 
@@ -3365,6 +3512,22 @@
   .teacher-management-card__actions {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .teacher-row--course {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-row__actions {
+    justify-content: space-between;
+  }
+
+  .creator-start__option {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .creator-start__option > span {
+    grid-column: 2;
   }
 }
 

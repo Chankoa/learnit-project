@@ -44,7 +44,7 @@ export function TeacherCourseForm({
       <section className="teacher-form-section" id="course-information">
         <div>
           <span>Informations</span>
-          <h2>Identité de la formation</h2>
+          <h2>Identité du parcours</h2>
         </div>
         <div className="teacher-form-grid">
           <label className="teacher-field teacher-field--wide">
@@ -109,7 +109,7 @@ export function TeacherCourseForm({
       <div className="teacher-form-actions">
         <TeacherSubmitButton pendingLabel={mode === "edit" ? "Enregistrement..." : "Création..."}>
           <Save size={17} aria-hidden="true" />
-          {mode === "edit" ? "Enregistrer" : "Créer la formation"}
+          {mode === "edit" ? "Enregistrer" : "Créer le parcours"}
         </TeacherSubmitButton>
       </div>
     </form>

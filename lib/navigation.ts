@@ -1,7 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Award,
-  BookOpen,
   BookPlus,
   Compass,
   GraduationCap,
@@ -13,7 +12,6 @@ import {
   Send,
   Settings,
   ShieldCheck,
-  Sparkles,
   SquarePen,
   TrendingUp,
   UserCircle,
@@ -145,14 +143,14 @@ export const learnerNavigation = [
 
 export const teacherNavigation = [
   {
-    label: "Tableau de bord",
+    label: "Vue d'ensemble",
     href: "/app/teacher",
     icon: LayoutDashboard,
     role: "teacher",
     isActive: (pathname) => pathname === "/app/teacher"
   },
   {
-    label: "Mes formations",
+    label: "Mes créations",
     href: "/app/teacher/courses",
     icon: GraduationCap,
     role: "teacher",
@@ -160,29 +158,15 @@ export const teacherNavigation = [
       pathname === "/app/teacher/courses" ||
       (pathname.startsWith("/app/teacher/courses/") &&
         pathname !== "/app/teacher/courses/new" &&
-        pathname !== "/app/teacher/courses/forge" &&
-        !pathname.endsWith("/builder"))
+        pathname !== "/app/teacher/courses/forge")
   },
   {
-    label: "Créer une formation",
+    label: "Nouvelle création",
     href: "/app/teacher/courses/new",
     icon: BookPlus,
     role: "teacher",
-    isActive: (pathname) => pathname === "/app/teacher/courses/new"
-  },
-  {
-    label: "Créer avec Forge AI",
-    href: "/app/teacher/courses/forge",
-    icon: Sparkles,
-    role: "teacher",
-    isActive: (pathname) => pathname === "/app/teacher/courses/forge"
-  },
-  {
-    label: "Leçons",
-    href: "/app/teacher/courses",
-    icon: BookOpen,
-    role: "teacher",
-    isActive: (pathname) => pathname.endsWith("/builder")
+    isActive: (pathname) =>
+      pathname === "/app/teacher/courses/new" || pathname === "/app/teacher/courses/forge"
   },
   {
     label: "Ressources",
@@ -269,7 +253,7 @@ export const platformAccessNavigation = [
     isActive: (pathname) => pathname.startsWith("/app/learner") || pathname.startsWith("/dashboard") || pathname.startsWith("/learn")
   },
   {
-    label: "Espace enseignant",
+    label: "Espace Créer",
     href: "/app/teacher",
     icon: SquarePen,
     role: "teacher",
@@ -310,13 +294,13 @@ export const applicationSpaces = [
   },
   {
     role: "teacher",
-    title: "Espace enseignant",
+    title: "Créer",
     href: "/app/teacher",
-    description: "Créer et organiser vos formations, modules, leçons et supports.",
+    description: "Concevoir et organiser vos parcours, modules, leçons et ressources.",
     primaryHref: "/app/teacher",
-    primaryLabel: "Voir l'aperçu enseignant",
+    primaryLabel: "Ouvrir l'espace Créer",
     icon: SquarePen,
-    highlights: ["création de formation", "modules", "leçons", "apprenants"]
+    highlights: ["nouvelle création", "parcours", "ressources", "apprenants"]
   },
   {
     role: "admin",

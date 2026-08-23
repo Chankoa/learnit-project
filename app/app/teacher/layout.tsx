@@ -9,7 +9,7 @@ export default async function TeacherAppLayout({ children }: Readonly<{ children
   await requireRole("teacher", "/app/teacher");
 
   return (
-    <AppShellFrame role="teacher" title="Espace enseignant">
+    <AppShellFrame role="teacher" title="Créer">
       {children}
     </AppShellFrame>
   );

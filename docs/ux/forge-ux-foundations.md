@@ -326,6 +326,20 @@ Aucun Storybook n'est présent et aucun n'a été ajouté. Les écrans réels re
 - Storybook ou catalogue dédié : à reconsidérer lorsque le nombre de primitives partagées le justifie ;
 - migration ou renommage Supabase : hors de ce socle UX.
 
+## Creator navigation conventions — Sprint 9.7
+
+La première convergence visible applique le glossaire sans déplacer les frontières techniques :
+
+- le shell Teacher se présente comme l'espace `Créer`, tandis que le rôle reste `teacher` ;
+- `Mes créations` remplace `Mes formations` dans le contexte éditorial Teacher ;
+- `Nouvelle création` regroupe les entrées manuelle et Forge, sans fusionner leurs workflows ;
+- une carte possède une action dominante (`Continuer` pour un brouillon, `Gérer` pour un publié) ;
+- preview, builder, Forge et apprenants sont des actions secondaires regroupées ;
+- `formation` reste le terme de publication, catalogue et pilotage Admin ;
+- les routes historiques restent les destinations canoniques.
+
+Le détail du mapping, des états actifs et du flux est documenté dans `docs/ux/forge-creator-navigation.md`.
+
 ## Readiness for Sprint 9.7
 
 Le Sprint 9.7 peut s'appuyer sur ces règles à condition de :

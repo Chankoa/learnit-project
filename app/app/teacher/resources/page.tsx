@@ -45,7 +45,7 @@ export default async function TeacherResourcesPage({
     <div className="app-page teacher-page">
       <AppBreadcrumb
         items={[
-          { label: "Espace enseignant", href: "/app/teacher" },
+          { label: "Créer", href: "/app/teacher" },
           { label: "Ressources" }
         ]}
       />

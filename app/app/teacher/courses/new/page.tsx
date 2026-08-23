@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { PencilLine, Sparkles } from "lucide-react";
 
 import { createTeacherCourseAction } from "@/app/app/teacher/courses/actions";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
@@ -18,8 +20,8 @@ type NewTeacherCoursePageProps = {
 };
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Créer une formation",
-  description: "Créez une formation enseignant connectée à Supabase.",
+  title: "Nouvelle création",
+  description: "Commencez un parcours manuellement ou avec l'assistance de Forge.",
   path: "/app/teacher/courses/new",
   noIndex: true
 });
@@ -38,17 +40,42 @@ export default async function NewTeacherCoursePage({
     <div className="app-page teacher-page">
       <AppBreadcrumb
         items={[
-          { label: "Espace enseignant", href: "/app/teacher" },
-          { label: "Mes formations", href: "/app/teacher/courses" },
-          { label: "Créer une formation" }
+          { label: "Créer", href: "/app/teacher" },
+          { label: "Mes créations", href: "/app/teacher/courses" },
+          { label: "Nouvelle création" }
         ]}
       />
 
       <AppPageHeader
-        eyebrow="Création"
-        title="Créer une formation"
-        description="La formation est créée en brouillon. Vous pourrez ensuite ajouter modules, leçons et publier le parcours."
+        eyebrow="Créer"
+        title="Nouvelle création"
+        description="Choisissez votre point de départ. Dans les deux cas, le parcours reste un brouillon jusqu'à votre publication."
       />
+
+      <section className="creator-start" aria-labelledby="creator-start-title">
+        <div className="creator-start__heading">
+          <span>Point de départ</span>
+          <h2 id="creator-start-title">Comment souhaitez-vous commencer&nbsp;?</h2>
+        </div>
+        <div className="creator-start__options">
+          <div className="creator-start__option" data-selected="true">
+            <PencilLine size={21} aria-hidden="true" />
+            <div>
+              <strong>Créer manuellement</strong>
+              <p>Renseignez les informations essentielles, puis structurez le parcours dans le cockpit.</p>
+            </div>
+            <span>Mode actuel</span>
+          </div>
+          <Link className="creator-start__option" href="/app/teacher/courses/forge">
+            <Sparkles size={21} aria-hidden="true" />
+            <div>
+              <strong>Construire avec Forge</strong>
+              <p>Décrivez votre intention et validez une proposition avant son import en brouillon.</p>
+            </div>
+            <span>Choisir</span>
+          </Link>
+        </div>
+      </section>
 
       <TeacherCourseForm
         action={createTeacherCourseAction}
