@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
-  ChevronDown,
   Eye,
   GraduationCap,
   Layers3,
+  MoreHorizontal,
   Plus,
   Sparkles,
   Users
@@ -81,9 +81,9 @@ export default async function TeacherCoursesPage() {
                   <ArrowRight size={16} aria-hidden="true" />
                 </Link>
                 <details>
-                  <summary className="btn btn-secondary">
-                    Autres actions
-                    <ChevronDown size={16} aria-hidden="true" />
+                  <summary className="creator-card-actions__menu-trigger">
+                    <MoreHorizontal size={18} aria-hidden="true" />
+                    Actions
                   </summary>
                   <div className="creator-card-actions__secondary">
                     <Link href={`/app/teacher/courses/${course.id}/builder`}>

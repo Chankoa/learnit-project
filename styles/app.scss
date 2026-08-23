@@ -4052,6 +4052,137 @@ a.creator-start__option:hover {
   }
 }
 
+/* Sprint 10.1 — Creator card interactions. */
+.teacher-management-card {
+  position: relative;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.teacher-management-card:hover,
+.teacher-management-card:focus-within {
+  border-color: color-mix(in srgb, var(--text-muted) 32%, var(--border-soft));
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.teacher-management-card:focus-within,
+.teacher-management-card:has(.creator-card-actions details[open]) {
+  z-index: 10;
+}
+
+.teacher-management-card h2 {
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-snug);
+}
+
+.creator-card-actions {
+  position: relative;
+  align-items: center;
+}
+
+.creator-card-actions > .btn-primary {
+  box-shadow: none;
+}
+
+.creator-card-actions details {
+  position: relative;
+  min-width: 0;
+}
+
+.creator-card-actions details[open] {
+  z-index: 20;
+}
+
+.creator-card-actions__menu-trigger {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  list-style: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  padding: 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  transition: var(--transition-colors);
+}
+
+.creator-card-actions__menu-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.creator-card-actions__menu-trigger:hover,
+.creator-card-actions__menu-trigger:focus-visible,
+.creator-card-actions details[open] > .creator-card-actions__menu-trigger {
+  border-color: var(--border-soft);
+  background: var(--surface-muted);
+  color: var(--text-strong);
+}
+
+.creator-card-actions details[open] > .creator-card-actions__menu-trigger svg {
+  transform: none;
+}
+
+.creator-card-actions__menu-trigger:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.creator-card-actions__secondary {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  width: min(15rem, calc(100vw - 3rem));
+  margin-top: 0;
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-lg);
+}
+
+.creator-card-actions__secondary a {
+  min-height: 44px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.creator-card-actions__secondary a:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teacher-management-card,
+  .teacher-management-card:hover,
+  .teacher-management-card:focus-within {
+    transform: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .creator-card-actions {
+    flex-wrap: nowrap;
+  }
+
+  .creator-card-actions > .btn-primary {
+    width: auto;
+    flex: 1 1 auto;
+  }
+
+  .creator-card-actions details,
+  .creator-card-actions summary {
+    width: auto;
+  }
+
+  .creator-card-actions__secondary {
+    right: 0;
+  }
+}
+
 @media (max-width: 1180px) {
   .teacher-builder__workspace {
     grid-template-columns: 1fr;
