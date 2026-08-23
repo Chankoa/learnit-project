@@ -1,21 +1,19 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import Link from "next/link";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
-  FileText,
   Loader2,
-  Sparkles,
-  Trash2
+  Sparkles
 } from "lucide-react";
 
 import {
   applyForgeCourseImprovementAction,
-  deleteForgeCourseSourceAction,
-  generateForgeCourseImprovementAction,
-  uploadForgeCourseSourceAction
+  generateForgeCourseImprovementAction
 } from "@/app/app/teacher/forge/actions";
+import { ForgeAIStatus } from "@/components/app/ForgeAIPrimitives";
 import { TeacherDomainPicker } from "@/components/app/TeacherDomainPicker";
 import { courseLevelLabels } from "@/lib/teacher";
 import type { CourseLevel, Domain } from "@/types/course";
@@ -59,14 +57,6 @@ function getLevel(formData: FormData, key: string, fallback: CourseLevel) {
     : fallback;
 }
 
-function formatBytes(value: number) {
-  if (value >= 1024 * 1024) {
-    return `${(value / (1024 * 1024)).toFixed(1)} Mo`;
-  }
-
-  return `${Math.max(1, Math.round(value / 1024))} Ko`;
-}
-
 function buildBrief(formData: FormData, course: TeacherCourse, sources: CourseSource[]): CourseBrief {
   return {
     constraints: getString(formData, "constraints"),
@@ -89,20 +79,14 @@ export function ForgeCourseContextPanel({
   initialSources
 }: ForgeCourseContextPanelProps) {
   const router = useRouter();
-  const sourceInputRef = useRef<HTMLInputElement>(null);
   const [feedback, setFeedback] = useState<Feedback | undefined>();
   const [improvement, setImprovement] = useState<ForgeCourseImprovement | undefined>();
   const [isPending, startTransition] = useTransition();
-  const [isSourcePending, startSourceTransition] = useTransition();
-  const [sourceFeedback, setSourceFeedback] = useState<Feedback | undefined>();
-  const [sourceFile, setSourceFile] = useState<File | undefined>();
-  const [sourceTitle, setSourceTitle] = useState("");
-  const [sources, setSources] = useState(initialSources);
 
   function handleGenerate(formData: FormData) {
     const mode = getString(formData, "mode") === "improve_structure" ? "improve_structure" : "analyze";
     const input: ForgeCourseImprovementInput = {
-      brief: buildBrief(formData, course, sources),
+      brief: buildBrief(formData, course, initialSources),
       courseId: course.id,
       mode
     };
@@ -123,54 +107,6 @@ export function ForgeCourseContextPanel({
         tone: "success",
         text: "Proposition Forge générée — aucune modification appliquée."
       });
-    });
-  }
-
-  function uploadSource() {
-    if (!sourceFile) {
-      setSourceFeedback({ tone: "error", text: "Sélectionnez un fichier PDF, TXT ou Markdown." });
-      return;
-    }
-
-    const formData = new FormData();
-    formData.set("courseId", course.id);
-    formData.set("sourceTitle", sourceTitle);
-    formData.set("sourceFile", sourceFile);
-    setSourceFeedback(undefined);
-
-    startSourceTransition(async () => {
-      const result = await uploadForgeCourseSourceAction(formData);
-
-      if (!result.ok) {
-        setSourceFeedback({ tone: "error", text: result.error });
-        return;
-      }
-
-      setSources((current) => [result.data, ...current]);
-      setSourceTitle("");
-      setSourceFile(undefined);
-
-      if (sourceInputRef.current) {
-        sourceInputRef.current.value = "";
-      }
-
-      setSourceFeedback({ tone: "success", text: "Source ajoutée à cette formation." });
-    });
-  }
-
-  function deleteSource(sourceId: string) {
-    setSourceFeedback(undefined);
-
-    startSourceTransition(async () => {
-      const result = await deleteForgeCourseSourceAction(sourceId, course.id);
-
-      if (!result.ok) {
-        setSourceFeedback({ tone: "error", text: result.error });
-        return;
-      }
-
-      setSources((current) => current.filter((source) => source.id !== sourceId));
-      setSourceFeedback({ tone: "success", text: "Source supprimée." });
     });
   }
 
@@ -217,31 +153,10 @@ export function ForgeCourseContextPanel({
       </p>
 
       <form action={handleGenerate} className="forge-existing-course__grid">
-        <div className="teacher-form-grid">
+        <div className="teacher-form-grid forge-existing-course__essential">
           <label className="teacher-field teacher-field--wide">
             <span>Sujet / titre de travail</span>
             <input name="subject" defaultValue={course.title} required />
-          </label>
-          <TeacherDomainPicker domains={domains} selectedDomainId={course.domain.id} />
-          <label className="teacher-field">
-            <span>Niveau initial</span>
-            <select name="entryLevel" defaultValue={course.level}>
-              {levelOptions.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="teacher-field">
-            <span>Niveau visé</span>
-            <select name="targetLevel" defaultValue={course.level}>
-              {levelOptions.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
           </label>
           <label className="teacher-field teacher-field--wide">
             <span>Public cible</span>
@@ -257,102 +172,66 @@ export function ForgeCourseContextPanel({
             />
           </label>
           <label className="teacher-field teacher-field--wide">
-            <span>Prérequis</span>
-            <textarea name="prerequisites" defaultValue={course.requirements.join("\n")} rows={3} />
-          </label>
-          <label className="teacher-field">
             <span>Durée cible</span>
             <input name="duration" placeholder="Ex. 6 heures" />
           </label>
-          <label className="teacher-field teacher-field--wide">
-            <span>Contraintes particulières</span>
-            <textarea name="constraints" placeholder="Ex. garder des leçons courtes." rows={3} />
-          </label>
-          <label className="teacher-field">
-            <span>Mode d'assistance</span>
-            <select name="mode" defaultValue="analyze">
-              <option value="analyze">Analyser le parcours</option>
-              <option value="improve_structure">Améliorer la structure</option>
-            </select>
-          </label>
         </div>
 
-        <div className="forge-source-manager">
-          <h3>Sources associées</h3>
-          <div className="teacher-form-grid teacher-form-grid--compact">
+        <details className="forge-brief-advanced">
+          <summary>
+            <span>Affiner l’analyse</span>
+            <small>Domaine, niveaux, prérequis et contraintes</small>
+          </summary>
+          <div className="teacher-form-grid">
+            <TeacherDomainPicker domains={domains} selectedDomainId={course.domain.id} />
             <label className="teacher-field">
-              <span>Titre de la source</span>
-              <input
-                disabled={isSourcePending}
-                onChange={(event) => setSourceTitle(event.target.value)}
-                placeholder="Ex. Programme existant"
-                type="text"
-                value={sourceTitle}
-              />
+              <span>Niveau initial</span>
+              <select name="entryLevel" defaultValue={course.level}>
+                {levelOptions.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="teacher-field">
-              <span>Fichier PDF, TXT ou Markdown</span>
-              <input
-                accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown"
-                disabled={isSourcePending}
-                onChange={(event) => setSourceFile(event.target.files?.[0])}
-                ref={sourceInputRef}
-                type="file"
-              />
+              <span>Niveau visé</span>
+              <select name="targetLevel" defaultValue={course.level}>
+                {levelOptions.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
             </label>
-            <div className="teacher-form-actions">
-              <button
-                className="btn btn-secondary"
-                disabled={isSourcePending || !sourceFile}
-                onClick={uploadSource}
-                type="button"
-              >
-                {isSourcePending ? (
-                  <Loader2 className="auth-button-spinner" size={16} aria-hidden="true" />
-                ) : (
-                  <FileText size={16} aria-hidden="true" />
-                )}
-                {isSourcePending ? "Ajout..." : "Ajouter"}
-              </button>
-            </div>
+            <label className="teacher-field teacher-field--wide">
+              <span>Prérequis</span>
+              <textarea name="prerequisites" defaultValue={course.requirements.join("\n")} rows={3} />
+            </label>
+            <label className="teacher-field teacher-field--wide">
+              <span>Contraintes particulières</span>
+              <textarea name="constraints" placeholder="Ex. garder des leçons courtes." rows={3} />
+            </label>
           </div>
+        </details>
 
-          {sourceFeedback ? (
-            <div
-              className={sourceFeedback.tone === "error" ? "teacher-form-error" : "teacher-toast"}
-              role={sourceFeedback.tone === "error" ? "alert" : "status"}
-            >
-              {sourceFeedback.text}
-            </div>
-          ) : null}
-
-          {sources.length > 0 ? (
-            <div className="forge-source-list">
-              {sources.map((source) => (
-                <article className="forge-source-item" key={source.id}>
-                  <FileText size={17} aria-hidden="true" />
-                  <div>
-                    <strong>{source.title}</strong>
-                    <span>
-                      {source.fileName} · {formatBytes(source.fileSize)}
-                    </span>
-                  </div>
-                  <button
-                    aria-label={`Supprimer ${source.title}`}
-                    className="btn btn-secondary btn-icon"
-                    disabled={isSourcePending}
-                    onClick={() => deleteSource(source.id)}
-                    type="button"
-                  >
-                    <Trash2 size={16} aria-hidden="true" />
-                  </button>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="teacher-field-note">Aucune source associée à cette formation.</p>
-          )}
+        <div className="forge-existing-course__context">
+          <p>
+            {initialSources.length} source{initialSources.length > 1 ? "s" : ""} associée{initialSources.length > 1 ? "s" : ""}
+            à cette création.
+          </p>
+          <Link href={`/app/teacher/courses/${course.id}/edit?tab=sources`}>
+            Gérer les sources
+          </Link>
         </div>
+
+        <label className="teacher-field">
+          <span>Action Forge</span>
+          <select name="mode" defaultValue="analyze">
+            <option value="analyze">Analyser le parcours</option>
+            <option value="improve_structure">Améliorer la structure</option>
+          </select>
+        </label>
 
         <div className="teacher-form-actions">
           <button className="btn btn-primary" disabled={isPending} type="submit">
@@ -361,18 +240,24 @@ export function ForgeCourseContextPanel({
             ) : (
               <Sparkles size={17} aria-hidden="true" />
             )}
-            {isPending ? "Forge analyse..." : "Analyser avec Forge"}
+            {isPending ? "Forge analyse…" : "Lancer l’analyse"}
           </button>
         </div>
       </form>
 
+      {isPending ? (
+        <ForgeAIStatus
+          description="Le parcours enregistré et son contexte sont en cours d’analyse."
+          state="loading"
+          title="Forge analyse cette création…"
+        />
+      ) : null}
+
       {feedback ? (
-        <div
-          className={feedback.tone === "error" ? "teacher-form-error" : "teacher-toast"}
-          role={feedback.tone === "error" ? "alert" : "status"}
-        >
-          {feedback.text}
-        </div>
+        <ForgeAIStatus
+          description={feedback.text}
+          state={feedback.tone === "error" ? "error" : "success"}
+        />
       ) : null}
 
       {improvement ? (

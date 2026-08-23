@@ -1,23 +1,20 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
-  FileText,
   Loader2,
   Sparkles,
-  Trash2,
   XCircle
 } from "lucide-react";
 
 import {
-  deleteForgeCourseSourceAction,
   generateForgeCourseProposalAction,
-  importForgeCourseProposalAction,
-  uploadForgeCourseSourceAction
+  importForgeCourseProposalAction
 } from "@/app/app/teacher/forge/actions";
-import { ForgeAIStatus } from "@/components/app/ForgeAIPrimitives";
+import { ForgeAIPanel, ForgeAIStatus } from "@/components/app/ForgeAIPrimitives";
+import { ForgeSourceManager } from "@/components/app/ForgeSourceManager";
 import { TeacherDomainPicker } from "@/components/app/TeacherDomainPicker";
 import { getForgeCourseBriefPrefill } from "@/lib/forge-ai/creation-intent";
 import { courseLevelLabels } from "@/lib/teacher";
@@ -60,14 +57,6 @@ function getLevel(formData: FormData, key: string, fallback: CourseLevel) {
     : fallback;
 }
 
-function formatBytes(value: number) {
-  if (value >= 1024 * 1024) {
-    return `${(value / (1024 * 1024)).toFixed(1)} Mo`;
-  }
-
-  return `${Math.max(1, Math.round(value / 1024))} Ko`;
-}
-
 function buildBrief(formData: FormData, sources: CourseSource[]): CourseBrief {
   return {
     constraints: getString(formData, "constraints"),
@@ -86,19 +75,18 @@ function buildBrief(formData: FormData, sources: CourseSource[]): CourseBrief {
 
 export function ForgeCourseCreator({ domains, initialIntent }: ForgeCourseCreatorProps) {
   const router = useRouter();
-  const sourceInputRef = useRef<HTMLInputElement>(null);
+  const initialBrief = getForgeCourseBriefPrefill(initialIntent);
+  const [audience, setAudience] = useState("");
   const [feedback, setFeedback] = useState<Feedback | undefined>();
   const [brief, setBrief] = useState<CourseBrief | undefined>();
+  const [duration, setDuration] = useState("");
   const [isPending, startTransition] = useTransition();
-  const [isSourcePending, startSourceTransition] = useTransition();
+  const [objectives, setObjectives] = useState("");
   const [proposal, setProposal] = useState<ForgeCourseProposal | undefined>();
   const [selectedLessons, setSelectedLessons] = useState<Set<string>>(new Set());
   const [selectedModules, setSelectedModules] = useState<Set<string>>(new Set());
-  const [sourceFeedback, setSourceFeedback] = useState<Feedback | undefined>();
-  const [sourceTitle, setSourceTitle] = useState("");
-  const [sourceFile, setSourceFile] = useState<File | undefined>();
   const [sources, setSources] = useState<CourseSource[]>([]);
-  const initialBrief = getForgeCourseBriefPrefill(initialIntent);
+  const [subject, setSubject] = useState(initialBrief.subject);
 
   const selectedLessonCount = selectedLessons.size;
   const selectedModuleCount = selectedModules.size;
@@ -139,53 +127,6 @@ export function ForgeCourseCreator({ domains, initialIntent }: ForgeCourseCreato
         setProposal(undefined);
         setFeedback({ tone: "error", text: result.error });
       }
-    });
-  }
-
-  function uploadSource() {
-    if (!sourceFile) {
-      setSourceFeedback({ tone: "error", text: "Sélectionnez un fichier PDF, TXT ou Markdown." });
-      return;
-    }
-
-    const formData = new FormData();
-    formData.set("sourceTitle", sourceTitle);
-    formData.set("sourceFile", sourceFile);
-    setSourceFeedback(undefined);
-
-    startSourceTransition(async () => {
-      const result = await uploadForgeCourseSourceAction(formData);
-
-      if (!result.ok) {
-        setSourceFeedback({ tone: "error", text: result.error });
-        return;
-      }
-
-      setSources((current) => [result.data, ...current]);
-      setSourceTitle("");
-      setSourceFile(undefined);
-
-      if (sourceInputRef.current) {
-        sourceInputRef.current.value = "";
-      }
-
-      setSourceFeedback({ tone: "success", text: "Source ajoutée au Course Brief." });
-    });
-  }
-
-  function deleteSource(sourceId: string) {
-    setSourceFeedback(undefined);
-
-    startSourceTransition(async () => {
-      const result = await deleteForgeCourseSourceAction(sourceId);
-
-      if (!result.ok) {
-        setSourceFeedback({ tone: "error", text: result.error });
-        return;
-      }
-
-      setSources((current) => current.filter((source) => source.id !== sourceId));
-      setSourceFeedback({ tone: "success", text: "Source retirée du Course Brief." });
     });
   }
 
@@ -277,188 +218,166 @@ export function ForgeCourseCreator({ domains, initialIntent }: ForgeCourseCreato
   return (
     <div className="forge-course-creator">
       {initialIntent ? (
-        <ForgeAIStatus
-          description="Le sujet et le format éventuel ont été repris ci-dessous. Complétez le public et les objectifs, puis vérifiez chaque champ avant de demander une proposition."
-          state="success"
-          title="Votre intention a préparé ce Course Brief."
-        />
+        <section className="forge-brief-intent" aria-labelledby="forge-brief-intent-title">
+          <span>Votre intention</span>
+          <blockquote id="forge-brief-intent-title">{initialIntent.text}</blockquote>
+          <p>
+            Forge a préparé ce point de départ. Complétez ce qui manque avant de demander une
+            proposition.
+          </p>
+        </section>
       ) : null}
 
       <div className="forge-ai-layout">
-        <form action={handleGenerate} className="teacher-form forge-ai-form">
-        <section className="teacher-form-section">
-          <div>
-            <span>Forge AI</span>
-            <h2>Course Brief</h2>
-          </div>
-          <div className="teacher-form-grid">
-            <label className="teacher-field teacher-field--wide">
-              <span>Sujet / titre de travail</span>
-              <input
-                defaultValue={initialBrief.subject}
-                name="subject"
-                placeholder="Ex. Créer un portfolio web professionnel"
-                required
-              />
-            </label>
-            <TeacherDomainPicker domains={domains} selectedDomainId={domains[0]?.id} />
-            <label className="teacher-field">
-              <span>Niveau initial</span>
-              <select name="entryLevel" defaultValue="beginner">
-                {levelOptions.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="teacher-field">
-              <span>Niveau visé</span>
-              <select name="targetLevel" defaultValue="intermediate">
-                {levelOptions.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="teacher-field teacher-field--wide">
-              <span>Public cible</span>
-              <input name="targetAudience" placeholder="Ex. indépendants créatifs débutants" required />
-            </label>
-            <label className="teacher-field teacher-field--wide">
-              <span>Objectifs pédagogiques</span>
-              <textarea
-                defaultValue=""
-                name="learningObjectives"
-                placeholder="Un objectif par ligne. Ex. Produire une page portfolio publiable."
-                required
-                rows={4}
-              />
-            </label>
-            <label className="teacher-field teacher-field--wide">
-              <span>Prérequis</span>
-              <textarea
-                name="prerequisites"
-                placeholder="Ex. savoir naviguer dans un éditeur de code, disposer d'un projet personnel."
-                rows={3}
-              />
-            </label>
-            <label className="teacher-field">
-              <span>Durée cible</span>
-              <input name="duration" placeholder="Ex. 4 semaines, 6 heures" />
-            </label>
-            <label className="teacher-field teacher-field--wide">
-              <span>Contraintes particulières</span>
-              <textarea
-                defaultValue={initialBrief.constraints}
-                name="constraints"
-                placeholder="Ex. pas de jargon technique, privilégier les exercices courts."
-                rows={3}
-              />
-            </label>
-          </div>
-        </section>
-
-        <section className="teacher-form-section">
-          <div>
-            <span>Sources</span>
-            <h2>Contexte documentaire</h2>
-          </div>
-          <div className="teacher-form-grid teacher-form-grid--compact">
-            <label className="teacher-field">
-              <span>Titre de la source</span>
-              <input
-                disabled={isSourcePending}
-                onChange={(event) => setSourceTitle(event.target.value)}
-                placeholder="Ex. Référentiel de compétences"
-                type="text"
-                value={sourceTitle}
-              />
-            </label>
-            <label className="teacher-field">
-              <span>Fichier PDF, TXT ou Markdown</span>
-              <input
-                accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown"
-                disabled={isSourcePending}
-                onChange={(event) => setSourceFile(event.target.files?.[0])}
-                ref={sourceInputRef}
-                type="file"
-              />
-            </label>
-            <div className="teacher-form-actions">
-              <button
-                className="btn btn-secondary"
-                disabled={isSourcePending || !sourceFile}
-                onClick={uploadSource}
-                type="button"
-              >
-                {isSourcePending ? (
-                  <Loader2 className="auth-button-spinner" size={16} aria-hidden="true" />
-                ) : (
-                  <FileText size={16} aria-hidden="true" />
-                )}
-                {isSourcePending ? "Ajout..." : "Ajouter la source"}
-              </button>
+        <form
+          action={handleGenerate}
+          aria-busy={isPending}
+          className="teacher-form forge-ai-form forge-brief-workspace"
+        >
+          <section className="teacher-form-section forge-brief-essential">
+            <div className="forge-brief-section-heading">
+              <div>
+                <span>Brief essentiel</span>
+                <h2>Le point de départ</h2>
+                <p>Les quatre informations utiles pour cadrer la proposition.</p>
+              </div>
             </div>
-          </div>
 
-          {sourceFeedback ? (
-            <div
-              className={sourceFeedback.tone === "error" ? "teacher-form-error" : "teacher-toast"}
-              role={sourceFeedback.tone === "error" ? "alert" : "status"}
-            >
-              {sourceFeedback.text}
-            </div>
-          ) : null}
-
-          {sources.length > 0 ? (
-            <div className="forge-source-list">
-              {sources.map((source) => (
-                <article className="forge-source-item" key={source.id}>
-                  <FileText size={17} aria-hidden="true" />
-                  <div>
-                    <strong>{source.title}</strong>
-                    <span>
-                      {source.fileName} · {formatBytes(source.fileSize)}
-                    </span>
-                  </div>
-                  <button
-                    aria-label={`Retirer ${source.title}`}
-                    className="btn btn-secondary btn-icon"
-                    disabled={isSourcePending}
-                    onClick={() => deleteSource(source.id)}
-                    type="button"
-                  >
-                    <Trash2 size={16} aria-hidden="true" />
-                  </button>
-                </article>
+            <div className="forge-brief-completeness" aria-label="État du brief essentiel">
+              {[
+                ["Sujet", subject],
+                ["Public", audience],
+                ["Objectifs", objectives],
+                ["Durée", duration]
+              ].map(([label, value]) => (
+                <div data-complete={Boolean(value.trim())} key={label}>
+                  <span>{label}</span>
+                  <strong>{value.trim() ? "Renseigné" : "À préciser"}</strong>
+                </div>
               ))}
             </div>
-          ) : (
-            <p className="teacher-field-note">
-              Les sources sont facultatives. Forge les traitera comme du contexte, jamais comme des instructions.
-            </p>
-          )}
 
-          <div className="teacher-form-actions">
+            <div className="teacher-form-grid">
+              <label className="teacher-field teacher-field--wide">
+                <span>Sujet / titre de travail</span>
+                <input
+                  name="subject"
+                  onChange={(event) => setSubject(event.target.value)}
+                  placeholder="Ex. Construire un atelier sur la sécurité en canyoning"
+                  required
+                  value={subject}
+                />
+              </label>
+              <label className="teacher-field teacher-field--wide">
+                <span>Public cible</span>
+                <input
+                  name="targetAudience"
+                  onChange={(event) => setAudience(event.target.value)}
+                  placeholder="Ex. encadrants débutants en canyoning"
+                  required
+                  value={audience}
+                />
+              </label>
+              <label className="teacher-field teacher-field--wide">
+                <span>Objectifs pédagogiques</span>
+                <textarea
+                  name="learningObjectives"
+                  onChange={(event) => setObjectives(event.target.value)}
+                  placeholder="Un objectif observable par ligne."
+                  required
+                  rows={4}
+                  value={objectives}
+                />
+              </label>
+              <label className="teacher-field teacher-field--wide">
+                <span>Durée cible</span>
+                <input
+                  name="duration"
+                  onChange={(event) => setDuration(event.target.value)}
+                  placeholder="Ex. 2 heures ou 3 semaines"
+                  value={duration}
+                />
+              </label>
+            </div>
+          </section>
+
+          <details className="forge-brief-advanced">
+            <summary>
+              <span>Affiner le brief</span>
+              <small>Domaine, niveaux, prérequis et contraintes</small>
+            </summary>
+            <div className="teacher-form-grid">
+              <TeacherDomainPicker domains={domains} selectedDomainId={domains[0]?.id} />
+              <label className="teacher-field">
+                <span>Niveau initial</span>
+                <select name="entryLevel" defaultValue="beginner">
+                  {levelOptions.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="teacher-field">
+                <span>Niveau visé</span>
+                <select name="targetLevel" defaultValue="intermediate">
+                  {levelOptions.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="teacher-field teacher-field--wide">
+                <span>Prérequis</span>
+                <textarea
+                  name="prerequisites"
+                  placeholder="Ex. disposer d'une première expérience de terrain."
+                  rows={3}
+                />
+              </label>
+              <label className="teacher-field teacher-field--wide">
+                <span>Contraintes particulières</span>
+                <textarea
+                  defaultValue={initialBrief.constraints}
+                  name="constraints"
+                  placeholder="Ex. privilégier des exercices courts et du vocabulaire accessible."
+                  rows={3}
+                />
+              </label>
+            </div>
+          </details>
+
+          <section className="teacher-form-section forge-brief-sources">
+            <ForgeSourceManager
+              onSourcesChange={setSources}
+              sources={sources}
+            />
+          </section>
+
+          <div className="forge-brief-submit">
+            <p>Forge proposera une structure. Vous choisirez ensuite ce qui sera importé.</p>
             <button className="btn btn-primary" disabled={isPending} type="submit">
               {isPending ? (
                 <Loader2 className="auth-button-spinner" size={16} aria-hidden="true" />
               ) : (
                 <Sparkles size={17} aria-hidden="true" />
               )}
-              {isPending ? "Forge prépare une proposition..." : "Analyser et générer"}
+              {isPending ? "Forge prépare une proposition…" : "Générer une proposition"}
             </button>
           </div>
-        </section>
-      </form>
+        </form>
 
-      <section className="teacher-form-section forge-ai-preview" aria-live="polite">
-        <div>
-          <span>Prévisualisation</span>
-          <h2>Proposition générée par IA — à valider</h2>
-        </div>
+        <div className="forge-ai-preview" aria-live="polite">
+          <ForgeAIPanel
+            description={
+              proposal
+                ? "Examinez la structure, retirez les éléments inutiles puis importez uniquement votre sélection."
+                : "À partir du brief, Forge proposera une structure de modules et de leçons adaptée à votre objectif."
+            }
+            eyebrow={proposal ? "Proposition Forge" : "Forge"}
+            title={proposal ? "Une structure à vérifier" : "Ce que Forge va faire"}
+          >
 
         {feedback ? (
           <ForgeAIStatus
@@ -467,15 +386,23 @@ export function ForgeCourseCreator({ domains, initialIntent }: ForgeCourseCreato
           />
         ) : null}
 
-        {!proposal ? (
-          <div className="teacher-builder-empty teacher-builder-empty--compact">
-            <span>
-              <Sparkles size={22} aria-hidden="true" />
-            </span>
-            <h2>Aucune proposition générée.</h2>
-            <p>Décrivez un Course Brief pour obtenir une structure révisable.</p>
-          </div>
+        {isPending ? (
+          <ForgeAIStatus
+            description="Le brief et les sources sont analysés. Votre saisie reste disponible."
+            state="loading"
+            title="Forge prépare une proposition…"
+          />
+        ) : null}
+
+        {!proposal && !isPending ? (
+          <ul className="forge-preview-guidance">
+            <li><CheckCircle2 size={17} aria-hidden="true" /> examiner la proposition ;</li>
+            <li><CheckCircle2 size={17} aria-hidden="true" /> retirer des modules ou leçons ;</li>
+            <li><CheckCircle2 size={17} aria-hidden="true" /> décider de ce qui est importé.</li>
+            <li><Sparkles size={17} aria-hidden="true" /> Rien ne sera ajouté sans validation.</li>
+          </ul>
         ) : (
+          proposal ? (
           <div className="forge-proposal">
             <header>
               <div>
@@ -594,8 +521,10 @@ export function ForgeCourseCreator({ domains, initialIntent }: ForgeCourseCreato
               </button>
             </div>
           </div>
+          ) : null
         )}
-        </section>
+          </ForgeAIPanel>
+        </div>
       </div>
     </div>
   );

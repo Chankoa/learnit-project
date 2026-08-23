@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Eye, Settings2 } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
-import { AppPageHeader } from "@/components/app/AppPageHeader";
+import { CreatorWorkspaceHeader } from "@/components/app/CreatorWorkspaceHeader";
 import { TeacherCourseBuilder } from "@/components/app/TeacherCourseBuilder";
 import {
   countTeacherLessons,
@@ -73,10 +75,29 @@ export default async function TeacherCourseBuilderPage({
         ]}
       />
 
-      <AppPageHeader
-        eyebrow="Structure"
-        title="Éditeur de parcours"
-        description={`${formatModuleCount(course.modules.length)}, ${formatLessonCount(countTeacherLessons(course))}. Les modifications sont enregistrées dans Supabase.`}
+      <CreatorWorkspaceHeader
+        actions={
+          <>
+            <Link className="btn btn-secondary" href={`/app/teacher/courses/${course.id}/edit`}>
+              <Settings2 size={17} aria-hidden="true" />
+              Informations
+            </Link>
+            <Link
+              className="btn btn-secondary"
+              href={`/app/teacher/courses/${course.id}/preview`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <Eye size={17} aria-hidden="true" />
+              Prévisualiser
+            </Link>
+          </>
+        }
+        eyebrow="Création · Parcours"
+        meta={<>{formatModuleCount(course.modules.length)} · {formatLessonCount(countTeacherLessons(course))} · Modifications enregistrées dans Supabase</>}
+        status={course.status === "published" ? "published" : "draft"}
+        statusLabel={course.status === "published" ? "Publié" : "Brouillon"}
+        title={course.title}
       />
 
       <TeacherCourseBuilder

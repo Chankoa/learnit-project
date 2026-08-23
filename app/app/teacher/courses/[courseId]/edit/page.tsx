@@ -10,6 +10,7 @@ import {
 } from "@/app/app/teacher/courses/actions";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { ForgeCourseContextPanel } from "@/components/app/ForgeCourseContextPanel";
+import { ForgeCourseSourcesPanel } from "@/components/app/ForgeCourseSourcesPanel";
 import { TeacherCourseCockpit } from "@/components/app/TeacherCourseCockpit";
 import { TeacherCourseForm } from "@/components/app/TeacherCourseForm";
 import { getForgeCourseSources } from "@/lib/forge-ai/service";
@@ -86,7 +87,12 @@ export default async function EditTeacherCoursePage({
   const isPublished = course.status === "published";
   const requestedTab = getSingleParam(query?.tab);
   const initialTab =
-    requestedTab === "structure" || requestedTab === "forge" ? requestedTab : "information";
+    requestedTab === "structure" ||
+    requestedTab === "sources" ||
+    requestedTab === "forge" ||
+    requestedTab === "publication"
+      ? requestedTab
+      : "information";
 
   return (
     <div className="app-page teacher-page">
@@ -133,6 +139,7 @@ export default async function EditTeacherCoursePage({
         ]}
         publicationIssues={publicationIssues.map((label) => ({ href: issueLinks.get(label), label }))}
         publishAction={publishTeacherCourseAction.bind(null, course.id)}
+        sourceContent={<ForgeCourseSourcesPanel courseId={course.id} initialSources={sources} />}
         structureContent={
           <section className="teacher-form-section teacher-course-structure-summary">
             <div>

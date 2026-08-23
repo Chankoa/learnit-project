@@ -2,8 +2,9 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import { Eye, Send, Sparkles, X } from "lucide-react";
+import { Eye, Send, X } from "lucide-react";
 
+import { CreatorWorkspaceHeader } from "@/components/app/CreatorWorkspaceHeader";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
 
 type PublicationIssue = {
@@ -21,7 +22,7 @@ type TeacherCourseCockpitProps = {
   enrollmentLabel: string;
   forgeContent: ReactNode;
   informationContent: ReactNode;
-  initialTab?: "information" | "structure" | "forge";
+  initialTab?: CockpitTabId;
   isPublished: boolean;
   lessonCountLabel: string;
   moduleCountLabel: string;
@@ -29,9 +30,12 @@ type TeacherCourseCockpitProps = {
   publicationChecklist: PublicationChecklistItem[];
   publicationIssues: PublicationIssue[];
   publishAction: (formData: FormData) => void | Promise<void>;
+  sourceContent: ReactNode;
   structureContent: ReactNode;
   unpublishAction: (formData: FormData) => void | Promise<void>;
 };
+
+type CockpitTabId = "information" | "structure" | "sources" | "forge" | "publication";
 
 export function TeacherCourseCockpit({
   courseTitle,
@@ -46,6 +50,7 @@ export function TeacherCourseCockpit({
   publicationChecklist,
   publicationIssues,
   publishAction,
+  sourceContent,
   structureContent,
   unpublishAction
 }: TeacherCourseCockpitProps) {
@@ -54,6 +59,10 @@ export function TeacherCourseCockpit({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const canPublish = publicationIssues.length === 0;
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -74,40 +83,77 @@ export function TeacherCourseCockpit({
     setDialogMode(null);
   }
 
+  const publicationContent = (
+    <section className="teacher-form-section teacher-publication-panel">
+      <div>
+        <span>Publication</span>
+        <h2>{isPublished ? "Formation publiée" : "Préparer la publication"}</h2>
+        <p>
+          La publication est l’aboutissement du travail éditorial. Elle reste toujours une action
+          humaine distincte des propositions Forge.
+        </p>
+      </div>
+
+      <ul className="teacher-publication-readiness" aria-label="État de préparation à la publication">
+        {publicationChecklist.map((item) => (
+          <li data-complete={item.complete} key={item.label}>
+            {item.complete ? "✓" : "×"} {item.label}
+          </li>
+        ))}
+      </ul>
+
+      {!isPublished && !canPublish ? (
+        <div className="teacher-publication-panel__issues">
+          <strong>
+            {publicationIssues.length} {publicationIssues.length > 1 ? "éléments restent" : "élément reste"} à compléter.
+          </strong>
+          <ul className="teacher-publication-checklist">
+            {publicationIssues.map((issue) => (
+              <li key={issue.label}>
+                {issue.href ? <a href={issue.href}>{issue.label}</a> : issue.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <p className="teacher-field-note">
+        L’action de publication reste dans l’en-tête de la création afin de conserver une seule
+        action principale visible.
+      </p>
+    </section>
+  );
+
   const tabs: Array<{
-    id: "information" | "structure" | "forge";
+    id: CockpitTabId;
     label: string;
     content: ReactNode;
   }> = [
     { id: "information", label: "Informations", content: informationContent },
     { id: "structure", label: "Parcours", content: structureContent },
-    { id: "forge", label: "Forge AI", content: forgeContent }
+    { id: "sources", label: "Sources", content: sourceContent },
+    { id: "forge", label: "Forge AI", content: forgeContent },
+    { id: "publication", label: "Publication", content: publicationContent }
   ];
+
+  function moveTab(currentId: CockpitTabId, direction: -1 | 1) {
+    const currentIndex = tabs.findIndex((tab) => tab.id === currentId);
+    const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+    const nextTab = tabs[nextIndex];
+
+    setActiveTab(nextTab.id);
+    requestAnimationFrame(() => document.getElementById(`${nextTab.id}-tab`)?.focus());
+  }
 
   return (
     <>
-      <section className="teacher-course-cockpit" aria-label="Pilotage de la formation">
-        <div className="teacher-course-cockpit__identity">
-          <div>
-            <span className="eyebrow">Création sélectionnée</span>
-            <h1>{courseTitle}</h1>
-          </div>
-          <span className="state-badge" data-state={isPublished ? "published" : "draft"}>
-            {isPublished ? "Publié" : "Brouillon"}
-          </span>
-        </div>
-        <p className="teacher-course-cockpit__meta">
-          {moduleCountLabel} · {lessonCountLabel} · {enrollmentLabel}
-        </p>
-        <div className="teacher-course-cockpit__actions">
+      <CreatorWorkspaceHeader
+        actions={
+          <>
           <a className="btn btn-secondary" href={previewHref} target="_blank" rel="noreferrer">
             <Eye size={17} aria-hidden="true" />
             {isPublished ? "Voir sur le site" : "Prévisualiser"}
           </a>
-          <button className="btn btn-secondary" onClick={() => setActiveTab("forge")} type="button">
-            <Sparkles size={17} aria-hidden="true" />
-            Modifier le parcours avec Forge AI
-          </button>
           {isPublished ? (
             <button className="btn btn-secondary" onClick={() => setDialogMode("unpublish")} type="button">
               Dépublier
@@ -118,8 +164,14 @@ export function TeacherCourseCockpit({
               Publier la formation
             </button>
           )}
-        </div>
-      </section>
+          </>
+        }
+        eyebrow="Création sélectionnée"
+        meta={<>{moduleCountLabel} · {lessonCountLabel} · {enrollmentLabel}</>}
+        status={isPublished ? "published" : "draft"}
+        statusLabel={isPublished ? "Publié" : "Brouillon"}
+        title={courseTitle}
+      />
 
       <div className="teacher-course-tabs" role="tablist" aria-label="Espaces de travail de la formation">
         {tabs.map((tab) => (
@@ -128,6 +180,17 @@ export function TeacherCourseCockpit({
             aria-selected={activeTab === tab.id}
             id={`${tab.id}-tab`}
             key={tab.id}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowLeft") {
+                event.preventDefault();
+                moveTab(tab.id, -1);
+              }
+
+              if (event.key === "ArrowRight") {
+                event.preventDefault();
+                moveTab(tab.id, 1);
+              }
+            }}
             onClick={() => setActiveTab(tab.id)}
             role="tab"
             tabIndex={activeTab === tab.id ? 0 : -1}

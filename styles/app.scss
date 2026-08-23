@@ -2320,9 +2320,36 @@ a.creator-start__option:hover {
 }
 
 .teacher-course-tabs button:focus-visible,
-.teacher-publication-dialog button:focus-visible {
+.teacher-publication-dialog button:focus-visible,
+.forge-brief-advanced summary:focus-visible,
+.forge-source-manager__add summary:focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
+}
+
+.teacher-publication-panel > div:first-child {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.teacher-publication-panel > div:first-child p {
+  max-width: 48rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.teacher-publication-panel__issues {
+  border: 1px solid color-mix(in srgb, var(--status-warning) 35%, var(--border-soft));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--status-warning) 7%, var(--surface-card));
+  padding: var(--space-4);
+}
+
+.teacher-publication-panel__issues > strong {
+  color: var(--status-warning);
+  font-size: var(--text-sm);
 }
 
 .teacher-course-structure-summary > div:first-child {
@@ -3050,7 +3077,7 @@ a.creator-start__option:hover {
 
 .forge-ai-layout {
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
   gap: var(--space-5);
   align-items: start;
 }
@@ -3058,6 +3085,224 @@ a.creator-start__option:hover {
 .forge-ai-form,
 .forge-ai-preview {
   min-width: 0;
+}
+
+.forge-ai-preview > .forge-ai-panel {
+  position: sticky;
+  top: var(--space-5);
+}
+
+.forge-brief-intent {
+  display: grid;
+  gap: var(--space-2);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 24%, var(--border-soft));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-primary) 6%, var(--surface-card));
+  padding: var(--space-5);
+}
+
+.forge-brief-intent > span,
+.forge-brief-section-heading span,
+.forge-source-manager__heading > div > span {
+  color: var(--accent-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.forge-brief-intent blockquote {
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: clamp(var(--text-lg), 2.5vw, var(--text-2xl));
+  font-weight: var(--font-weight-black);
+  line-height: var(--leading-snug);
+}
+
+.forge-brief-intent p,
+.forge-brief-section-heading p,
+.forge-source-manager__heading p,
+.forge-brief-submit p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.forge-brief-workspace {
+  min-width: 0;
+}
+
+.forge-brief-section-heading,
+.forge-source-manager__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.forge-brief-section-heading > div,
+.forge-source-manager__heading > div {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.forge-brief-completeness {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.forge-brief-completeness > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  padding: var(--space-3);
+}
+
+.forge-brief-completeness span {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.forge-brief-completeness strong {
+  overflow: hidden;
+  color: var(--status-warning);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.forge-brief-completeness > div[data-complete="true"] strong {
+  color: var(--status-success);
+}
+
+.forge-brief-advanced,
+.forge-source-manager__add {
+  min-width: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+
+.forge-brief-advanced summary,
+.forge-source-manager__add summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 52px;
+  cursor: pointer;
+  list-style: none;
+  padding: var(--space-3) var(--space-4);
+}
+
+.forge-brief-advanced summary::-webkit-details-marker,
+.forge-source-manager__add summary::-webkit-details-marker {
+  display: none;
+}
+
+.forge-brief-advanced summary::after,
+.forge-source-manager__add summary::after {
+  content: "+";
+  color: var(--accent-primary);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-black);
+}
+
+.forge-brief-advanced[open] summary::after,
+.forge-source-manager__add[open] summary::after {
+  content: "−";
+}
+
+.forge-brief-advanced summary > span,
+.forge-source-manager__add summary {
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-black);
+}
+
+.forge-brief-advanced summary small {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.forge-brief-advanced > .teacher-form-grid,
+.forge-source-manager__add > .teacher-form-grid {
+  border-top: 1px solid var(--border-soft);
+  padding: var(--space-4);
+}
+
+.forge-brief-sources {
+  padding: var(--space-5);
+}
+
+.forge-source-manager__heading .state-badge {
+  flex: 0 0 auto;
+}
+
+.forge-source-manager__add summary {
+  justify-content: flex-start;
+}
+
+.forge-source-manager__add summary::after {
+  margin-left: auto;
+}
+
+.forge-brief-submit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 22%, var(--border-soft));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-primary) 5%, var(--surface-card));
+  padding: var(--space-4);
+}
+
+.forge-brief-submit .btn {
+  flex: 0 0 auto;
+}
+
+.forge-preview-guidance {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.forge-preview-guidance li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.forge-preview-guidance li svg {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+  color: var(--status-success);
+}
+
+.forge-preview-guidance li:last-child {
+  border-top: 1px solid var(--border-soft);
+  padding-top: var(--space-3);
+  color: var(--text-strong);
+  font-weight: var(--font-weight-bold);
+}
+
+.forge-preview-guidance li:last-child svg {
+  color: var(--accent-primary);
 }
 
 .forge-proposal {
@@ -3419,6 +3664,25 @@ a.creator-start__option:hover {
   gap: var(--space-5);
 }
 
+.forge-existing-course__context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.forge-existing-course__context a {
+  flex: 0 0 auto;
+  color: var(--accent-primary);
+  font-weight: var(--font-weight-bold);
+}
+
 .forge-source-item {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -3602,6 +3866,16 @@ a.creator-start__option:hover {
   }
 }
 
+@media (max-width: 1050px) {
+  .forge-ai-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .forge-ai-preview > .forge-ai-panel {
+    position: static;
+  }
+}
+
 @media (max-width: 760px) {
   .teacher-metrics,
   .teacher-course-management-grid,
@@ -3631,6 +3905,34 @@ a.creator-start__option:hover {
   .forge-home-intent__footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .forge-brief-completeness {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .forge-brief-section-heading,
+  .forge-source-manager__heading,
+  .forge-brief-submit,
+  .forge-existing-course__context {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .forge-brief-submit .btn,
+  .forge-existing-course__context a {
+    width: 100%;
+  }
+
+  .forge-brief-advanced summary {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .forge-brief-advanced summary small {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
   }
 
   .teacher-management-card__meta {
@@ -3716,6 +4018,10 @@ a.creator-start__option:hover {
   }
 
   .teacher-metrics.forge-home-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .forge-brief-completeness {
     grid-template-columns: 1fr;
   }
 

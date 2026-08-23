@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
-import { AppPageHeader } from "@/components/app/AppPageHeader";
+import { CreatorWorkspaceHeader } from "@/components/app/CreatorWorkspaceHeader";
 import { ForgeCourseCreator } from "@/components/app/ForgeCourseCreator";
 import { validateForgeCreationIntent } from "@/lib/forge-ai/creation-intent";
 import { getTeacherStudioDomains } from "@/lib/teacher-service";
@@ -48,24 +48,19 @@ export default async function ForgeCoursePage({ searchParams }: ForgeCoursePageP
         ]}
       />
 
-      <AppPageHeader
-        eyebrow="Nouvelle création"
-        title="Construire avec Forge"
-        description="Transformez une intention pédagogique en proposition de parcours. Rien n'est écrit avant validation explicite."
+      <CreatorWorkspaceHeader
         actions={
           <Link className="btn btn-secondary" href="/app/teacher/courses/new">
             <ArrowLeft size={17} aria-hidden="true" />
             Changer de mode
           </Link>
         }
+        eyebrow="Création en préparation"
+        meta="Brief · Proposition · Import en brouillon"
+        status="review"
+        statusLabel="Brief"
+        title="Nouvelle création avec Forge"
       />
-
-      <div className="forge-ai-banner">
-        <Sparkles size={18} aria-hidden="true" />
-        <p>
-          Copilote pédagogique : Forge propose une structure, le formateur décide ce qui est importé.
-        </p>
-      </div>
 
       <ForgeCourseCreator domains={domains} initialIntent={initialIntent} />
     </div>
