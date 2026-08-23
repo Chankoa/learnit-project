@@ -342,7 +342,10 @@ function stringValue(value: unknown) {
 }
 
 function truncateForLog(value: string, maxLength = 240) {
-  const compact = value.replace(/\s+/g, " ").trim();
+  const compact = value
+    .replace(/\bsk-[A-Za-z0-9_.*-]+/gi, "[redacted-api-key]")
+    .replace(/\s+/g, " ")
+    .trim();
   return compact.length > maxLength ? `${compact.slice(0, maxLength)}...` : compact;
 }
 

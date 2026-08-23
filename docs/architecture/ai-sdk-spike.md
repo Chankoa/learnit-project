@@ -230,3 +230,114 @@ Les branches `mock` et `openai-compatible` n'ont pas été réécrites. Leur con
 AI SDK apporte une valeur concrète sur les générations structurées : suppression du parsing JSON artisanal dans le nouveau chemin, validation runtime intégrée, usage standardisé et primitives futures de streaming/outils. Le contrat Forge, sa validation métier, la preview et l'import draft restent intacts.
 
 Il serait prématuré d'en faire le provider standard : le spike n'a pas pu mesurer une génération credentialée end-to-end, `openai-compatible` conserve des diagnostics Responses plus fins et reste utile pour les endpoints compatibles qui ne sont pas couverts ou testés par `@ai-sdk/openai`. La recommandation est d'utiliser `ai-sdk` sur un environnement de preview pour le Course Brief, de comparer qualité/latence/erreurs sur les mêmes briefs, puis d'étendre progressivement les cas validés. `mock` et `openai-compatible` restent disponibles pendant cette phase.
+
+## Sprint 9.3.1 — Provider & Billing Validation
+
+### Provider path
+
+Chemin réellement exécuté avec `AI_PROVIDER=ai-sdk` :
+
+```text
+Forge UI
+  -> Server Action
+  -> lib/forge-ai/service.ts
+  -> getForgeAIProvider()
+  -> getAiSdkProvider()
+  -> createOpenAI({ apiKey: config.apiKey, baseURL: config.baseUrl })
+  -> openai.responses(config.model)
+  -> generateText({ output: Output.object(...) })
+  -> https://api.openai.com/v1/responses
+  -> validation AI SDK
+  -> validation métier Forge
+  -> preview humaine
+```
+
+La configuration résout :
+
+- `config.apiKey` depuis `OPENAI_API_KEY`, avec `AI_API_KEY` comme alias historique ;
+- `config.model` depuis `OPENAI_MODEL`, avec `AI_MODEL` comme alias historique ;
+- `config.baseUrl` depuis `AI_BASE_URL`, ou `https://api.openai.com/v1` par défaut.
+
+Les sources installées de `@ai-sdk/openai@4.0.44` confirment que `createOpenAI()` utilise cette base URL, ajoute `Authorization: Bearer <apiKey>` et construit les modèles Responses sur cette URL. Forge passe à `generateText()` un objet modèle `openai.responses(model)`, pas un identifiant modèle sous forme de chaîne.
+
+`ai@7.0.68` possède `@ai-sdk/gateway` comme dépendance transitive et l'utilise comme provider global par défaut uniquement lorsqu'un modèle est fourni sous forme de chaîne. Le modèle Forge est déjà un objet `@ai-sdk/openai` de spécification V4 : `resolveLanguageModel()` le retourne directement. Aucun import Gateway, identifiant `provider/model`, appel Gateway, `AI_GATEWAY_API_KEY` ou variable Vercel spécifique n'existe dans le chemin Forge.
+
+### Billing path
+
+> AI SDK est utilisé comme couche logicielle. Les appels passent directement par OpenAI via `@ai-sdk/openai` et l'endpoint `/v1/responses`. Les tokens d'une génération réussie sont donc facturés sur le compte API OpenAI associé à `OPENAI_API_KEY`. Vercel AI Gateway n'est pas utilisé et n'ajoute aucune facturation d'inférence obligatoire.
+
+Cette conclusion est confirmée par le code du provider installé et par le test réel : les deux adaptateurs ont atteint `https://api.openai.com/v1/responses` et reçu directement une erreur OpenAI `401 invalid_api_key`. Aucune inférence n'a été produite durant ce test avec la clé actuellement configurée ; aucun coût token n'est donc mesurable pour ce run.
+
+### Required environment variables
+
+Variables nécessaires pour activer ce chemin :
+
+```txt
+AI_PROVIDER=ai-sdk
+OPENAI_API_KEY=<clé API OpenAI valide>
+OPENAI_MODEL=<modèle OpenAI Responses compatible>
+```
+
+Option explicite mais non obligatoire :
+
+```txt
+AI_BASE_URL=https://api.openai.com/v1
+```
+
+Les limites Forge existantes (`AI_TIMEOUT_MS`, `FORGE_AI_MAX_INPUT_CHARS`, `FORGE_AI_MAX_OUTPUT_TOKENS`, `FORGE_AI_RATE_LIMIT_PER_HOUR`) gardent leurs valeurs par défaut si elles sont absentes. Aucune variable Gateway ou Vercel n'est nécessaire.
+
+### A/B result
+
+Brief commun : « Créer un portfolio web accessible », public adulte en reconversion, niveau débutant vers intermédiaire, trois objectifs, durée six heures, maximum trois modules et trois leçons par module. Le même modèle `gpt-5-mini`, la même base URL, les mêmes prompts, le même JSON Schema et les mêmes validateurs Forge ont été utilisés.
+
+| Critère | `openai-compatible` | `ai-sdk` |
+| --- | --- | --- |
+| génération valide | Non, aucune réponse modèle | Non, aucune réponse modèle |
+| validation schema | Non atteinte | Non atteinte |
+| validation métier Forge | Non atteinte | Non atteinte |
+| durée murale | 482 ms | 283 ms |
+| tokens input | Indisponibles | Indisponibles |
+| tokens output | Indisponibles | Indisponibles |
+| erreur éventuelle | `401 invalid_api_key` → `auth_refused` | `401` → `auth_refused` |
+| qualité structurelle | Non évaluable | Non évaluable |
+
+Le test prouve le même chemin réseau direct et une classification cohérente des erreurs, mais ne constitue pas encore une comparaison de qualité, tokens ou coût. La clé serveur présente lors du test est refusée par OpenAI et doit être remplacée ou corrigée avant un A/B génératif.
+
+Le test a également conduit à durcir `truncateForLog()` : tout motif ressemblant à une clé `sk-*` est maintenant supprimé des messages provider avant journalisation, y compris lorsque l'API renvoie une empreinte partiellement masquée.
+
+### Persistence check
+
+Le test provider isolé n'écrit volontairement pas dans Supabase. Le chemin applicatif reste inchangé :
+
+- en succès, `service.ts` transmet à `logForgeGeneration()` le `provider`, le `model`, la durée et les tokens renvoyés par l'adaptateur, avec le statut `success` ;
+- en échec, `logFailure()` utilise le provider/modèle de la configuration, la durée, les tokens éventuellement attachés à `ForgeAIProviderError` et le statut `error`, `invalid_output` ou `rate_limited` ;
+- `generation-log.ts` mappe ces valeurs vers les colonnes existantes de `ai_generations`.
+
+La colonne `provider` est libre et accepte déjà `ai-sdk`. Aucune migration DB n'est nécessaire.
+
+### Reproduction avec une clé valide
+
+Localement :
+
+1. définir les variables requises ci-dessus avec une clé API OpenAI valide ;
+2. lancer `npm run dev`, se connecter avec un profil Teacher actif et ouvrir `/app/teacher/courses/forge` ;
+3. saisir exactement le brief décrit dans le tableau ;
+4. générer une fois avec `AI_PROVIDER=openai-compatible`, conserver durée/tokens depuis `ai_generations` ;
+5. arrêter le serveur, passer à `AI_PROVIDER=ai-sdk`, relancer et générer le même brief ;
+6. comparer les deux lignes `course_structure` dans `ai_generations` et vérifier la preview sans lancer l'import si seule l'inférence est testée.
+
+En Preview Netlify, définir les mêmes variables serveur pour un deploy preview, déployer successivement chaque valeur de `AI_PROVIDER` avec le même commit, puis répéter le brief avec le même compte Teacher. `OPENAI_API_KEY` doit rester une variable secrète serveur et ne doit jamais utiliser le préfixe `NEXT_PUBLIC_`.
+
+### Technical validation
+
+- `npm run typecheck` : **PASS**.
+- `npm run build` : **PASS**.
+- `npm run config:check` avec `mock`, `openai-compatible` et `ai-sdk` : **PASS**.
+- `git diff --check` : **PASS** ; seuls les avertissements LF/CRLF attendus sous Windows sont affichés.
+- scan des fichiers modifiés : **PASS**, aucun token ressemblant à une clé réelle et aucune valeur Gateway.
+- test de redaction `sk-*` : **PASS**.
+- test A/B réseau : **EXÉCUTÉ**, endpoint OpenAI direct confirmé pour les deux providers, mais génération bloquée par `401 invalid_api_key`.
+
+### Final recommendation
+
+**HYBRID confirmé.** Le chemin OpenAI direct est établi et ne requiert pas AI Gateway. L'activation en Preview est techniquement prête, mais la clé actuelle doit être corrigée et un A/B avec deux générations valides doit encore confirmer qualité, tokens et coût avant une activation plus large.

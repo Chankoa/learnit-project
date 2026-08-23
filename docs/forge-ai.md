@@ -41,10 +41,10 @@ Fichiers principaux :
 
 Providers V1 :
 
-- `mock` : provider déterministe, utile sans clé externe.
-- `openai` : provider OpenAI officiel via Vercel AI SDK.
-- `openai-compatible` : provider compatible OpenAI Responses API.
-- `ai-sdk` : provider expérimental Sprint 9.3 utilisant `Output.object()` et la validation structurée de AI SDK.
+- `mock` : développement déterministe sans appel externe.
+- `openai-compatible` : provider HTTP historique Forge vers une Responses API compatible.
+- `openai` : ancien adaptateur `generateText()` conservé pour compatibilité.
+- `ai-sdk` : provider expérimental utilisant `Output.object()`, `@ai-sdk/openai` et l'API OpenAI directe.
 
 Variables serveur :
 
@@ -58,6 +58,17 @@ FORGE_AI_MAX_INPUT_CHARS=3000
 FORGE_AI_MAX_OUTPUT_TOKENS=4000
 FORGE_AI_RATE_LIMIT_PER_HOUR=8
 ```
+
+Pour activer spécifiquement le provider expérimental :
+
+```txt
+AI_PROVIDER=ai-sdk
+OPENAI_MODEL=<modèle OpenAI Responses>
+OPENAI_API_KEY=<clé du compte API OpenAI>
+AI_BASE_URL=https://api.openai.com/v1
+```
+
+`AI_BASE_URL` est facultative et vaut déjà `https://api.openai.com/v1` par défaut. Aucune variable Vercel AI Gateway, clé Gateway ou convention de modèle `provider/model` n'est utilisée. Forge construit explicitement un modèle avec `createOpenAI({ apiKey, baseURL }).responses(model)` ; l'inférence est donc envoyée à OpenAI et facturée sur le compte API OpenAI associé à la clé. La dépendance transitive `@ai-sdk/gateway` du package `ai` n'est pas appelée par ce chemin.
 
 Aucune clé IA ne doit être exposée en `NEXT_PUBLIC_*`.
 
