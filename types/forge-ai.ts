@@ -144,6 +144,45 @@ export type ForgeCourseImprovement = {
   title: string;
 };
 
+export type ForgeCourseRevisionInput = {
+  course: {
+    description: string;
+    modules: Array<{
+      description: string;
+      id: string;
+      lessons: Array<{
+        contentExcerpt?: string;
+        description: string;
+        id: string;
+        objectives: string[];
+        order: number;
+        title: string;
+      }>;
+      order: number;
+      title: string;
+    }>;
+    title: string;
+  };
+  courseId: string;
+};
+
+export type ForgeCourseRevisionProposal = {
+  issues: Array<{
+    current: {
+      description: string;
+      title: string;
+    };
+    proposed: {
+      description: string;
+      title: string;
+    };
+    reason: string;
+    scope: "module";
+    targetId: string;
+    type: "content_mismatch";
+  }>;
+};
+
 export type ForgeLessonAction =
   | "plan"
   | "intro"

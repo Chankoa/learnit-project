@@ -7,10 +7,12 @@ import { ForgeAIProviderError, getForgeAIProvider } from "@/lib/forge-ai/provide
 import { getCourseContext } from "@/lib/forge-ai/retrieval";
 import {
   buildCourseImprovementUserPrompt,
+  buildCourseRevisionUserPrompt,
   buildCourseStructureUserPrompt,
   buildLessonContentUserPrompt,
   buildLessonAssistantUserPrompt,
   forgeCourseImprovementSystemPrompt,
+  forgeCourseRevisionSystemPrompt,
   forgeCourseStructureSystemPrompt,
   forgeLessonContentSystemPrompt,
   forgeLessonAssistantSystemPrompt
@@ -19,6 +21,7 @@ import { assertForgeAIRateLimit } from "@/lib/forge-ai/rate-limit";
 import {
   validateForgeCourseImprovement,
   validateForgeCourseProposal,
+  validateForgeCourseRevisionProposal,
   validateForgeLessonContentProposal,
   validateForgeLessonSuggestion
 } from "@/lib/forge-ai/validation";
@@ -33,6 +36,8 @@ import type {
   ForgeCourseImprovementApplyInput,
   ForgeCourseImprovementInput,
   ForgeCourseProposal,
+  ForgeCourseRevisionInput,
+  ForgeCourseRevisionProposal,
   ForgeLessonContentInput,
   ForgeLessonContentMode,
   ForgeLessonContentProposal,
@@ -134,6 +139,36 @@ function assertCourseBrief(input: CourseBrief) {
   if (input.learningObjectives.length === 0) {
     throw new Error("Ajoutez au moins un objectif pédagogique.");
   }
+}
+
+export function buildForgeCourseRevisionInput(course: TeacherCourse): ForgeCourseRevisionInput {
+  return {
+    course: {
+      description: truncate(course.description, 900),
+      modules: [...course.modules]
+        .sort((left, right) => left.order - right.order)
+        .slice(0, 12)
+        .map((module) => ({
+          description: truncate(module.description, 600),
+          id: module.id,
+          lessons: [...module.lessons]
+            .sort((left, right) => left.order - right.order)
+            .slice(0, 20)
+            .map((lesson) => ({
+              contentExcerpt: truncate(lesson.content ?? "", 800) || undefined,
+              description: truncate(lesson.description ?? "", 500),
+              id: lesson.id,
+              objectives: normalizeLines(lesson.objectives ?? []),
+              order: lesson.order,
+              title: truncate(lesson.title, 220)
+            })),
+          order: module.order,
+          title: truncate(module.title, 220)
+        })),
+      title: truncate(course.title, 260)
+    },
+    courseId: course.id
+  };
 }
 
 function getSelectedModules(input: ForgeCourseImportInput) {
@@ -459,6 +494,53 @@ export async function generateForgeCourseImprovement(
       contextId: course.id,
       contextType: "course",
       sourceIds: sanitized.brief.sourceIds
+    });
+    throw error;
+  }
+}
+
+export async function reviewForgeCourseStructure(
+  courseId: string
+): Promise<ForgeCourseRevisionProposal> {
+  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/edit`);
+  const course = await teacherCourseRepository.getTeacherCourse(profile.id, courseId);
+
+  if (!course) {
+    throw new Error("Formation introuvable ou non analysable.");
+  }
+
+  const startedAt = Date.now();
+  const input = buildForgeCourseRevisionInput(course);
+  assertForgeAIRateLimit(profile.id, "course_analysis");
+
+  try {
+    const response = await getForgeAIProvider().generateJson({
+      input,
+      promptType: "course_analysis",
+      systemPrompt: forgeCourseRevisionSystemPrompt,
+      userPrompt: buildCourseRevisionUserPrompt(input)
+    });
+    const proposal = validateForgeCourseRevisionProposal(response.json, course);
+
+    await logForgeGeneration({
+      contextId: course.id,
+      contextType: "course",
+      durationMs: response.durationMs,
+      inputTokens: response.inputTokens,
+      model: response.model,
+      outputTokens: response.outputTokens,
+      promptType: "course_analysis",
+      provider: response.provider,
+      status: "success",
+      totalTokens: response.totalTokens,
+      userId: profile.id
+    });
+
+    return proposal;
+  } catch (error) {
+    await logFailure(profile.id, "course_analysis", startedAt, error, {
+      contextId: course.id,
+      contextType: "course"
     });
     throw error;
   }

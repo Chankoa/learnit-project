@@ -2,6 +2,7 @@ import type { CourseLevel } from "@/types/course";
 import type {
   ForgeCourseImprovement,
   ForgeCourseProposal,
+  ForgeCourseRevisionProposal,
   ForgeLessonAction,
   ForgeLessonCalloutType,
   ForgeLessonContentProposal,
@@ -9,6 +10,7 @@ import type {
   ForgeLessonSuggestion
 } from "@/types/forge-ai";
 import { lessonProposalToMarkdown } from "@/lib/forge-ai/lesson-markdown";
+import type { TeacherCourse } from "@/types/teaching";
 
 const courseLevels = ["beginner", "intermediate", "advanced"] satisfies CourseLevel[];
 const lessonActions = ["plan", "intro", "summary", "simplify"] satisfies ForgeLessonAction[];
@@ -162,6 +164,83 @@ export function validateForgeCourseImprovement(value: unknown): ForgeCourseImpro
     summary: requiredString(value.summary, "synthèse"),
     title: requiredString(value.title, "titre")
   };
+}
+
+export function validateForgeCourseRevisionProposal(
+  value: unknown,
+  course?: TeacherCourse
+): ForgeCourseRevisionProposal {
+  if (!isRecord(value)) {
+    throw new Error("Sortie IA invalide : objet de révision attendu.");
+  }
+
+  if (!Array.isArray(value.issues)) {
+    throw new Error("Sortie IA invalide : liste d'incohérences attendue.");
+  }
+
+  if (value.issues.length > 4) {
+    throw new Error("Sortie IA invalide : quatre incohérences maximum sont autorisées.");
+  }
+
+  const seenTargets = new Set<string>();
+  const issues = value.issues.map((issueValue, issueIndex) => {
+    if (!isRecord(issueValue) || !isRecord(issueValue.current) || !isRecord(issueValue.proposed)) {
+      throw new Error(`Sortie IA invalide : incohérence ${issueIndex + 1} incorrecte.`);
+    }
+
+    if (issueValue.scope !== "module" || issueValue.type !== "content_mismatch") {
+      throw new Error(`Sortie IA invalide : type d'incohérence ${issueIndex + 1} non autorisé.`);
+    }
+
+    const targetId = requiredString(issueValue.targetId, `cible ${issueIndex + 1}`);
+
+    if (seenTargets.has(targetId)) {
+      throw new Error(`Sortie IA invalide : cible ${targetId} dupliquée.`);
+    }
+
+    seenTargets.add(targetId);
+    const current = {
+      description: contentString(issueValue.current.description),
+      title: requiredString(issueValue.current.title, `titre actuel ${issueIndex + 1}`)
+    };
+    const proposed = {
+      description: requiredString(
+        issueValue.proposed.description,
+        `description proposée ${issueIndex + 1}`
+      ),
+      title: requiredString(issueValue.proposed.title, `titre proposé ${issueIndex + 1}`)
+    };
+
+    if (current.title === proposed.title && current.description === proposed.description) {
+      throw new Error(`Sortie IA invalide : l'incohérence ${issueIndex + 1} ne propose aucun changement.`);
+    }
+
+    if (course) {
+      const targetModule = course.modules.find((module) => module.id === targetId);
+
+      if (!targetModule) {
+        throw new Error(`Sortie IA invalide : module cible ${targetId} introuvable.`);
+      }
+
+      if (
+        stringValue(targetModule.title) !== current.title ||
+        contentString(targetModule.description) !== current.description
+      ) {
+        throw new Error(`Sortie IA invalide : état actuel du module ${targetId} obsolète.`);
+      }
+    }
+
+    return {
+      current,
+      proposed,
+      reason: requiredString(issueValue.reason, `justification ${issueIndex + 1}`),
+      scope: "module" as const,
+      targetId,
+      type: "content_mismatch" as const
+    };
+  });
+
+  return { issues };
 }
 
 export function validateForgeLessonSuggestion(value: unknown): ForgeLessonSuggestion {

@@ -341,3 +341,142 @@ En Preview Netlify, définir les mêmes variables serveur pour un deploy preview
 ### Final recommendation
 
 **HYBRID confirmé.** Le chemin OpenAI direct est établi et ne requiert pas AI Gateway. L'activation en Preview est techniquement prête, mais la clé actuelle doit être corrigée et un A/B avec deux générations valides doit encore confirmer qualité, tokens et coût avant une activation plus large.
+
+## Sprint 9.3.2 — Course Revision A/B
+
+### Fixture utilisée
+
+La fixture a été lue le 23 août 2026 directement dans Supabase avec la clé publique et des requêtes strictement `select`. Aucune donnée n'a été créée, modifiée ou supprimée.
+
+Cours publié : **Flexbox, Grid et responsive — positionnement CSS moderne** (`5464dee4-3183-4d5d-bad0-a5af93a2507e`), 3 modules et 6 leçons.
+
+| Ordre | Module réel | Leçons réelles | Observation |
+| --- | --- | --- | --- |
+| 1 | Flexbox : alignement et cas d'usage | Introduction au positionnement moderne | Différence avec le cas annoncé : ce titre Flexbox est aussi dupliqué sur le module 1, alors que sa leçon introduit Flexbox **et** Grid. Le contenu disponible contient 5 799 caractères. |
+| 2 | Flexbox : alignement et cas d'usage | Alignement et distribution en Flexbox ; Exemples pratiques avec Flexbox | Cohérent et utilisé comme contrôle négatif. La première leçon possède 5 756 caractères de contenu ; la seconde n'a pas encore de contenu. |
+| 3 | Flexbox : alignement et cas d'usage | Fondamentaux de CSS Grid ; Placement et zones en Grid ; Responsive et choix entre Grid et Flexbox | Incohérence manifeste confirmée. Le titre et la description annoncent Flexbox, les trois leçons portent principalement sur Grid et le responsive. |
+
+Le test exige obligatoirement la détection du module 3 et la préservation du module 2. Un signal supplémentaire sur le module 1 est tolérable seulement s'il est précisément justifié par sa leçon ; le modèle ne reçoit pas une fixture artificiellement nettoyée.
+
+### Opération testée
+
+`reviewForgeCourseStructure(courseId)` a été ajouté dans `lib/forge-ai/service.ts` comme opération serveur sans UI et sans mutation :
+
+```text
+courseId
+  -> requireRole("teacher")
+  -> getTeacherCourse(teacherId, courseId)
+  -> snapshot borné du cours réel
+  -> rate limit course_analysis
+  -> provider Forge sélectionné
+  -> structured output / parsing
+  -> validation structurelle Forge
+  -> validation targetId + état courant contre le cours chargé
+  -> ai_generations
+  -> Revision Proposal
+```
+
+Il n'existe aucune fonction d'application associée. Le cours reste la source d'autorité et la proposition n'est qu'une donnée révisable.
+
+L'instruction et le schéma sont communs à `mock`, `openai-compatible` et `ai-sdk`. Les deux providers réels reçoivent exactement le même snapshot, le même system prompt, le même user prompt, le même modèle et le même budget `course_analysis`.
+
+### Schéma Revision Proposal
+
+```ts
+type ForgeCourseRevisionProposal = {
+  issues: Array<{
+    scope: "module";
+    targetId: string;
+    type: "content_mismatch";
+    reason: string;
+    current: {
+      title: string;
+      description: string;
+    };
+    proposed: {
+      title: string;
+      description: string;
+    };
+  }>;
+};
+```
+
+Le contrat est volontairement limité au mismatch titre/description d'un module. Le validateur borne la sortie à quatre issues, interdit les cibles dupliquées, exige un changement réel et, dans le service, vérifie que `targetId` appartient au cours et que `current` correspond encore mot pour mot à l'état chargé. Cette dernière règle protège une future UI contre l'application d'une proposition obsolète.
+
+### Résultats A/B
+
+Modèle configuré pour les deux providers : `gpt-5-mini`. Base URL commune : `https://api.openai.com/v1`.
+
+| Critère | `openai-compatible` | `ai-sdk` |
+| --- | --- | --- |
+| appel réussi | Non : OpenAI atteint mais `401` | Non : OpenAI atteint mais `401` |
+| incohérence module 3 détectée | Non évaluable | Non évaluable |
+| CSS Grid correctement identifié | Non évaluable | Non évaluable |
+| module 2 préservé | Non évaluable | Non évaluable |
+| correction minimale | Non évaluable | Non évaluable |
+| justification pertinente | Non évaluable | Non évaluable |
+| structured output valide | Non atteint | Non atteint |
+| validation Forge | Non atteinte | Non atteinte |
+| durée murale | 446 ms | 357 ms |
+| tokens input | Indisponibles | Indisponibles |
+| tokens output | Indisponibles | Indisponibles |
+| erreur | `auth_refused` (`invalid_api_key`) | `auth_refused` (`401`) |
+
+Le routage A/B réel est donc confirmé, mais pas la qualité générative. La clé actuellement configurée est encore refusée par OpenAI. Il serait incorrect de fabriquer une proposition ou des métriques pour compléter le tableau.
+
+Le même snapshot a également été exécuté via `mock` pour valider l'opération, le prompt type et le contrat métier :
+
+```json
+{
+  "targetId": "be718035-d8d7-45b8-88ae-5be64be7dca2",
+  "proposed": {
+    "title": "CSS Grid : fondamentaux, placement et responsive",
+    "description": "Découvrir CSS Grid, placer des éléments dans une grille et construire des mises en page responsives en choisissant entre Grid et Flexbox."
+  },
+  "reason": "Le titre et la description annoncent Flexbox alors que les leçons portent principalement sur CSS Grid et son usage responsive."
+}
+```
+
+Tous les critères fonctionnels passent avec `mock` : module 3 détecté, Grid compris, module 2 préservé, une seule correction, justification présente, structured output et validation Forge valides.
+
+### Persistance et non-mutation
+
+`course_analysis` est déjà autorisé par la contrainte de `ai_generations`; aucune migration n'est nécessaire. L'opération applicative journalise provider, modèle, durée, tokens disponibles, statut et erreur éventuelle via `logForgeGeneration()` / `logFailure()`.
+
+Le runner A/B isolé n'a volontairement pas écrit dans `ai_generations`, car il ne possédait pas de session Teacher et ne devait ni contourner Auth/RLS ni simuler un utilisateur. Le chemin de persistance est couvert statiquement et par le typecheck/build, mais devra être observé sur une exécution Teacher authentifiée avec une clé OpenAI valide.
+
+Aucune méthode `updateCourse`, `updateModule`, `updateLesson` ou publication n'est appelée par `reviewForgeCourseStructure()`. Une seconde lecture de la fixture a servi de source au runner ; aucun appel de mutation Supabase n'a été effectué.
+
+### Préparation de Forge Revision
+
+Le contrat fournit directement les données d'une future UI diff :
+
+- identité stable : `scope`, `targetId`, `type` ;
+- panneau **Avant** : `current.title`, `current.description` ;
+- panneau **Après** : `proposed.title`, `proposed.description` ;
+- explication Teacher : `reason`.
+
+Garde-fous nécessaires avant toute application :
+
+- rôle Teacher et ownership du cours ;
+- relecture du module et comparaison optimiste avec `current` ;
+- allowlist des champs applicables ;
+- validation humaine explicite par issue ;
+- aucune publication implicite ;
+- transaction repository ciblée ;
+- RLS conservée ;
+- rate limit et limites d'entrée/sortie ;
+- journalisation séparée de la génération et de l'éventuelle application.
+
+La portée actuelle est volontairement `course -> module content_mismatch`. Une extension future devra recevoir une portée demandée explicite (`course`, `module` ou `lesson`), filtrer le snapshot avant envoi et utiliser une union discriminée de changements autorisés. Le serveur devra toujours vérifier que chaque `targetId` appartient à la portée racine demandée.
+
+### Limites et recommandation
+
+- un seul cours et une seule incohérence principale ;
+- pas de conclusion statistique sur la qualité des providers ;
+- clé OpenAI invalide, donc aucune génération réelle réussie ;
+- contenus absents pour quatre leçons sur six ; les titres, descriptions et objectifs suffisent toutefois à établir le mismatch du module 3 ;
+- pas de mesure de coût ou de tokens ;
+- pas d'UI ni d'application, conformément au scope.
+
+**HYBRID conservé.** Le contrat et l'opération sont suffisamment sains pour servir de base technique à une future fonctionnalité Forge Revision limitée aux modules. Une génération réussie avec chacun des deux providers et une vérification de la ligne `ai_generations` restent des critères d'acceptation avant activation produit ou application de corrections.

@@ -18,6 +18,7 @@ import {
   parseJsonObject,
   validateForgeCourseImprovement,
   validateForgeCourseProposal,
+  validateForgeCourseRevisionProposal,
   validateForgeLessonContentProposal,
   validateForgeLessonSuggestion
 } from "@/lib/forge-ai/validation";
@@ -26,6 +27,8 @@ import type {
   ForgeCourseImprovement,
   ForgeCourseImprovementInput,
   ForgeCourseIntent,
+  ForgeCourseRevisionInput,
+  ForgeCourseRevisionProposal,
   ForgeLessonContentInput,
   ForgeLessonContentProposal,
   ForgeLessonSuggestionInput,
@@ -37,6 +40,7 @@ type ForgeAIJsonRequest = {
     | CourseBrief
     | ForgeCourseImprovementInput
     | ForgeCourseIntent
+    | ForgeCourseRevisionInput
     | ForgeLessonContentInput
     | ForgeLessonSuggestionInput;
   promptType: ForgePromptType;
@@ -107,6 +111,12 @@ function isCourseImprovement(
   input: ForgeAIJsonRequest["input"]
 ): input is ForgeCourseImprovementInput {
   return "mode" in input && "courseId" in input;
+}
+
+function isCourseRevision(
+  input: ForgeAIJsonRequest["input"]
+): input is ForgeCourseRevisionInput {
+  return "course" in input && "courseId" in input;
 }
 
 function isLessonContentInput(
@@ -230,6 +240,37 @@ function getMockCourseImprovement(input: ForgeCourseImprovementInput): ForgeCour
   };
 }
 
+function getMockCourseRevision(input: ForgeCourseRevisionInput): ForgeCourseRevisionProposal {
+  const issues = input.course.modules.flatMap((module) => {
+    const gridLessonCount = module.lessons.filter((lesson) =>
+      `${lesson.title} ${lesson.description}`.toLowerCase().includes("grid")
+    ).length;
+
+    if (!module.title.toLowerCase().includes("flexbox") || gridLessonCount < 2) {
+      return [];
+    }
+
+    return [{
+      current: {
+        description: module.description,
+        title: module.title
+      },
+      proposed: {
+        description:
+          "Découvrir CSS Grid, placer des éléments dans une grille et construire des mises en page responsives en choisissant entre Grid et Flexbox.",
+        title: "CSS Grid : fondamentaux, placement et responsive"
+      },
+      reason:
+        "Le titre et la description annoncent Flexbox alors que les leçons portent principalement sur CSS Grid et son usage responsive.",
+      scope: "module" as const,
+      targetId: module.id,
+      type: "content_mismatch" as const
+    }];
+  });
+
+  return { issues: issues.slice(0, 4) };
+}
+
 function getMockLessonSuggestion(input: ForgeLessonSuggestionInput) {
   const title = input.title || "Leçon";
 
@@ -307,7 +348,9 @@ function getMockLessonContentProposal(input: ForgeLessonContentInput): ForgeLess
 const mockProvider: ForgeAIProvider = {
   async generateJson(request) {
     const startedAt = Date.now();
-    const json = isCourseImprovement(request.input)
+    const json = isCourseRevision(request.input)
+      ? getMockCourseRevision(request.input)
+      : isCourseImprovement(request.input)
       ? getMockCourseImprovement(request.input)
       : isLessonContentInput(request.input)
       ? getMockLessonContentProposal(request.input)
@@ -427,6 +470,25 @@ const courseImprovementSchema = objectSchema({
   title: stringSchema
 });
 
+const courseRevisionSchema = objectSchema({
+  issues: arraySchema(
+    objectSchema({
+      current: objectSchema({
+        description: stringSchema,
+        title: stringSchema
+      }),
+      proposed: objectSchema({
+        description: stringSchema,
+        title: stringSchema
+      }),
+      reason: stringSchema,
+      scope: { enum: ["module"], type: "string" },
+      targetId: stringSchema,
+      type: { enum: ["content_mismatch"], type: "string" }
+    })
+  )
+});
+
 const lessonContentSchema = objectSchema({
   estimatedMinutes: numberSchema,
   furtherReading: stringSchema,
@@ -470,6 +532,13 @@ function getStructuredOutputSchema(request: ForgeAIJsonRequest) {
     };
   }
 
+  if (request.promptType === "course_analysis") {
+    return {
+      name: "forge_course_revision",
+      schema: courseRevisionSchema
+    };
+  }
+
   if (request.promptType === "course_improvement") {
     return {
       name: "forge_course_improvement",
@@ -495,6 +564,8 @@ function validateStructuredOutput(request: ForgeAIJsonRequest, value: unknown) {
     const validated =
       request.promptType === "course_structure"
         ? validateForgeCourseProposal(value)
+        : request.promptType === "course_analysis"
+          ? validateForgeCourseRevisionProposal(value)
         : request.promptType === "course_improvement"
           ? validateForgeCourseImprovement(value)
           : isLessonContentInput(request.input)
