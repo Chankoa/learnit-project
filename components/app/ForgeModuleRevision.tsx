@@ -2,12 +2,21 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Loader2, Sparkles, XCircle } from "lucide-react";
+import { CheckCircle2, Sparkles, XCircle } from "lucide-react";
 
 import {
   applyForgeModuleRevisionAction,
   reviewForgeModuleAction
 } from "@/app/app/teacher/forge/actions";
+import {
+  ForgeAIAction,
+  ForgeAIComparison,
+  ForgeAIPanel,
+  ForgeAIProposal,
+  ForgeAIReason,
+  ForgeAIStatus,
+  type ForgeAIState
+} from "@/components/app/ForgeAIPrimitives";
 import type { ForgeCourseRevisionIssue } from "@/types/forge-ai";
 
 type ForgeModuleRevisionProps = {
@@ -17,9 +26,13 @@ type ForgeModuleRevisionProps = {
 };
 
 type Feedback = {
-  tone: "error" | "success";
+  state: Extract<ForgeAIState, "applied" | "error" | "stale">;
   text: string;
 };
+
+function getFailureState(message: string): Feedback["state"] {
+  return message.includes("a changé depuis l'analyse") ? "stale" : "error";
+}
 
 export function ForgeModuleRevision({
   courseId,
@@ -43,7 +56,7 @@ export function ForgeModuleRevision({
       const result = await reviewForgeModuleAction({ courseId, moduleId });
 
       if (!result.ok) {
-        setFeedback({ tone: "error", text: result.error });
+        setFeedback({ state: getFailureState(result.error), text: result.error });
         return;
       }
 
@@ -82,112 +95,108 @@ export function ForgeModuleRevision({
       });
 
       if (!result.ok) {
-        setFeedback({ tone: "error", text: result.error });
+        setFeedback({ state: getFailureState(result.error), text: result.error });
         return;
       }
 
       setProposal(undefined);
-      setFeedback({ tone: "success", text: result.data.message });
+      setFeedback({ state: "applied", text: result.data.message });
       router.refresh();
     });
   }
 
   return (
-    <section className="forge-module-revision" aria-live="polite">
-      <div className="forge-module-revision__heading">
-        <div>
-          <span>Forge AI</span>
-          <h3>Révision pédagogique du module</h3>
-          <p>
-            Contexte : « {title} ». Forge compare les informations enregistrées avec les leçons de
-            ce module. Aucune modification n’est appliquée sans votre accord.
-          </p>
-        </div>
-        <button
-          className="btn btn-secondary"
+    <ForgeAIPanel
+      action={
+        <ForgeAIAction
           disabled={isPending}
+          icon={<Sparkles size={16} aria-hidden="true" />}
+          isLoading={isPending && operation === "analyze"}
+          loadingLabel="Analyse du module…"
           onClick={analyzeModule}
-          type="button"
         >
-          {isPending && operation === "analyze" ? (
-            <Loader2 className="auth-button-spinner" size={16} aria-hidden="true" />
-          ) : (
-            <Sparkles size={16} aria-hidden="true" />
-          )}
-          {isPending && operation === "analyze" ? "Analyse du module…" : "Analyser avec Forge"}
-        </button>
-      </div>
+          Analyser avec Forge
+        </ForgeAIAction>
+      }
+      description={
+        <>
+          Contexte : « {title} ». Forge compare les informations enregistrées avec les leçons de
+          ce module. Aucune modification n’est appliquée sans votre accord.
+        </>
+      }
+      title="Révision pédagogique du module"
+    >
+      {isPending ? (
+        <ForgeAIStatus
+          description={
+            operation === "apply"
+              ? "La correction validée est en cours d’application."
+              : "Le titre et la description sont comparés au contenu des leçons."
+          }
+          state="loading"
+          title={operation === "apply" ? "Application de la proposition…" : "Forge analyse ce module…"}
+        />
+      ) : null}
 
       {feedback ? (
-        <div
-          className={feedback.tone === "error" ? "teacher-form-error" : "teacher-toast"}
-          role={feedback.tone === "error" ? "alert" : "status"}
-        >
-          {feedback.text}
-        </div>
+        <ForgeAIStatus description={feedback.text} state={feedback.state} />
       ) : null}
 
       {hasNoIssue ? (
-        <div className="forge-module-revision__empty" role="status">
-          <CheckCircle2 size={18} aria-hidden="true" />
-          <p>Forge n’a détecté aucune incohérence notable sur ce module.</p>
-        </div>
+        <ForgeAIStatus
+          description="Forge n’a détecté aucune incohérence notable sur ce module."
+          state="no-suggestion"
+        />
       ) : null}
 
       {proposal ? (
-        <article className="forge-module-revision__proposal">
-          <header>
-            <span>Incohérence détectée</span>
-            <h4>Une correction ciblée est proposée</h4>
-          </header>
-
-          <div className="forge-module-revision__diff">
-            <section>
-              <span>Actuel</span>
-              <h5>{proposal.current.title}</h5>
-              <p>{proposal.current.description || "Aucune description."}</p>
-            </section>
-            <section>
-              <span>Proposition</span>
-              <h5>{proposal.proposed.title}</h5>
-              <p>{proposal.proposed.description}</p>
-            </section>
-          </div>
-
-          <section className="forge-module-revision__reason">
-            <span>Pourquoi ?</span>
-            <p>{proposal.reason}</p>
-          </section>
-
-          <div className="teacher-form-actions">
-            <button
-              className="btn btn-secondary"
-              disabled={isPending}
-              onClick={() => {
-                setProposal(undefined);
-                setFeedback(undefined);
-              }}
-              type="button"
-            >
-              <XCircle size={16} aria-hidden="true" />
-              Ignorer
-            </button>
-            <button
-              className="btn btn-primary"
-              disabled={isPending}
-              onClick={applyProposal}
-              type="button"
-            >
-              {isPending && operation === "apply" ? (
-                <Loader2 className="auth-button-spinner" size={16} aria-hidden="true" />
-              ) : (
-                <CheckCircle2 size={16} aria-hidden="true" />
-              )}
-              {isPending && operation === "apply" ? "Application…" : "Appliquer"}
-            </button>
-          </div>
-        </article>
+        <ForgeAIProposal
+          actions={
+            <>
+              <button
+                className="btn btn-secondary"
+                disabled={isPending}
+                onClick={() => {
+                  setProposal(undefined);
+                  setFeedback(undefined);
+                }}
+                type="button"
+              >
+                <XCircle size={16} aria-hidden="true" />
+                Ignorer
+              </button>
+              <ForgeAIAction
+                disabled={isPending}
+                icon={<CheckCircle2 size={16} aria-hidden="true" />}
+                isLoading={isPending && operation === "apply"}
+                loadingLabel="Application…"
+                onClick={applyProposal}
+                variant="primary"
+              >
+                Appliquer
+              </ForgeAIAction>
+            </>
+          }
+          label="Incohérence détectée"
+          title="Une correction ciblée est proposée"
+        >
+          <ForgeAIComparison
+            current={
+              <>
+                <h5>{proposal.current.title}</h5>
+                <p>{proposal.current.description || "Aucune description."}</p>
+              </>
+            }
+            proposed={
+              <>
+                <h5>{proposal.proposed.title}</h5>
+                <p>{proposal.proposed.description}</p>
+              </>
+            }
+          />
+          <ForgeAIReason>{proposal.reason}</ForgeAIReason>
+        </ForgeAIProposal>
       ) : null}
-    </section>
+    </ForgeAIPanel>
   );
 }

@@ -17,6 +17,7 @@ import {
   importForgeCourseProposalAction,
   uploadForgeCourseSourceAction
 } from "@/app/app/teacher/forge/actions";
+import { ForgeAIStatus } from "@/components/app/ForgeAIPrimitives";
 import { TeacherDomainPicker } from "@/components/app/TeacherDomainPicker";
 import { courseLevelLabels } from "@/lib/teacher";
 import type { CourseLevel, Domain } from "@/types/course";
@@ -440,12 +441,10 @@ export function ForgeCourseCreator({ domains }: ForgeCourseCreatorProps) {
         </div>
 
         {feedback ? (
-          <div
-            className={feedback.tone === "error" ? "teacher-form-error" : "teacher-toast"}
-            role={feedback.tone === "error" ? "alert" : "status"}
-          >
-            {feedback.text}
-          </div>
+          <ForgeAIStatus
+            description={feedback.text}
+            state={feedback.tone === "error" ? "error" : "success"}
+          />
         ) : null}
 
         {!proposal ? (

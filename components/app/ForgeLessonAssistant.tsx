@@ -8,6 +8,10 @@ import {
   applyLessonProposalAction,
   generateLessonWithForgeAction
 } from "@/app/app/teacher/forge/actions";
+import {
+  ForgeAIStatus,
+  type ForgeAIState
+} from "@/components/app/ForgeAIPrimitives";
 import { MarkdownLessonContent } from "@/components/learning/MarkdownLessonContent";
 import type {
   ForgeLessonContentMode,
@@ -23,7 +27,7 @@ type ForgeLessonAssistantProps = {
 };
 
 type Feedback = {
-  tone: "error" | "success";
+  state: Extract<ForgeAIState, "applied" | "error" | "success">;
   text: string;
 };
 
@@ -89,15 +93,15 @@ export function ForgeLessonAssistant({
       if (!result.ok) {
         setProposal(undefined);
         setDraft(undefined);
-        setFeedback({ tone: "error", text: result.error });
+        setFeedback({ state: "error", text: result.error });
         return;
       }
 
       setProposal(result.data);
       setDraft(result.data);
       setFeedback({
-        tone: "success",
-        text: "Proposition générée par IA — à valider avant application."
+        state: "success",
+        text: "Proposition Forge prête — vérifiez-la avant toute application."
       });
     });
   }
@@ -109,7 +113,7 @@ export function ForgeLessonAssistant({
 
     if (mode === "analyze") {
       setFeedback({
-        tone: "error",
+        state: "error",
         text: "L'analyse est une recommandation : appliquez-la manuellement dans l'éditeur."
       });
       return;
@@ -123,11 +127,11 @@ export function ForgeLessonAssistant({
       });
 
       if (!result.ok) {
-        setFeedback({ tone: "error", text: result.error });
+        setFeedback({ state: "error", text: result.error });
         return;
       }
 
-      setFeedback({ tone: "success", text: result.data.message });
+      setFeedback({ state: "applied", text: result.data.message });
       router.refresh();
     });
   }
@@ -162,12 +166,10 @@ export function ForgeLessonAssistant({
       </div>
 
       {feedback ? (
-        <div
-          className={feedback.tone === "error" ? "teacher-form-error" : "teacher-toast"}
-          role={feedback.tone === "error" ? "alert" : "status"}
-        >
-          {feedback.text}
-        </div>
+        <ForgeAIStatus
+          description={feedback.text}
+          state={feedback.state}
+        />
       ) : null}
 
       {proposal && draft ? (
