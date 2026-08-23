@@ -81,10 +81,7 @@ export default async function NewTeacherCoursePage({
         action={createTeacherCourseAction}
         domains={domains}
         error={getSingleParam(params?.error)}
-        initialValues={{
-          ...getTeacherCourseFormDefaults(),
-          domainId: domains[0]?.id ?? ""
-        }}
+        initialValues={getTeacherCourseFormDefaults()}
         message={getSingleParam(params?.message)}
         mode="create"
       />

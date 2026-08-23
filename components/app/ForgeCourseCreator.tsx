@@ -307,7 +307,7 @@ export function ForgeCourseCreator({ domains, initialIntent }: ForgeCourseCreato
               <small>Domaine, niveaux, prérequis et contraintes</small>
             </summary>
             <div className="teacher-form-grid">
-              <TeacherDomainPicker domains={domains} selectedDomainId={domains[0]?.id} />
+              <TeacherDomainPicker domains={domains} />
               <label className="teacher-field">
                 <span>Niveau initial</span>
                 <select name="entryLevel" defaultValue="beginner">
@@ -461,26 +461,30 @@ export function ForgeCourseCreator({ domains, initialIntent }: ForgeCourseCreato
                     <span>Module {moduleIndex + 1}</span>
                     <strong>{module.title}</strong>
                   </label>
-                  {module.description ? <p>{module.description}</p> : null}
-
-                  <div>
-                    {module.lessons.map((lesson) => (
-                      <label className="forge-proposal-lesson" key={lesson.clientId}>
-                        <input
-                          checked={selectedLessons.has(lesson.clientId)}
-                          onChange={() => toggleLesson(module.clientId, lesson.clientId)}
-                          type="checkbox"
-                        />
-                        <span>
-                          <strong>{lesson.title}</strong>
-                          <small>
-                            {lesson.objective ?? "Objectif à préciser"}
-                            {lesson.estimatedMinutes ? ` · ${lesson.estimatedMinutes} min` : ""}
-                          </small>
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+                  <details className="forge-proposal-module__details">
+                    <summary>
+                      {module.lessons.length} leçon{module.lessons.length > 1 ? "s" : ""} · Voir le détail
+                    </summary>
+                    {module.description ? <p>{module.description}</p> : null}
+                    <div>
+                      {module.lessons.map((lesson) => (
+                        <label className="forge-proposal-lesson" key={lesson.clientId}>
+                          <input
+                            checked={selectedLessons.has(lesson.clientId)}
+                            onChange={() => toggleLesson(module.clientId, lesson.clientId)}
+                            type="checkbox"
+                          />
+                          <span>
+                            <strong>{lesson.title}</strong>
+                            <small>
+                              {lesson.objective ?? "Objectif à préciser"}
+                              {lesson.estimatedMinutes ? ` · ${lesson.estimatedMinutes} min` : ""}
+                            </small>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </details>
                 </article>
               );
             })}

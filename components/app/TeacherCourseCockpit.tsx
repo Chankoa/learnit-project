@@ -8,6 +8,8 @@ import { CreatorWorkspaceHeader } from "@/components/app/CreatorWorkspaceHeader"
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
 
 type PublicationIssue = {
+  count?: number;
+  details?: string[];
   href?: string;
   label: string;
 };
@@ -37,6 +39,30 @@ type TeacherCourseCockpitProps = {
 
 type CockpitTabId = "information" | "structure" | "sources" | "forge" | "publication";
 
+function PublicationIssueList({ issues }: { issues: PublicationIssue[] }) {
+  return (
+    <ul className="teacher-publication-issue-groups">
+      {issues.map((issue) => (
+        <li key={issue.label}>
+          <div>
+            <strong>{issue.label}</strong>
+            {issue.count && issue.count > 1 ? <span>{issue.count} éléments</span> : null}
+          </div>
+          {issue.details && issue.details.length > 0 ? (
+            <details>
+              <summary>Voir le détail</summary>
+              <ul>
+                {issue.details.map((detail) => <li key={detail}>{detail}</li>)}
+              </ul>
+            </details>
+          ) : null}
+          {issue.href ? <a href={issue.href}>Corriger</a> : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function TeacherCourseCockpit({
   courseTitle,
   enrollmentLabel,
@@ -59,6 +85,11 @@ export function TeacherCourseCockpit({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const canPublish = publicationIssues.length === 0;
+  const completedCriterionCount = publicationChecklist.filter((item) => item.complete).length;
+  const publicationIssueCount = publicationIssues.reduce(
+    (total, issue) => total + (issue.count ?? 1),
+    0
+  );
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -94,26 +125,25 @@ export function TeacherCourseCockpit({
         </p>
       </div>
 
-      <ul className="teacher-publication-readiness" aria-label="État de préparation à la publication">
-        {publicationChecklist.map((item) => (
-          <li data-complete={item.complete} key={item.label}>
-            {item.complete ? "✓" : "×"} {item.label}
-          </li>
-        ))}
-      </ul>
-
-      {!isPublished && !canPublish ? (
-        <div className="teacher-publication-panel__issues">
-          <strong>
-            {publicationIssues.length} {publicationIssues.length > 1 ? "éléments restent" : "élément reste"} à compléter.
-          </strong>
-          <ul className="teacher-publication-checklist">
-            {publicationIssues.map((issue) => (
-              <li key={issue.label}>
-                {issue.href ? <a href={issue.href}>{issue.label}</a> : issue.label}
+      <div className="teacher-publication-summary" aria-label="État de préparation à la publication">
+        <strong>{completedCriterionCount} / {publicationChecklist.length} critères validés</strong>
+        <span>{canPublish ? "Prêt à publier" : `${publicationIssueCount} élément${publicationIssueCount > 1 ? "s" : ""} à corriger`}</span>
+        <details>
+          <summary>Voir les critères</summary>
+          <ul className="teacher-publication-readiness">
+            {publicationChecklist.map((item) => (
+              <li data-complete={item.complete} key={item.label}>
+                {item.complete ? "✓" : "×"} {item.label}
               </li>
             ))}
           </ul>
+        </details>
+      </div>
+
+      {!isPublished && !canPublish ? (
+        <div className="teacher-publication-panel__issues">
+          <strong>{publicationIssueCount} élément{publicationIssueCount > 1 ? "s restent" : " reste"} à compléter.</strong>
+          <PublicationIssueList issues={publicationIssues} />
         </div>
       ) : null}
 
@@ -284,15 +314,9 @@ export function TeacherCourseCockpit({
               ))}
             </ul>
             <p className="teacher-publication-dialog__incomplete">
-              {publicationIssues.length} {publicationIssues.length > 1 ? "éléments restent" : "élément reste"} à compléter.
+              {publicationIssueCount} élément{publicationIssueCount > 1 ? "s restent" : " reste"} à compléter.
             </p>
-            <ul className="teacher-publication-checklist">
-              {publicationIssues.map((issue) => (
-                <li key={issue.label}>
-                  {issue.href ? <a href={issue.href}>{issue.label}</a> : issue.label}
-                </li>
-              ))}
-            </ul>
+            <PublicationIssueList issues={publicationIssues} />
             <div className="teacher-publication-dialog__actions">
               <button className="btn btn-secondary" onClick={closeDialog} type="button">
                 Fermer

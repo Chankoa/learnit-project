@@ -72,7 +72,7 @@ export function TeacherCourseForm({
               <small>Domaine, niveau, format et couverture</small>
             </summary>
             <div className="teacher-form-grid">
-              <TeacherDomainPicker domains={domains} selectedDomainId={initialValues.domainId || domains[0]?.id} />
+              <TeacherDomainPicker domains={domains} selectedDomainId={initialValues.domainId} />
 
               <label className="teacher-field">
                 <span>Niveau</span>

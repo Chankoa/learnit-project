@@ -195,7 +195,7 @@ export function getTeacherCourseFormDefaults(course?: TeacherCourse) {
   return {
     title: course?.title ?? "",
     description: course?.description ?? "",
-    domainId: course?.domain.id ?? listDomains()[0]?.id ?? "",
+    domainId: course?.domain.id ?? "",
     level: course?.level ?? "beginner",
     format: course?.format ?? "Formation guidée",
     objectives: (course?.objectives ?? []).join("\n"),

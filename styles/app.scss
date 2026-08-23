@@ -4627,3 +4627,404 @@ a.creator-start__option:hover {
     width: 100%;
   }
 }
+
+/* Sprint 10.0 — visual refinement scoped to the Creator workspace. */
+.teacher-page .btn {
+  padding-inline: 0.9rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.teacher-page .btn-primary {
+  box-shadow: 0 7px 16px color-mix(in srgb, var(--accent-primary) 15%, transparent);
+}
+
+.teacher-page .btn:hover {
+  transform: none;
+}
+
+.forge-home-hero {
+  gap: var(--space-5);
+  padding: clamp(var(--space-5), 3vw, var(--space-8));
+  background:
+    radial-gradient(circle at 90% 8%, color-mix(in srgb, var(--accent-primary) 10%, transparent), transparent 32%),
+    var(--surface-card);
+}
+
+.forge-home-hero h1 {
+  font-size: clamp(2.2rem, 4.3vw, 3.75rem);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.04;
+}
+
+.forge-home-intent {
+  gap: var(--space-3);
+  box-shadow: var(--shadow-xs);
+}
+
+.forge-home-intent__formats button {
+  font-weight: var(--font-weight-semibold);
+}
+
+.teacher-management-card {
+  gap: var(--space-4);
+  padding: var(--space-4);
+  box-shadow: none;
+}
+
+.teacher-management-card h2,
+.teacher-form-section h2,
+.teacher-inline-form__heading h2,
+.teacher-builder__toolbar h2,
+.teacher-builder-module h3,
+.teacher-table-card__heading h2 {
+  font-weight: var(--font-weight-extrabold);
+}
+
+.teacher-management-card__meta {
+  gap: var(--space-2);
+}
+
+.teacher-management-card__meta div {
+  padding: var(--space-2) var(--space-3);
+}
+
+.teacher-management-card__meta dt {
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.teacher-management-card__meta dd {
+  font-weight: var(--font-weight-bold);
+}
+
+.teacher-form,
+.teacher-builder {
+  gap: var(--space-4);
+}
+
+.teacher-form-section,
+.teacher-inline-form {
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.teacher-form-grid {
+  gap: var(--space-3);
+}
+
+.teacher-form-section > div > span,
+.teacher-inline-form__heading span,
+.teacher-builder__toolbar span,
+.teacher-table-card__heading span {
+  color: var(--text-muted);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.03em;
+}
+
+.forge-ai-panel__heading span,
+.forge-ai-proposal header > span,
+.forge-ai-comparison section > span,
+.forge-ai-reason > span,
+.forge-brief-intent > span,
+.forge-brief-section-heading span,
+.forge-source-manager__heading > div > span {
+  color: var(--accent-primary);
+}
+
+.forge-brief-intent {
+  padding: var(--space-4);
+}
+
+.forge-brief-intent blockquote {
+  font-weight: var(--font-weight-extrabold);
+}
+
+.creator-workspace-header,
+.teacher-course-cockpit {
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.creator-workspace-header .eyebrow {
+  color: var(--text-muted);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+}
+
+.teacher-course-cockpit h1,
+.teacher-course-preview h1 {
+  font-weight: var(--font-weight-extrabold);
+}
+
+.teacher-course-cockpit__meta {
+  font-weight: var(--font-weight-medium);
+}
+
+.teacher-course-tabs {
+  gap: 0;
+  margin-bottom: var(--space-4);
+}
+
+.teacher-course-tabs button {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  font-weight: var(--font-weight-semibold);
+}
+
+.teacher-course-tabs button:hover {
+  background: var(--surface-muted);
+  color: var(--text-strong);
+}
+
+.teacher-course-tabs button[aria-selected="true"] {
+  color: var(--text-strong);
+}
+
+.forge-ai-panel {
+  gap: var(--space-3);
+  border-color: color-mix(in srgb, var(--accent-primary) 17%, var(--border-soft));
+  background: color-mix(in srgb, var(--accent-primary) 3%, var(--surface-card));
+  padding: var(--space-4);
+}
+
+.forge-ai-proposal,
+.forge-ai-comparison section,
+.forge-ai-reason {
+  padding: var(--space-3);
+}
+
+.forge-proposal {
+  gap: var(--space-4);
+}
+
+.forge-proposal header,
+.forge-proposal section,
+.forge-proposal-module {
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.forge-proposal-module__details {
+  border-top: 1px solid var(--border-soft);
+  padding-top: var(--space-2);
+}
+
+.forge-proposal-module__details summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.forge-proposal-module__details summary:focus-visible,
+.teacher-publication-summary summary:focus-visible,
+.teacher-publication-issue-groups summary:focus-visible {
+  border-radius: var(--radius-sm);
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
+}
+
+.forge-proposal-module__details > p {
+  margin-top: var(--space-3);
+}
+
+.forge-proposal-lesson {
+  padding-block: var(--space-2);
+}
+
+.teacher-builder__toolbar {
+  padding: var(--space-4);
+  box-shadow: none;
+}
+
+.teacher-builder__workspace {
+  gap: var(--space-4);
+}
+
+.teacher-builder__outline {
+  gap: var(--space-3);
+  padding: var(--space-3);
+  box-shadow: none;
+}
+
+.teacher-builder__panel {
+  padding: var(--space-4);
+  box-shadow: none;
+}
+
+.teacher-builder-module {
+  gap: var(--space-2);
+  padding: var(--space-3);
+  box-shadow: none;
+}
+
+.teacher-builder-module__select strong,
+.teacher-builder-lesson h4,
+.teacher-builder__outline-heading h2,
+.teacher-builder-editor__heading h2,
+.teacher-preview-modal header h2,
+.teacher-builder-empty h2 {
+  font-weight: var(--font-weight-bold);
+}
+
+.teacher-builder-module__meta {
+  font-weight: var(--font-weight-medium);
+}
+
+.teacher-builder-lesson {
+  padding: var(--space-2);
+}
+
+.teacher-course-preview {
+  gap: var(--space-3);
+  padding: clamp(var(--space-4), 4vw, var(--space-6));
+}
+
+.teacher-course-preview > p {
+  max-width: 46rem;
+  font-size: var(--text-base);
+}
+
+.teacher-course-preview__meta {
+  gap: var(--space-2);
+  font-weight: var(--font-weight-medium);
+}
+
+.teacher-publication-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  padding: var(--space-3) var(--space-4);
+}
+
+.teacher-publication-summary > strong {
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+}
+
+.teacher-publication-summary > span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.teacher-publication-summary > details {
+  grid-column: 1 / -1;
+}
+
+.teacher-publication-summary summary,
+.teacher-publication-issue-groups summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--accent-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.teacher-publication-summary .teacher-publication-readiness {
+  margin-top: var(--space-3);
+}
+
+.teacher-publication-issue-groups {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.teacher-publication-issue-groups > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border-soft);
+  padding-top: var(--space-3);
+}
+
+.teacher-publication-issue-groups > li > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.teacher-publication-issue-groups strong {
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+}
+
+.teacher-publication-issue-groups span,
+.teacher-publication-issue-groups li li {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.teacher-publication-issue-groups > li > a {
+  color: var(--accent-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.teacher-publication-issue-groups details {
+  grid-column: 1 / -1;
+}
+
+.teacher-publication-issue-groups details ul {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-5);
+}
+
+@media (max-width: 760px) {
+  .forge-home-hero,
+  .teacher-management-card,
+  .teacher-form-section,
+  .teacher-inline-form,
+  .forge-ai-panel,
+  .teacher-builder__toolbar,
+  .teacher-builder__panel,
+  .teacher-course-cockpit,
+  .creator-workspace-header {
+    padding: var(--space-3);
+  }
+
+  .forge-home-hero h1 {
+    font-size: clamp(2rem, 10vw, 2.65rem);
+  }
+
+  .teacher-course-tabs button {
+    padding-inline: var(--space-3);
+  }
+
+  .teacher-publication-summary,
+  .teacher-publication-issue-groups > li {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-publication-summary > span,
+  .teacher-publication-issue-groups > li > a {
+    justify-self: start;
+  }
+
+  .teacher-builder__modules {
+    gap: var(--space-2);
+  }
+}
+
+@media (max-width: 520px) {
+  .teacher-management-card__meta div,
+  .forge-brief-completeness > div {
+    padding: var(--space-2);
+  }
+
+  .forge-proposal header,
+  .forge-proposal section,
+  .forge-proposal-module,
+  .teacher-builder-module {
+    padding: var(--space-2);
+  }
+}

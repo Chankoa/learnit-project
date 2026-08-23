@@ -15,7 +15,7 @@ export function TeacherDomainPicker({ domains, selectedDomainId }: TeacherDomain
   const selectId = useId();
   const inputId = useId();
   const [items, setItems] = useState(domains);
-  const [selectedId, setSelectedId] = useState(selectedDomainId || domains[0]?.id || "");
+  const [selectedId, setSelectedId] = useState(selectedDomainId ?? "");
   const [draftName, setDraftName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -70,9 +70,13 @@ export function TeacherDomainPicker({ domains, selectedDomainId }: TeacherDomain
         id={selectId}
         name="domainId"
         onChange={(event) => setSelectedId(event.target.value)}
+        onInvalid={(event) => {
+          event.currentTarget.closest("details")?.setAttribute("open", "");
+        }}
         required
         value={selectedId}
       >
+        <option value="">À préciser</option>
         {items.map((domain) => (
           <option key={domain.id} value={domain.id}>
             {domain.name}
@@ -95,7 +99,7 @@ export function TeacherDomainPicker({ domains, selectedDomainId }: TeacherDomain
               id={inputId}
               maxLength={80}
               onChange={(event) => setDraftName(event.target.value)}
-              placeholder="Ex. Création web"
+              placeholder="Ex. Mobilité professionnelle"
               type="text"
               value={draftName}
             />
@@ -118,7 +122,11 @@ export function TeacherDomainPicker({ domains, selectedDomainId }: TeacherDomain
           {feedback.message}
         </p>
       ) : (
-        <p className="teacher-field-note">Les domaines créés ici sont disponibles immédiatement pour vos formations.</p>
+        <p className="teacher-field-note">
+          {selectedId
+            ? "Ce domaine sera associé à la création."
+            : "Choisissez un domaine ou créez celui qui correspond à votre sujet."}
+        </p>
       )}
     </div>
   );

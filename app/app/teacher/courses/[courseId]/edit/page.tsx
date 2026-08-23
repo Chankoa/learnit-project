@@ -74,15 +74,16 @@ export default async function EditTeacherCoursePage({
 
   const lessonCount = countTeacherLessons(course);
   const publicationIssues = getPublicationIssues(course);
-  const issueLinks = new Map(
-    course.modules.flatMap((module) =>
-      module.lessons
-        .filter((lesson) => !lesson.content?.trim())
-        .map((lesson) => [
-          `Module « ${module.title} » → leçon « ${lesson.title} » sans contenu.`,
-          `/app/teacher/courses/${course.id}/builder?lesson=${lesson.id}`
-        ])
-    )
+  const missingLessonContent = course.modules.flatMap((module) =>
+    module.lessons
+      .filter((lesson) => !lesson.content?.trim())
+      .map((lesson) => ({
+        href: `/app/teacher/courses/${course.id}/builder?lesson=${lesson.id}`,
+        label: `Module « ${module.title} » → leçon « ${lesson.title} »`
+      }))
+  );
+  const missingLessonLabels = new Set(
+    missingLessonContent.map((issue) => `${issue.label} sans contenu.`)
   );
   const isPublished = course.status === "published";
   const requestedTab = getSingleParam(query?.tab);
@@ -137,7 +138,19 @@ export default async function EditTeacherCoursePage({
             label: "Contenu des leçons"
           }
         ]}
-        publicationIssues={publicationIssues.map((label) => ({ href: issueLinks.get(label), label }))}
+        publicationIssues={[
+          ...publicationIssues
+            .filter((label) => !missingLessonLabels.has(label))
+            .map((label) => ({ label })),
+          ...(missingLessonContent.length > 0
+            ? [{
+                count: missingLessonContent.length,
+                details: missingLessonContent.map((issue) => issue.label),
+                href: missingLessonContent[0]?.href,
+                label: "Contenu des leçons"
+              }]
+            : [])
+        ]}
         publishAction={publishTeacherCourseAction.bind(null, course.id)}
         sourceContent={<ForgeCourseSourcesPanel courseId={course.id} initialSources={sources} />}
         structureContent={
