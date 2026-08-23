@@ -1,12 +1,26 @@
 import "server-only";
 
 import { createOpenAI } from "@ai-sdk/openai";
-import { generateText } from "ai";
+import {
+  APICallError,
+  generateText,
+  jsonSchema,
+  NoObjectGeneratedError,
+  NoOutputGeneratedError,
+  Output,
+  RetryError
+} from "ai";
 
 import { getForgeAIConfig } from "@/lib/forge-ai/config";
 import { lessonProposalToMarkdown } from "@/lib/forge-ai/lesson-markdown";
 import { getMaxOutputTokens } from "@/lib/forge-ai/token-budget";
-import { parseJsonObject } from "@/lib/forge-ai/validation";
+import {
+  parseJsonObject,
+  validateForgeCourseImprovement,
+  validateForgeCourseProposal,
+  validateForgeLessonContentProposal,
+  validateForgeLessonSuggestion
+} from "@/lib/forge-ai/validation";
 import type {
   CourseBrief,
   ForgeCourseImprovement,
@@ -352,20 +366,23 @@ function objectSchema(properties: Record<string, unknown>) {
     additionalProperties: false,
     properties,
     required: Object.keys(properties),
-    type: "object"
+    type: "object" as const
   };
 }
 
 function arraySchema(items: Record<string, unknown>) {
   return {
     items,
-    type: "array"
+    type: "array" as const
   };
 }
 
-const stringSchema = { type: "string" };
-const numberSchema = { type: "number" };
-const courseLevelSchema = { enum: ["beginner", "intermediate", "advanced"], type: "string" };
+const stringSchema = { type: "string" as const };
+const numberSchema = { type: "number" as const };
+const courseLevelSchema = {
+  enum: ["beginner", "intermediate", "advanced"],
+  type: "string" as const
+};
 
 const courseProposalSchema = objectSchema({
   audience: stringSchema,
@@ -468,6 +485,37 @@ function getStructuredOutputSchema(request: ForgeAIJsonRequest) {
     name: "forge_lesson_suggestion",
     schema: lessonSuggestionSchema
   };
+}
+
+function validateStructuredOutput(request: ForgeAIJsonRequest, value: unknown) {
+  try {
+    const validated =
+      request.promptType === "course_structure"
+        ? validateForgeCourseProposal(value)
+        : request.promptType === "course_improvement"
+          ? validateForgeCourseImprovement(value)
+          : isLessonContentInput(request.input)
+            ? validateForgeLessonContentProposal(value)
+            : validateForgeLessonSuggestion(value);
+
+    return { success: true as const, value: validated };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error : new Error("Sortie IA structurée invalide."),
+      success: false as const
+    };
+  }
+}
+
+function getAiSdkOutput(request: ForgeAIJsonRequest) {
+  const outputSchema = getStructuredOutputSchema(request);
+
+  return Output.object({
+    name: outputSchema.name,
+    schema: jsonSchema(outputSchema.schema, {
+      validate: (value) => validateStructuredOutput(request, value)
+    })
+  });
 }
 
 function buildResponsesPayload(config: ReturnType<typeof getForgeAIConfig>, request: ForgeAIJsonRequest) {
@@ -749,6 +797,111 @@ function isAbortError(error: unknown) {
   );
 }
 
+function hasAbortCause(error: unknown, depth = 0): boolean {
+  if (depth > 4 || !(error instanceof Error)) {
+    return false;
+  }
+
+  return isAbortError(error) || hasAbortCause(error.cause, depth + 1);
+}
+
+function getAiSdkProviderError(error: unknown) {
+  if (error instanceof ForgeAIProviderError) {
+    return error;
+  }
+
+  if (hasAbortCause(error)) {
+    return new ForgeAIProviderError("timeout", "Provider IA request timed out.");
+  }
+
+  if (RetryError.isInstance(error)) {
+    return getAiSdkProviderError(error.lastError);
+  }
+
+  if (APICallError.isInstance(error)) {
+    return error.statusCode
+      ? getProviderError(error.statusCode)
+      : new ForgeAIProviderError("request_failed", "Provider IA request failed.");
+  }
+
+  if (NoObjectGeneratedError.isInstance(error)) {
+    return new ForgeAIProviderError(
+      "structured_output_invalid",
+      "AI SDK could not parse or validate the structured output.",
+      undefined,
+      {
+        inputTokens: error.usage?.inputTokens,
+        outputTokens: error.usage?.outputTokens,
+        totalTokens: error.usage?.totalTokens
+      }
+    );
+  }
+
+  if (NoOutputGeneratedError.isInstance(error)) {
+    return new ForgeAIProviderError(
+      "structured_output_invalid",
+      "AI SDK returned no structured output."
+    );
+  }
+
+  return new ForgeAIProviderError("request_failed", "Provider IA request failed.");
+}
+
+function getAiSdkProvider(): ForgeAIProvider {
+  return {
+    async generateJson(request) {
+      const config = getForgeAIConfig();
+      logOpenAICompatibleConfig(config);
+
+      if (!config.apiKey || !config.model) {
+        throw new ForgeAIProviderError(
+          "missing_config",
+          "Provider IA non configuré. Renseignez OPENAI_API_KEY et OPENAI_MODEL côté serveur."
+        );
+      }
+
+      const startedAt = Date.now();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
+      const openai = createOpenAI({
+        apiKey: config.apiKey,
+        baseURL: config.baseUrl
+      });
+
+      try {
+        const result = await generateText({
+          abortSignal: controller.signal,
+          maxOutputTokens: getMaxOutputTokens(request.promptType, config.maxOutputTokens),
+          model: openai.responses(config.model),
+          output: getAiSdkOutput(request),
+          prompt: request.userPrompt,
+          system: request.systemPrompt
+        });
+
+        return {
+          durationMs: Date.now() - startedAt,
+          inputTokens: result.usage.inputTokens,
+          json: result.output,
+          model: config.model,
+          outputTokens: result.usage.outputTokens,
+          provider: "ai-sdk",
+          totalTokens: result.usage.totalTokens
+        };
+      } catch (error) {
+        const providerError = getAiSdkProviderError(error);
+        console.error("[forge-ai] AI SDK generation failed", {
+          code: providerError.code,
+          model: config.model,
+          status: providerError.status
+        });
+        throw providerError;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+  };
+}
+
 function getOpenAIProvider(): ForgeAIProvider {
   return {
     async generateJson(request) {
@@ -879,6 +1032,10 @@ function getOpenAICompatibleProvider(): ForgeAIProvider {
 
 export function getForgeAIProvider(): ForgeAIProvider {
   const config = getForgeAIConfig();
+  if (config.provider === "ai-sdk") {
+    return getAiSdkProvider();
+  }
+
   if (config.provider === "openai") {
     return getOpenAIProvider();
   }

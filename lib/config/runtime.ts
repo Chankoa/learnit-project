@@ -3,7 +3,7 @@ import { FORGE_AI_MAX_OUTPUT_TOKENS_LIMIT } from "@/lib/forge-ai/token-budget";
 const localAppUrl = "http://localhost:3000";
 
 export type ConfiguredDataSource = "mock" | "supabase";
-export type AIProvider = "mock" | "openai" | "openai-compatible";
+export type AIProvider = "mock" | "openai" | "openai-compatible" | "ai-sdk";
 
 type RuntimeEnvironment = Record<string, string | undefined>;
 
@@ -158,11 +158,16 @@ function getProvider(environment: RuntimeEnvironment, errors: string[]): AIProvi
     return "mock";
   }
 
-  if (configured === "mock" || configured === "openai" || configured === "openai-compatible") {
+  if (
+    configured === "mock" ||
+    configured === "openai" ||
+    configured === "openai-compatible" ||
+    configured === "ai-sdk"
+  ) {
     return configured;
   }
 
-  errors.push('AI_PROVIDER must be "mock", "openai", or "openai-compatible".');
+  errors.push('AI_PROVIDER must be "mock", "openai", "openai-compatible", or "ai-sdk".');
   return "mock";
 }
 

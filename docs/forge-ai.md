@@ -44,6 +44,7 @@ Providers V1 :
 - `mock` : provider déterministe, utile sans clé externe.
 - `openai` : provider OpenAI officiel via Vercel AI SDK.
 - `openai-compatible` : provider compatible OpenAI Responses API.
+- `ai-sdk` : provider expérimental Sprint 9.3 utilisant `Output.object()` et la validation structurée de AI SDK.
 
 Variables serveur :
 
