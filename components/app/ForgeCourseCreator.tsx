@@ -19,16 +19,19 @@ import {
 } from "@/app/app/teacher/forge/actions";
 import { ForgeAIStatus } from "@/components/app/ForgeAIPrimitives";
 import { TeacherDomainPicker } from "@/components/app/TeacherDomainPicker";
+import { getForgeCourseBriefPrefill } from "@/lib/forge-ai/creation-intent";
 import { courseLevelLabels } from "@/lib/teacher";
 import type { CourseLevel, Domain } from "@/types/course";
 import type {
   CourseBrief,
   CourseSource,
+  ForgeCreationIntent,
   ForgeCourseProposal
 } from "@/types/forge-ai";
 
 type ForgeCourseCreatorProps = {
   domains: Domain[];
+  initialIntent?: ForgeCreationIntent;
 };
 
 type Feedback = {
@@ -81,7 +84,7 @@ function buildBrief(formData: FormData, sources: CourseSource[]): CourseBrief {
   };
 }
 
-export function ForgeCourseCreator({ domains }: ForgeCourseCreatorProps) {
+export function ForgeCourseCreator({ domains, initialIntent }: ForgeCourseCreatorProps) {
   const router = useRouter();
   const sourceInputRef = useRef<HTMLInputElement>(null);
   const [feedback, setFeedback] = useState<Feedback | undefined>();
@@ -95,6 +98,7 @@ export function ForgeCourseCreator({ domains }: ForgeCourseCreatorProps) {
   const [sourceTitle, setSourceTitle] = useState("");
   const [sourceFile, setSourceFile] = useState<File | undefined>();
   const [sources, setSources] = useState<CourseSource[]>([]);
+  const initialBrief = getForgeCourseBriefPrefill(initialIntent);
 
   const selectedLessonCount = selectedLessons.size;
   const selectedModuleCount = selectedModules.size;
@@ -271,8 +275,17 @@ export function ForgeCourseCreator({ domains }: ForgeCourseCreatorProps) {
   }
 
   return (
-    <div className="forge-ai-layout">
-      <form action={handleGenerate} className="teacher-form forge-ai-form">
+    <div className="forge-course-creator">
+      {initialIntent ? (
+        <ForgeAIStatus
+          description="Le sujet et le format éventuel ont été repris ci-dessous. Complétez le public et les objectifs, puis vérifiez chaque champ avant de demander une proposition."
+          state="success"
+          title="Votre intention a préparé ce Course Brief."
+        />
+      ) : null}
+
+      <div className="forge-ai-layout">
+        <form action={handleGenerate} className="teacher-form forge-ai-form">
         <section className="teacher-form-section">
           <div>
             <span>Forge AI</span>
@@ -281,7 +294,12 @@ export function ForgeCourseCreator({ domains }: ForgeCourseCreatorProps) {
           <div className="teacher-form-grid">
             <label className="teacher-field teacher-field--wide">
               <span>Sujet / titre de travail</span>
-              <input name="subject" placeholder="Ex. Créer un portfolio web professionnel" required />
+              <input
+                defaultValue={initialBrief.subject}
+                name="subject"
+                placeholder="Ex. Créer un portfolio web professionnel"
+                required
+              />
             </label>
             <TeacherDomainPicker domains={domains} selectedDomainId={domains[0]?.id} />
             <label className="teacher-field">
@@ -311,6 +329,7 @@ export function ForgeCourseCreator({ domains }: ForgeCourseCreatorProps) {
             <label className="teacher-field teacher-field--wide">
               <span>Objectifs pédagogiques</span>
               <textarea
+                defaultValue=""
                 name="learningObjectives"
                 placeholder="Un objectif par ligne. Ex. Produire une page portfolio publiable."
                 required
@@ -332,6 +351,7 @@ export function ForgeCourseCreator({ domains }: ForgeCourseCreatorProps) {
             <label className="teacher-field teacher-field--wide">
               <span>Contraintes particulières</span>
               <textarea
+                defaultValue={initialBrief.constraints}
                 name="constraints"
                 placeholder="Ex. pas de jargon technique, privilégier les exercices courts."
                 rows={3}
@@ -575,7 +595,8 @@ export function ForgeCourseCreator({ domains }: ForgeCourseCreatorProps) {
             </div>
           </div>
         )}
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { ForgeCourseCreator } from "@/components/app/ForgeCourseCreator";
+import { validateForgeCreationIntent } from "@/lib/forge-ai/creation-intent";
 import { getTeacherStudioDomains } from "@/lib/teacher-service";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -17,8 +18,25 @@ export const metadata: Metadata = createPageMetadata({
   noIndex: true
 });
 
-export default async function ForgeCoursePage() {
+type ForgeCoursePageProps = {
+  searchParams?: Promise<{
+    format?: string | string[];
+    intent?: string | string[];
+  }>;
+};
+
+function getSingleParam(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function ForgeCoursePage({ searchParams }: ForgeCoursePageProps) {
+  const params = await searchParams;
   const domains = await getTeacherStudioDomains();
+  const intentResult = validateForgeCreationIntent({
+    formatHint: getSingleParam(params?.format),
+    text: getSingleParam(params?.intent) ?? ""
+  });
+  const initialIntent = intentResult.ok ? intentResult.data : undefined;
 
   return (
     <div className="app-page teacher-page">
@@ -49,7 +67,7 @@ export default async function ForgeCoursePage() {
         </p>
       </div>
 
-      <ForgeCourseCreator domains={domains} />
+      <ForgeCourseCreator domains={domains} initialIntent={initialIntent} />
     </div>
   );
 }

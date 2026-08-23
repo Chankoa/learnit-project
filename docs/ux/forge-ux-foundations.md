@@ -350,3 +350,16 @@ Le Sprint 9.7 peut s'appuyer sur ces règles à condition de :
 4. utiliser les trois patterns de header existants ;
 5. ne pas étendre les primitives Forge AI à des composants qui n'ont pas le même modèle d'interaction ;
 6. tester navigation active, responsive et accès clavier après chaque changement visible.
+
+## Home intent pattern — Sprint 9.8
+
+La Home Creator applique désormais le principe « intention avant technique » sans ajouter de nouvelle opération IA :
+
+- une intention libre et bornée prépare le `CourseBrief` existant ;
+- seuls le sujet et le format explicitement choisis sont préremplis ;
+- les informations non déductibles restent à compléter humainement ;
+- le Course Creator demeure l'unique point de génération, preview, sélection et import ;
+- le chemin manuel reste visible et inchangé ;
+- créer, reprendre puis consulter l'activité définit la hiérarchie de `/app/teacher`.
+
+Le contrat, les états, le coût et les règles responsive sont détaillés dans [`docs/ux/forge-home-intent.md`](./forge-home-intent.md).

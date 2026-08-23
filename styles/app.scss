@@ -1569,6 +1569,181 @@
   --teacher-table-min: 980px;
 }
 
+.forge-home-hero {
+  position: relative;
+  display: grid;
+  gap: var(--space-6);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 24%, var(--border-soft));
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at 88% 8%, color-mix(in srgb, var(--accent-primary) 15%, transparent), transparent 34%),
+    var(--surface-card);
+  padding: clamp(var(--space-5), 4vw, var(--space-10));
+  box-shadow: var(--shadow-xs);
+}
+
+.forge-home-hero__copy {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 880px;
+}
+
+.forge-home-hero__copy > span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.forge-home-hero__eyebrow {
+  color: var(--accent-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.forge-home-hero h1 {
+  max-width: 820px;
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: clamp(2.25rem, 5vw, 4.5rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.forge-home-hero__description {
+  color: var(--text-muted);
+  font-size: clamp(var(--text-base), 2vw, var(--text-lg));
+  line-height: var(--leading-relaxed);
+}
+
+.forge-home-intent {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-panel) 94%, transparent);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.forge-home-intent__label,
+.forge-home-intent__formats legend {
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.forge-home-intent__field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  padding: var(--space-2);
+  transition: var(--transition-interactive);
+}
+
+.forge-home-intent__field:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-focus);
+}
+
+.forge-home-intent__field > svg {
+  margin-left: var(--space-2);
+  color: var(--accent-primary);
+}
+
+.forge-home-intent__field input {
+  min-width: 0;
+  min-height: 48px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-strong);
+  font-size: var(--text-base);
+}
+
+.forge-home-intent__field input::placeholder {
+  color: var(--text-muted);
+}
+
+.forge-home-intent__error {
+  color: var(--status-danger);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.forge-home-intent__formats {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.forge-home-intent__formats > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.forge-home-intent__formats button {
+  min-height: 40px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+  padding: 0 var(--space-4);
+  color: var(--text-default);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  transition: var(--transition-interactive);
+}
+
+.forge-home-intent__formats button:hover,
+.forge-home-intent__formats button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--accent-primary) 58%, var(--border-soft));
+  background: color-mix(in srgb, var(--accent-primary) 11%, var(--surface-muted));
+  color: var(--accent-primary);
+}
+
+.forge-home-intent__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.forge-home-intent__footer .text-link {
+  flex: 0 0 auto;
+}
+
+.forge-home-secondary {
+  align-items: start;
+}
+
+.teacher-metrics.forge-home-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.forge-home-metrics article {
+  padding: var(--space-4);
+}
+
+.forge-course-creator {
+  display: grid;
+  gap: var(--space-4);
+}
+
 .teacher-metrics {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -3440,6 +3615,24 @@ a.creator-start__option:hover {
     grid-template-columns: 1fr;
   }
 
+  .teacher-metrics.forge-home-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .forge-home-intent__field {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .forge-home-intent__field .forge-ai-action {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .forge-home-intent__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .teacher-management-card__meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3504,6 +3697,28 @@ a.creator-start__option:hover {
 }
 
 @media (max-width: 520px) {
+  .forge-home-hero {
+    gap: var(--space-5);
+    padding: var(--space-5);
+  }
+
+  .forge-home-hero h1 {
+    font-size: clamp(2rem, 11vw, 2.75rem);
+  }
+
+  .forge-home-intent {
+    padding: var(--space-3);
+  }
+
+  .forge-home-intent__formats > div,
+  .forge-home-intent__formats button {
+    width: 100%;
+  }
+
+  .teacher-metrics.forge-home-metrics {
+    grid-template-columns: 1fr;
+  }
+
   .teacher-management-card__meta {
     grid-template-columns: 1fr;
   }

@@ -35,6 +35,16 @@ export type ForgeCourseIntent = {
   tone?: string;
 };
 
+export type ForgeCreationFormatHint =
+  | "guided-course"
+  | "practical-workshop"
+  | "thematic-module";
+
+export type ForgeCreationIntent = {
+  formatHint?: ForgeCreationFormatHint;
+  text: string;
+};
+
 export type CourseBrief = {
   constraints?: string;
   domainId: string;
