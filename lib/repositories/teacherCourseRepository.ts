@@ -7,7 +7,8 @@ import type {
   TeacherDomainInput,
   TeacherCourseInput,
   TeacherLessonInput,
-  TeacherModuleInput
+  TeacherModuleInput,
+  TeacherModuleRevisionInput
 } from "@/lib/repositories/teacherCourseRepository.types";
 
 export type {
@@ -15,7 +16,8 @@ export type {
   TeacherCourseInput,
   TeacherCourseRepository,
   TeacherLessonInput,
-  TeacherModuleInput
+  TeacherModuleInput,
+  TeacherModuleRevisionInput
 } from "@/lib/repositories/teacherCourseRepository.types";
 
 function getTeacherCourseRepository() {
@@ -46,6 +48,12 @@ export const updateModule = (
   moduleId: string,
   input: TeacherModuleInput
 ) => getTeacherCourseRepository().updateModule(teacherId, courseId, moduleId, input);
+export const applyModuleRevision = (
+  teacherId: string,
+  courseId: string,
+  moduleId: string,
+  input: TeacherModuleRevisionInput
+) => getTeacherCourseRepository().applyModuleRevision(teacherId, courseId, moduleId, input);
 export const moveModule = (
   teacherId: string,
   courseId: string,

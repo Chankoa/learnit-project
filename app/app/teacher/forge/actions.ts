@@ -4,12 +4,14 @@ import { revalidatePath } from "next/cache";
 
 import {
   applyForgeCourseImprovement,
+  applyForgeModuleRevision,
   applyForgeLessonProposal,
   generateForgeCourseProposal,
   generateForgeCourseImprovement,
   generateForgeLessonContent,
   generateForgeLessonSuggestion,
   importForgeCourseProposal,
+  reviewForgeModule,
   uploadForgeCourseSource,
   deleteForgeCourseSource
 } from "@/lib/forge-ai/service";
@@ -22,11 +24,13 @@ import type {
   ForgeCourseImprovementApplyInput,
   ForgeCourseImprovementInput,
   ForgeCourseProposal,
+  ForgeCourseRevisionProposal,
   ForgeLessonContentInput,
   ForgeLessonContentProposal,
   ForgeLessonProposalApplyInput,
   ForgeLessonSuggestion,
-  ForgeLessonSuggestionInput
+  ForgeLessonSuggestionInput,
+  ForgeModuleRevisionApplyInput
 } from "@/types/forge-ai";
 
 type ForgeActionResult<T> =
@@ -193,6 +197,47 @@ export async function generateForgeLessonSuggestionAction(
     const suggestion = await generateForgeLessonSuggestion(input);
     return {
       data: suggestion,
+      ok: true
+    };
+  } catch (error) {
+    return {
+      error: getErrorMessage(error),
+      ok: false
+    };
+  }
+}
+
+export async function reviewForgeModuleAction(input: {
+  courseId: string;
+  moduleId: string;
+}): Promise<ForgeActionResult<ForgeCourseRevisionProposal>> {
+  try {
+    const proposal = await reviewForgeModule(input);
+    return {
+      data: proposal,
+      ok: true
+    };
+  } catch (error) {
+    return {
+      error: getErrorMessage(error),
+      ok: false
+    };
+  }
+}
+
+export async function applyForgeModuleRevisionAction(
+  input: ForgeModuleRevisionApplyInput
+): Promise<ForgeActionResult<{ message: string }>> {
+  try {
+    await applyForgeModuleRevision(input);
+    revalidatePath(`/app/teacher/courses/${input.courseId}/builder`);
+    revalidatePath(`/app/teacher/courses/${input.courseId}/edit`);
+    revalidatePath(`/app/teacher/courses/${input.courseId}/preview`);
+    revalidatePath("/app/teacher/courses");
+    revalidatePath("/formations");
+
+    return {
+      data: { message: "Proposition Forge appliquée au module." },
       ok: true
     };
   } catch (error) {

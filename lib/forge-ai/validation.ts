@@ -63,6 +63,16 @@ function requiredString(value: unknown, label: string) {
   return next;
 }
 
+function boundedRequiredString(value: unknown, label: string, maxLength: number) {
+  const next = requiredString(value, label);
+
+  if (next.length > maxLength) {
+    throw new Error(`Sortie IA invalide : ${label} dépasse ${maxLength} caractères.`);
+  }
+
+  return next;
+}
+
 export function parseJsonObject(value: string) {
   try {
     const parsed = JSON.parse(value) as unknown;
@@ -204,11 +214,16 @@ export function validateForgeCourseRevisionProposal(
       title: requiredString(issueValue.current.title, `titre actuel ${issueIndex + 1}`)
     };
     const proposed = {
-      description: requiredString(
+      description: boundedRequiredString(
         issueValue.proposed.description,
-        `description proposée ${issueIndex + 1}`
+        `description proposée ${issueIndex + 1}`,
+        600
       ),
-      title: requiredString(issueValue.proposed.title, `titre proposé ${issueIndex + 1}`)
+      title: boundedRequiredString(
+        issueValue.proposed.title,
+        `titre proposé ${issueIndex + 1}`,
+        220
+      )
     };
 
     if (current.title === proposed.title && current.description === proposed.description) {
@@ -233,7 +248,11 @@ export function validateForgeCourseRevisionProposal(
     return {
       current,
       proposed,
-      reason: requiredString(issueValue.reason, `justification ${issueIndex + 1}`),
+      reason: boundedRequiredString(
+        issueValue.reason,
+        `justification ${issueIndex + 1}`,
+        600
+      ),
       scope: "module" as const,
       targetId,
       type: "content_mismatch" as const
@@ -241,6 +260,26 @@ export function validateForgeCourseRevisionProposal(
   });
 
   return { issues };
+}
+
+export function validateForgeModuleRevisionProposal(
+  value: unknown,
+  course: TeacherCourse,
+  moduleId: string
+): ForgeCourseRevisionProposal {
+  const proposal = validateForgeCourseRevisionProposal(value, course);
+
+  if (proposal.issues.length > 1) {
+    throw new Error("Sortie IA invalide : une seule correction de module est autorisée.");
+  }
+
+  const issue = proposal.issues[0];
+
+  if (issue && issue.targetId !== moduleId) {
+    throw new Error("Sortie IA invalide : la correction ne cible pas le module analysé.");
+  }
+
+  return proposal;
 }
 
 export function validateForgeLessonSuggestion(value: unknown): ForgeLessonSuggestion {

@@ -35,6 +35,9 @@ export const mockTeacherCourseRepository: TeacherCourseRepository = {
   async updateModule() {
     throw getMockError();
   },
+  async applyModuleRevision() {
+    throw getMockError();
+  },
   async moveModule() {
     throw getMockError();
   },

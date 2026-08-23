@@ -28,6 +28,7 @@ import {
 } from "@/app/app/teacher/courses/actions";
 import { TeacherConfirmForm } from "@/components/app/TeacherConfirmForm";
 import { ForgeLessonAssistant } from "@/components/app/ForgeLessonAssistant";
+import { ForgeModuleRevision } from "@/components/app/ForgeModuleRevision";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
 import { MarkdownLessonContent } from "@/components/learning/MarkdownLessonContent";
 import {
@@ -357,6 +358,12 @@ export function TeacherCourseBuilder({
                   </TeacherSubmitButton>
                 </div>
               </form>
+              <ForgeModuleRevision
+                key={selectedModule.id}
+                courseId={course.id}
+                moduleId={selectedModule.id}
+                title={selectedModule.title}
+              />
             </section>
           ) : null}
 

@@ -32,6 +32,17 @@ export type TeacherModuleInput = {
   status?: Extract<TeacherModuleStatus, "draft" | "published">;
 };
 
+export type TeacherModuleRevisionInput = {
+  current: {
+    description: string;
+    title: string;
+  };
+  proposed: {
+    description: string;
+    title: string;
+  };
+};
+
 export type TeacherLessonInput = {
   title: string;
   description?: string;
@@ -68,6 +79,12 @@ export type TeacherCourseRepository = {
     courseId: string,
     moduleId: string,
     input: TeacherModuleInput
+  ) => Promise<TeacherModule>;
+  applyModuleRevision: (
+    teacherId: string,
+    courseId: string,
+    moduleId: string,
+    input: TeacherModuleRevisionInput
   ) => Promise<TeacherModule>;
   moveModule: (
     teacherId: string,

@@ -480,3 +480,100 @@ La portée actuelle est volontairement `course -> module content_mismatch`. Une 
 - pas d'UI ni d'application, conformément au scope.
 
 **HYBRID conservé.** Le contrat et l'opération sont suffisamment sains pour servir de base technique à une future fonctionnalité Forge Revision limitée aux modules. Une génération réussie avec chacun des deux providers et une vérification de la ligne `ai_generations` restent des critères d'acceptation avant activation produit ou application de corrections.
+
+## Sprint 9.4 — Forge Revision V1
+
+### Périmètre produit
+
+L'éditeur Teacher propose désormais **Analyser avec Forge** dans le panneau du module sélectionné. La V1 ne sait réviser que le titre et la description d'un seul module. Elle ne modifie ni les leçons, ni les ordres, ni les statuts, ni la publication.
+
+Le composant `ForgeModuleRevision` est un assistant intégré, pas un chat : il affiche le contexte, un comparatif avant/après, une justification et deux décisions explicites, **Ignorer** ou **Appliquer**.
+
+### Flux UX
+
+```text
+Module sélectionné
+  -> Analyser avec Forge
+  -> Analyse du module… (actions désactivées)
+  -> aucune issue : message « aucune incohérence notable »
+  -> une issue : Actuel / Proposition / Pourquoi ?
+  -> Ignorer : aucune mutation
+  -> Appliquer : confirmation explicite
+  -> validation serveur + update optimiste
+  -> feedback de succès + rafraîchissement de l'éditeur
+```
+
+L'analyse porte sur les données déjà enregistrées. Cette précision est affichée dans le bloc Forge afin de ne pas laisser croire que des changements non enregistrés dans le formulaire sont inclus.
+
+### Flux serveur et contrat
+
+`reviewForgeModule({ courseId, moduleId })` réutilise le même pipeline interne que `reviewForgeCourseStructure(courseId)` :
+
+```text
+requireRole("teacher")
+  -> getTeacherCourse(teacherId, courseId)
+  -> vérification moduleId dans le cours possédé
+  -> buildForgeCourseRevisionInput(course, moduleId)
+  -> snapshot contenant le cours et uniquement le module demandé
+  -> rate limit course_analysis
+  -> provider sélectionné par AI_PROVIDER
+  -> ForgeCourseRevisionProposal
+  -> validateForgeModuleRevisionProposal
+  -> ai_generations
+```
+
+Le contrat `ForgeCourseRevisionIssue` de Sprint 9.3.2 est conservé. La couche module ajoute seulement deux contraintes : zéro ou une issue, et `targetId === moduleId`. Le schéma n'autorise toujours que `scope: "module"` et `type: "content_mismatch"` avec les champs `current` et `proposed` limités à `title` et `description`.
+
+### Application et garde-fous
+
+`applyForgeModuleRevision()` considère toute donnée renvoyée par le client comme non fiable. Avant écriture, le serveur :
+
+- exige de nouveau le rôle Teacher ;
+- recharge le cours via le repository avec le Teacher courant ;
+- vérifie que la cible appartient au cours ;
+- revalide le type, la portée, l'unicité et le nombre d'issues ;
+- compare `current.title` et `current.description` avec l'état rechargé ;
+- n'autorise que les deux champs du contrat.
+
+Le repository exécute ensuite un `UPDATE` conditionné par `course_id`, `moduleId`, le titre courant et la description courante. Cette vérification optimiste est atomique : si le module change entre l'analyse et le clic **Appliquer**, aucune ligne n'est modifiée et l'enseignant doit relancer l'analyse. Le payload SQL ne contient que les champs réellement différents ; durée, statut, ordre et leçons ne sont jamais écrits par ce flux.
+
+La requête utilise le client Supabase authentifié. Les policies existantes imposent le rôle Teacher et l'ownership du cours dans `USING` et `WITH CHECK`. Aucune service role, RPC `SECURITY DEFINER` ou migration n'est ajoutée.
+
+### Persistance
+
+Chaque analyse, réussie ou en erreur, suit la journalisation existante `course_analysis`. Une génération réussie conserve provider, modèle, durée et tokens disponibles. Le contexte persistant reste le cours (`context_type = course`, `context_id = courseId`) car le schéma actuel ne possède pas de contexte `module`. Le `moduleId` n'est pas ajouté au schéma pour cette V1.
+
+L'application manuelle est une mutation métier distincte et ne crée pas une seconde génération. L'historique d'applications reste hors scope.
+
+### Validation sandbox
+
+Le provider `mock` a exécuté le snapshot ciblé du module 3 et produit une unique correction Grid validée par le contrat. Des contrôles dédiés ont également confirmé le rejet d'une mauvaise cible, de plusieurs corrections et d'un état courant obsolète. Les configurations `mock`, `openai-compatible` et `ai-sdk` passent la validation runtime.
+
+La route locale charge sans page blanche, overlay Next.js ou erreur console, puis redirige correctement vers `/login` sans session. Faute d'identifiants Teacher et de clé OpenAI valide dans le sandbox, le diff authentifié, l'update RLS et la ligne `ai_generations` doivent être vérifiés sur Vercel.
+
+### Validation produit Vercel
+
+La clé disponible dans le sandbox Codex est refusée par OpenAI ; le test `ai-sdk` credentialé doit donc être exécuté sur [learnit-project.vercel.app](https://learnit-project.vercel.app/) :
+
+1. vérifier côté Vercel `AI_PROVIDER=ai-sdk`, `OPENAI_API_KEY` valide et `OPENAI_MODEL` configuré ;
+2. se connecter avec un compte Teacher propriétaire de la formation **Flexbox, Grid et responsive — positionnement CSS moderne** ;
+3. ouvrir l'éditeur de parcours et sélectionner le module 3 ;
+4. noter son titre, sa description, son statut, sa durée, les trois leçons et le module 2 ;
+5. cliquer **Analyser avec Forge** et vérifier l'état **Analyse du module…** sans mutation du cours ;
+6. vérifier une unique proposition ciblant le module 3, orientée CSS Grid, avec justification et diff avant/après ;
+7. vérifier dans `ai_generations` une ligne `course_analysis` avec `provider = ai-sdk`, modèle, statut `success`, durée et tokens si retournés ;
+8. cliquer **Ignorer**, rafraîchir et confirmer qu'aucune donnée du cours n'a changé ;
+9. relancer l'analyse, cliquer **Appliquer**, confirmer la boîte de validation puis vérifier que seuls le titre et/ou la description du module 3 ont changé ;
+10. confirmer que le module 2, les leçons, les ordres, la durée, le statut et la publication sont inchangés ;
+11. test stale-state : analyser, modifier le module dans une autre session, puis tenter **Appliquer** ; l'application doit être refusée ;
+12. sélectionner un module cohérent et vérifier le message d'absence d'incohérence sans suggestion inventée.
+
+### Limites V1
+
+- un module à la fois ;
+- titre et description uniquement ;
+- données enregistrées uniquement, pas les saisies locales non sauvegardées ;
+- pas d'édition intermédiaire de la proposition ;
+- pas d'historique des applications ;
+- pas de module context dans `ai_generations` ;
+- pas de streaming, RAG, agent, tool calling ou application automatique.

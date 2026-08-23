@@ -15,7 +15,8 @@ import type {
   TeacherDomainInput,
   TeacherCourseRepository,
   TeacherLessonInput,
-  TeacherModuleInput
+  TeacherModuleInput,
+  TeacherModuleRevisionInput
 } from "@/lib/repositories/teacherCourseRepository.types";
 
 type SupabaseClient = NonNullable<Awaited<ReturnType<typeof createOptionalClient>>>;
@@ -630,6 +631,56 @@ async function updateModule(
   return mapModule(data as ModuleRow, []);
 }
 
+async function applyModuleRevision(
+  _teacherId: string,
+  courseId: string,
+  moduleId: string,
+  input: TeacherModuleRevisionInput
+): Promise<TeacherModule> {
+  assertUuid(courseId, "Formation");
+  assertUuid(moduleId, "Module");
+
+  const changes: { description?: string | null; title?: string } = {};
+
+  if (input.current.title !== input.proposed.title) {
+    changes.title = input.proposed.title;
+  }
+
+  if (input.current.description !== input.proposed.description) {
+    changes.description = input.proposed.description || null;
+  }
+
+  if (Object.keys(changes).length === 0) {
+    throw new Error("La proposition ne contient aucune modification applicable.");
+  }
+
+  const supabase = await getClient();
+  let query = supabase
+    .from("course_modules")
+    .update(changes)
+    .eq("id", moduleId)
+    .eq("course_id", courseId)
+    .eq("title", input.current.title);
+
+  query = input.current.description
+    ? query.eq("description", input.current.description)
+    : query.is("description", null);
+
+  const { data, error } = await query.select(moduleSelect).maybeSingle();
+
+  if (error) {
+    throw new Error(`Application de la révision impossible : ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error(
+      "Le module a changé depuis l'analyse. Relancez Forge avant d'appliquer la proposition."
+    );
+  }
+
+  return mapModule(data as ModuleRow, []);
+}
+
 async function moveModule(
   teacherId: string,
   courseId: string,
@@ -955,6 +1006,7 @@ export const supabaseTeacherCourseRepository: TeacherCourseRepository = {
   updateCourse,
   createModule,
   updateModule,
+  applyModuleRevision,
   moveModule,
   deleteModule,
   createLesson,

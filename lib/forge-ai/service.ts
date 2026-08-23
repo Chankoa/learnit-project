@@ -23,6 +23,7 @@ import {
   validateForgeCourseProposal,
   validateForgeCourseRevisionProposal,
   validateForgeLessonContentProposal,
+  validateForgeModuleRevisionProposal,
   validateForgeLessonSuggestion
 } from "@/lib/forge-ai/validation";
 import * as forgeSourceRepository from "@/lib/repositories/forgeSourceRepository";
@@ -44,6 +45,7 @@ import type {
   ForgeLessonProposalApplyInput,
   ForgeLessonSuggestion,
   ForgeLessonSuggestionInput,
+  ForgeModuleRevisionApplyInput,
   ForgePromptType
 } from "@/types/forge-ai";
 import type { TeacherCourse } from "@/types/teaching";
@@ -141,11 +143,18 @@ function assertCourseBrief(input: CourseBrief) {
   }
 }
 
-export function buildForgeCourseRevisionInput(course: TeacherCourse): ForgeCourseRevisionInput {
+export function buildForgeCourseRevisionInput(
+  course: TeacherCourse,
+  moduleId?: string
+): ForgeCourseRevisionInput {
+  const modules = moduleId
+    ? course.modules.filter((module) => module.id === moduleId)
+    : course.modules;
+
   return {
     course: {
       description: truncate(course.description, 900),
-      modules: [...course.modules]
+      modules: [...modules]
         .sort((left, right) => left.order - right.order)
         .slice(0, 12)
         .map((module) => ({
@@ -499,19 +508,14 @@ export async function generateForgeCourseImprovement(
   }
 }
 
-export async function reviewForgeCourseStructure(
-  courseId: string
-): Promise<ForgeCourseRevisionProposal> {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/edit`);
-  const course = await teacherCourseRepository.getTeacherCourse(profile.id, courseId);
-
-  if (!course) {
-    throw new Error("Formation introuvable ou non analysable.");
-  }
-
+async function generateForgeCourseRevision(
+  userId: string,
+  course: TeacherCourse,
+  input: ForgeCourseRevisionInput,
+  moduleId?: string
+) {
   const startedAt = Date.now();
-  const input = buildForgeCourseRevisionInput(course);
-  assertForgeAIRateLimit(profile.id, "course_analysis");
+  assertForgeAIRateLimit(userId, "course_analysis");
 
   try {
     const response = await getForgeAIProvider().generateJson({
@@ -520,7 +524,9 @@ export async function reviewForgeCourseStructure(
       systemPrompt: forgeCourseRevisionSystemPrompt,
       userPrompt: buildCourseRevisionUserPrompt(input)
     });
-    const proposal = validateForgeCourseRevisionProposal(response.json, course);
+    const proposal = moduleId
+      ? validateForgeModuleRevisionProposal(response.json, course, moduleId)
+      : validateForgeCourseRevisionProposal(response.json, course);
 
     await logForgeGeneration({
       contextId: course.id,
@@ -533,17 +539,89 @@ export async function reviewForgeCourseStructure(
       provider: response.provider,
       status: "success",
       totalTokens: response.totalTokens,
-      userId: profile.id
+      userId
     });
 
     return proposal;
   } catch (error) {
-    await logFailure(profile.id, "course_analysis", startedAt, error, {
+    await logFailure(userId, "course_analysis", startedAt, error, {
       contextId: course.id,
       contextType: "course"
     });
     throw error;
   }
+}
+
+export async function reviewForgeCourseStructure(
+  courseId: string
+): Promise<ForgeCourseRevisionProposal> {
+  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/edit`);
+  const course = await teacherCourseRepository.getTeacherCourse(profile.id, courseId);
+
+  if (!course) {
+    throw new Error("Formation introuvable ou non analysable.");
+  }
+
+  return generateForgeCourseRevision(
+    profile.id,
+    course,
+    buildForgeCourseRevisionInput(course)
+  );
+}
+
+export async function reviewForgeModule(input: {
+  courseId: string;
+  moduleId: string;
+}): Promise<ForgeCourseRevisionProposal> {
+  const profile = await requireRole(
+    "teacher",
+    `/app/teacher/courses/${input.courseId}/builder`
+  );
+  const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
+
+  if (!course) {
+    throw new Error("Formation introuvable ou non analysable.");
+  }
+
+  if (!course.modules.some((module) => module.id === input.moduleId)) {
+    throw new Error("Module introuvable ou non analysable.");
+  }
+
+  const revisionInput = buildForgeCourseRevisionInput(course, input.moduleId);
+  return generateForgeCourseRevision(profile.id, course, revisionInput, input.moduleId);
+}
+
+export async function applyForgeModuleRevision(input: ForgeModuleRevisionApplyInput) {
+  const profile = await requireRole(
+    "teacher",
+    `/app/teacher/courses/${input.courseId}/builder`
+  );
+  const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
+
+  if (!course) {
+    throw new Error("Formation introuvable ou non modifiable.");
+  }
+
+  const proposal = validateForgeModuleRevisionProposal(
+    { issues: [input.issue] },
+    course,
+    input.moduleId
+  );
+  const issue = proposal.issues[0];
+
+  if (!issue) {
+    throw new Error("Aucune correction de module à appliquer.");
+  }
+
+  return teacherCourseRepository.applyModuleRevision(
+    profile.id,
+    input.courseId,
+    input.moduleId,
+    {
+      current: issue.current,
+      proposed: issue.proposed
+    }
+  );
 }
 
 export async function applyForgeCourseImprovement(input: ForgeCourseImprovementApplyInput) {

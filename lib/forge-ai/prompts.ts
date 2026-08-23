@@ -238,7 +238,11 @@ Description : ${clamp(input.course.description, 900)}
 Structure actuelle :
 ${modules}
 
-Analyse la structure actuelle de cette formation. Identifie les incohérences entre les titres et descriptions des modules et le contenu de leurs leçons. Propose uniquement les corrections nécessaires, sans modifier les éléments déjà cohérents. Vérifie notamment la cohérence entre Flexbox et CSS Grid.`;
+Analyse la structure actuelle de cette formation. Identifie les incohérences entre les titres et descriptions des modules et le contenu de leurs leçons. Propose uniquement les corrections nécessaires, sans modifier les éléments déjà cohérents. Vérifie notamment la cohérence entre Flexbox et CSS Grid.${
+    input.course.modules.length === 1
+      ? " Cette demande est strictement limitée au module fourni : retourne zéro ou une correction et aucune autre cible."
+      : ""
+  }`;
 }
 
 export const forgeLessonAssistantSystemPrompt = `Tu es Forge AI, assistant pédagogique contextuel.

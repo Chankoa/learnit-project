@@ -166,21 +166,29 @@ export type ForgeCourseRevisionInput = {
   courseId: string;
 };
 
+export type ForgeCourseRevisionIssue = {
+  current: {
+    description: string;
+    title: string;
+  };
+  proposed: {
+    description: string;
+    title: string;
+  };
+  reason: string;
+  scope: "module";
+  targetId: string;
+  type: "content_mismatch";
+};
+
 export type ForgeCourseRevisionProposal = {
-  issues: Array<{
-    current: {
-      description: string;
-      title: string;
-    };
-    proposed: {
-      description: string;
-      title: string;
-    };
-    reason: string;
-    scope: "module";
-    targetId: string;
-    type: "content_mismatch";
-  }>;
+  issues: ForgeCourseRevisionIssue[];
+};
+
+export type ForgeModuleRevisionApplyInput = {
+  courseId: string;
+  issue: ForgeCourseRevisionIssue;
+  moduleId: string;
 };
 
 export type ForgeLessonAction =
