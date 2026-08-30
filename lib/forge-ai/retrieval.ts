@@ -115,6 +115,14 @@ function getPdfMetadataSnippet(source: CourseSource): CourseContextSnippet {
 }
 
 async function readSource(source: CourseSource): Promise<CourseContextSnippet[]> {
+  if (source.extractionStatus !== "ready") {
+    return [];
+  }
+
+  if (source.sourceKind === "url" || source.sourceKind === "text") {
+    return source.extractedContent ? splitIntoSnippets(source, source.extractedContent) : [];
+  }
+
   if (source.type === "pdf") {
     return [getPdfMetadataSnippet(source)];
   }
@@ -122,6 +130,10 @@ async function readSource(source: CourseSource): Promise<CourseContextSnippet[]>
   const supabase = await createOptionalClient();
 
   if (!supabase) {
+    return [];
+  }
+
+  if (!source.storageBucket || !source.storagePath) {
     return [];
   }
 

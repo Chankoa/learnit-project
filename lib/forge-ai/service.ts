@@ -5,6 +5,7 @@ import { getForgeAIConfig } from "@/lib/forge-ai/config";
 import { logForgeGeneration } from "@/lib/forge-ai/generation-log";
 import { ForgeAIProviderError, getForgeAIProvider } from "@/lib/forge-ai/provider";
 import { getCourseContext } from "@/lib/forge-ai/retrieval";
+import { retrieveUrlSource } from "@/lib/forge-ai/url-source";
 import {
   buildCourseImprovementUserPrompt,
   buildCourseRevisionUserPrompt,
@@ -259,6 +260,12 @@ function logFailure(
 ) {
   const message = error instanceof Error ? error.message : "unknown";
   const usage = error instanceof ForgeAIProviderError ? error : undefined;
+  const isInvalidOutput =
+    usage?.code === "structured_output_invalid" ||
+    usage?.code === "response_empty" ||
+    message.includes("Sortie IA invalide") ||
+    message.includes("Réponse IA invalide");
+  const isRateLimited = usage?.code === "rate_limited" || message.includes("Limite temporaire");
   console.error("[forge-ai] generation failed", {
     durationMs: Date.now() - startedAt,
     promptType,
@@ -269,16 +276,16 @@ function logFailure(
     contextId: context?.contextId,
     contextType: context?.contextType ?? "teacher_studio",
     durationMs: Date.now() - startedAt,
-    errorCode: message.slice(0, 120),
+    errorCode: usage?.code ?? message.slice(0, 120),
     inputTokens: usage?.inputTokens,
     model: getForgeAIConfig().model || "unknown",
     outputTokens: usage?.outputTokens,
     promptType,
     provider: getForgeAIConfig().provider,
     sourceIds: context?.sourceIds,
-    status: message.includes("Sortie IA invalide") || message.includes("Réponse IA invalide")
+    status: isInvalidOutput
       ? "invalid_output"
-      : message.includes("Limite temporaire")
+      : isRateLimited
         ? "rate_limited"
         : "error",
       totalTokens: usage?.totalTokens,
@@ -309,7 +316,29 @@ export async function uploadForgeCourseSource(formData: FormData): Promise<Cours
   return forgeSourceRepository.createSource(profile.id, {
     courseId,
     file,
+    kind: "file",
     title: getString(formData, "sourceTitle") || file.name
+  });
+}
+
+export async function addForgeCourseUrlSource(formData: FormData): Promise<CourseSource> {
+  const courseId = getString(formData, "courseId") || undefined;
+  const originalUrl = getString(formData, "sourceUrl");
+  const profile = await requireRole(
+    "teacher",
+    courseId ? `/app/teacher/courses/${courseId}/edit` : "/app/teacher/courses/forge"
+  );
+  const retrieved = await retrieveUrlSource(originalUrl);
+  const requestedTitle = getString(formData, "sourceTitle");
+
+  return forgeSourceRepository.createSource(profile.id, {
+    content: retrieved.content,
+    courseId,
+    finalUrl: retrieved.finalUrl,
+    kind: "url",
+    mimeType: retrieved.mimeType,
+    originalUrl,
+    title: truncate(requestedTitle || retrieved.title || new URL(retrieved.finalUrl).hostname, 180)
   });
 }
 

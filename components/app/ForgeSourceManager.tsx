@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { FilePlus2, FileText, Loader2, Trash2 } from "lucide-react";
+import { FilePlus2, FileText, Link2, Loader2, Trash2 } from "lucide-react";
 
 import {
+  addForgeCourseUrlSourceAction,
   deleteForgeCourseSourceAction,
   uploadForgeCourseSourceAction
 } from "@/app/app/teacher/forge/actions";
@@ -37,8 +38,10 @@ export function ForgeSourceManager({
 }: ForgeSourceManagerProps) {
   const sourceInputRef = useRef<HTMLInputElement>(null);
   const [feedback, setFeedback] = useState<Feedback>();
+  const [sourceKind, setSourceKind] = useState<"file" | "url">("file");
   const [sourceFile, setSourceFile] = useState<File>();
   const [sourceTitle, setSourceTitle] = useState("");
+  const [sourceUrl, setSourceUrl] = useState("");
   const [isPending, startTransition] = useTransition();
 
   function uploadSource() {
@@ -81,6 +84,39 @@ export function ForgeSourceManager({
     });
   }
 
+  function addUrlSource() {
+    if (!sourceUrl.trim()) {
+      setFeedback({ tone: "error", text: "Saisissez l’URL de la page à utiliser." });
+      return;
+    }
+
+    const formData = new FormData();
+    if (courseId) {
+      formData.set("courseId", courseId);
+    }
+    formData.set("sourceTitle", sourceTitle);
+    formData.set("sourceUrl", sourceUrl);
+    setFeedback(undefined);
+
+    startTransition(async () => {
+      const result = await addForgeCourseUrlSourceAction(formData);
+
+      if (!result.ok) {
+        setFeedback({ tone: "error", text: result.error });
+        return;
+      }
+
+      onSourcesChange([result.data, ...sources]);
+      setSourceTitle("");
+      setSourceUrl("");
+      setFeedback({
+        tone: "success",
+        text: "Page récupérée et ajoutée au contexte Forge."
+      });
+      onMutationComplete?.();
+    });
+  }
+
   function deleteSource(sourceId: string) {
     setFeedback(undefined);
 
@@ -118,12 +154,27 @@ export function ForgeSourceManager({
         <div className="forge-source-list">
           {sources.map((source) => (
             <article className="forge-source-item" key={source.id}>
-              <FileText size={17} aria-hidden="true" />
+              {source.sourceKind === "url" ? (
+                <Link2 size={17} aria-hidden="true" />
+              ) : (
+                <FileText size={17} aria-hidden="true" />
+              )}
               <div>
                 <strong>{source.title}</strong>
                 <span>
-                  {source.fileName} · {formatBytes(source.fileSize)}
+                  {source.sourceKind === "url"
+                    ? source.originalUrl
+                    : `${source.fileName ?? "Fichier"} · ${formatBytes(source.fileSize ?? 0)}`}
                 </span>
+                <small data-state={source.extractionStatus}>
+                  {source.extractionStatus === "ready"
+                    ? source.sourceKind === "url"
+                      ? "Texte récupéré · prêt pour Forge"
+                      : "Source disponible pour Forge"
+                    : source.extractionStatus === "error"
+                      ? "Extraction en erreur"
+                      : "Extraction en cours"}
+                </small>
               </div>
               <button
                 aria-label={`Retirer ${source.title}`}
@@ -148,6 +199,24 @@ export function ForgeSourceManager({
           <FilePlus2 size={17} aria-hidden="true" />
           Ajouter une source
         </summary>
+        <div className="forge-source-kind" role="group" aria-label="Type de source">
+          <button
+            aria-pressed={sourceKind === "file"}
+            onClick={() => setSourceKind("file")}
+            type="button"
+          >
+            <FileText size={16} aria-hidden="true" />
+            Fichier
+          </button>
+          <button
+            aria-pressed={sourceKind === "url"}
+            onClick={() => setSourceKind("url")}
+            type="button"
+          >
+            <Link2 size={16} aria-hidden="true" />
+            Lien web
+          </button>
+        </div>
         <div className="teacher-form-grid">
           <label className="teacher-field">
             <span>Titre de la source</span>
@@ -159,22 +228,40 @@ export function ForgeSourceManager({
               value={sourceTitle}
             />
           </label>
-          <label className="teacher-field">
-            <span>Fichier</span>
-            <input
-              accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown"
-              disabled={isPending}
-              onChange={(event) => setSourceFile(event.target.files?.[0])}
-              ref={sourceInputRef}
-              type="file"
-            />
-            <small className="teacher-field-note">PDF, TXT ou Markdown · 10 Mo maximum.</small>
-          </label>
+          {sourceKind === "file" ? (
+            <label className="teacher-field">
+              <span>Fichier</span>
+              <input
+                accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown"
+                disabled={isPending}
+                onChange={(event) => setSourceFile(event.target.files?.[0])}
+                ref={sourceInputRef}
+                type="file"
+              />
+              <small className="teacher-field-note">PDF, TXT ou Markdown · 10 Mo maximum.</small>
+            </label>
+          ) : (
+            <label className="teacher-field">
+              <span>URL de la page</span>
+              <input
+                autoComplete="url"
+                disabled={isPending}
+                inputMode="url"
+                onChange={(event) => setSourceUrl(event.target.value)}
+                placeholder="https://exemple.org/ressource"
+                type="url"
+                value={sourceUrl}
+              />
+              <small className="teacher-field-note">
+                Forge récupère uniquement le texte utile des pages HTTP/HTTPS publiques.
+              </small>
+            </label>
+          )}
           <div className="teacher-form-actions teacher-field--wide">
             <button
               className="btn btn-secondary"
-              disabled={isPending || !sourceFile}
-              onClick={uploadSource}
+              disabled={isPending || (sourceKind === "file" ? !sourceFile : !sourceUrl.trim())}
+              onClick={sourceKind === "file" ? uploadSource : addUrlSource}
               type="button"
             >
               {isPending ? (
@@ -182,7 +269,9 @@ export function ForgeSourceManager({
               ) : (
                 <FilePlus2 size={16} aria-hidden="true" />
               )}
-              {isPending ? "Ajout…" : "Ajouter au brief"}
+              {isPending
+                ? sourceKind === "url" ? "Récupération…" : "Ajout…"
+                : "Ajouter au brief"}
             </button>
           </div>
         </div>

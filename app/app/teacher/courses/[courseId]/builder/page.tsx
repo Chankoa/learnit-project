@@ -20,6 +20,7 @@ type TeacherCourseBuilderPageProps = {
   }>;
   searchParams?: Promise<{
     error?: string | string[];
+    from?: string | string[];
     lesson?: string | string[];
     message?: string | string[];
     module?: string | string[];
@@ -105,6 +106,7 @@ export default async function TeacherCourseBuilderPage({
         error={getSingleParam(query?.error)}
         message={getSingleParam(query?.message)}
         previewLessonId={getSingleParam(query?.preview)}
+        returnToPublication={getSingleParam(query?.from) === "publication"}
         selectedLessonId={getSingleParam(query?.lesson)}
         selectedModuleId={getSingleParam(query?.module)}
       />

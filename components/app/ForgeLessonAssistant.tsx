@@ -29,6 +29,7 @@ type ForgeLessonAssistantProps = {
 type Feedback = {
   state: Extract<ForgeAIState, "applied" | "error" | "success">;
   text: string;
+  technicalDetails?: string;
 };
 
 const modeLabels: Record<ForgeLessonContentMode, string> = {
@@ -93,7 +94,11 @@ export function ForgeLessonAssistant({
       if (!result.ok) {
         setProposal(undefined);
         setDraft(undefined);
-        setFeedback({ state: "error", text: result.error });
+        setFeedback({
+          state: "error",
+          technicalDetails: result.technicalDetails,
+          text: result.error
+        });
         return;
       }
 
@@ -166,10 +171,22 @@ export function ForgeLessonAssistant({
       </div>
 
       {feedback ? (
-        <ForgeAIStatus
-          description={feedback.text}
-          state={feedback.state}
-        />
+        <div className="forge-ai-error-recovery">
+          <ForgeAIStatus description={feedback.text} state={feedback.state} />
+          {feedback.state === "error" ? (
+            <div>
+              <button className="btn btn-secondary" disabled={isPending} onClick={() => generate(mode)} type="button">
+                Réessayer
+              </button>
+              {feedback.technicalDetails ? (
+                <details>
+                  <summary>Détails techniques</summary>
+                  <p>{feedback.technicalDetails}</p>
+                </details>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       {proposal && draft ? (

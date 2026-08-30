@@ -146,18 +146,21 @@ export async function updateTeacherModuleAction(
   moduleId: string,
   formData: FormData
 ) {
-  let destination = getBuilderPath(courseId, { module: moduleId });
+  const from = formData.get("returnTo") === "publication" ? "publication" : undefined;
+  let destination = getBuilderPath(courseId, { from, module: moduleId });
 
   try {
     const module = await updateTeacherModule(courseId, moduleId, formData);
     revalidateTeacherCourse(courseId);
     destination = getBuilderPath(courseId, {
       message: "Module enregistré.",
+      from,
       module: module.id
     });
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
+      from,
       module: moduleId
     });
   }
@@ -231,18 +234,21 @@ export async function updateTeacherLessonAction(
   lessonId: string,
   formData: FormData
 ) {
-  let destination = getBuilderPath(courseId, { lesson: lessonId });
+  const from = formData.get("returnTo") === "publication" ? "publication" : undefined;
+  let destination = getBuilderPath(courseId, { from, lesson: lessonId });
 
   try {
     const lesson = await updateTeacherLesson(courseId, lessonId, formData);
     revalidateTeacherCourse(courseId);
     destination = getBuilderPath(courseId, {
       lesson: lesson.id,
+      from,
       message: "Leçon enregistrée."
     });
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
+      from,
       lesson: lessonId
     });
   }

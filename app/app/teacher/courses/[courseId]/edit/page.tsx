@@ -78,12 +78,17 @@ export default async function EditTeacherCoursePage({
     module.lessons
       .filter((lesson) => !lesson.content?.trim())
       .map((lesson) => ({
-        href: `/app/teacher/courses/${course.id}/builder?lesson=${lesson.id}`,
-        label: `Module « ${module.title} » → leçon « ${lesson.title} »`
+        description: `Module « ${module.title} » · contenu manquant`,
+        href: `/app/teacher/courses/${course.id}/builder?lesson=${lesson.id}&from=publication`,
+        label: `Leçon — ${lesson.title}`
       }))
   );
   const missingLessonLabels = new Set(
-    missingLessonContent.map((issue) => `${issue.label} sans contenu.`)
+    course.modules.flatMap((module) =>
+      module.lessons
+        .filter((lesson) => !lesson.content?.trim())
+        .map((lesson) => `Module « ${module.title} » → leçon « ${lesson.title} » sans contenu.`)
+    )
   );
   const isPublished = course.status === "published";
   const requestedTab = getSingleParam(query?.tab);
@@ -141,15 +146,13 @@ export default async function EditTeacherCoursePage({
         publicationIssues={[
           ...publicationIssues
             .filter((label) => !missingLessonLabels.has(label))
-            .map((label) => ({ label })),
-          ...(missingLessonContent.length > 0
-            ? [{
-                count: missingLessonContent.length,
-                details: missingLessonContent.map((issue) => issue.label),
-                href: missingLessonContent[0]?.href,
-                label: "Contenu des leçons"
-              }]
-            : [])
+            .map((label) => ({
+              href: label.includes("description") || label.includes("titre")
+                ? `/app/teacher/courses/${course.id}/edit?tab=information`
+                : `/app/teacher/courses/${course.id}/builder`,
+              label
+            })),
+          ...missingLessonContent
         ]}
         publishAction={publishTeacherCourseAction.bind(null, course.id)}
         sourceContent={<ForgeCourseSourcesPanel courseId={course.id} initialSources={sources} />}

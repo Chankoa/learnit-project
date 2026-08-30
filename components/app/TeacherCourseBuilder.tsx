@@ -1,5 +1,6 @@
 import {
   ArrowDown,
+  ArrowLeft,
   ArrowUp,
   BookOpenCheck,
   Clock3,
@@ -55,6 +56,7 @@ type TeacherCourseBuilderProps = {
   error?: string;
   message?: string;
   previewLessonId?: string;
+  returnToPublication?: boolean;
   selectedLessonId?: string;
   selectedModuleId?: string;
 };
@@ -95,6 +97,7 @@ export function TeacherCourseBuilder({
   error,
   message,
   previewLessonId,
+  returnToPublication = false,
   selectedLessonId,
   selectedModuleId
 }: TeacherCourseBuilderProps) {
@@ -110,7 +113,7 @@ export function TeacherCourseBuilder({
   const addModuleAction = createTeacherModuleAction.bind(null, course.id);
 
   return (
-    <div className="teacher-builder">
+    <div className="teacher-builder" data-has-selection={Boolean(selectedModule || selectedLesson)}>
       {error ? (
         <div className="teacher-form-error" role="alert">
           {error}
@@ -302,6 +305,33 @@ export function TeacherCourseBuilder({
         </aside>
 
         <section className="teacher-builder__panel" aria-label="Panneau d'édition">
+          {returnToPublication ? (
+            <Link
+              className="teacher-builder__publication-return"
+              href={`/app/teacher/courses/${course.id}/edit?tab=publication`}
+            >
+              <ArrowLeft size={17} aria-hidden="true" />
+              Retour à la publication
+            </Link>
+          ) : null}
+          {selectedModule || selectedLesson ? (
+            <header className="teacher-builder__mobile-context">
+              <Link
+                href={
+                  returnToPublication
+                    ? `/app/teacher/courses/${course.id}/edit?tab=publication`
+                    : getBuilderHref(course.id, {})
+                }
+              >
+                <ArrowLeft size={17} aria-hidden="true" />
+                {returnToPublication ? "Publication" : "Parcours"}
+              </Link>
+              <div>
+                <span>{selectedLesson ? `Leçon ${selectedLesson.order}` : `Module ${selectedModule?.order}`}</span>
+                <strong>{selectedLesson?.title ?? selectedModule?.title}</strong>
+              </div>
+            </header>
+          ) : null}
           {!selectedModule && !selectedLesson ? (
             <div className="teacher-builder-empty">
               <span>
@@ -324,6 +354,7 @@ export function TeacherCourseBuilder({
                 action={updateTeacherModuleAction.bind(null, course.id, selectedModule.id)}
                 className="teacher-form-grid"
               >
+                {returnToPublication ? <input name="returnTo" type="hidden" value="publication" /> : null}
                 <label className="teacher-field teacher-field--wide">
                   <span>Titre</span>
                   <input name="title" required defaultValue={selectedModule.title} />
@@ -391,6 +422,7 @@ export function TeacherCourseBuilder({
                 action={updateTeacherLessonAction.bind(null, course.id, selectedLesson.id)}
                 className="teacher-builder-editor__stack"
               >
+                {returnToPublication ? <input name="returnTo" type="hidden" value="publication" /> : null}
                 <section className="teacher-builder-editor__section">
                   <div>
                     <span>Informations</span>

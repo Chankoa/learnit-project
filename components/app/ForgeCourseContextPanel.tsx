@@ -34,6 +34,7 @@ type ForgeCourseContextPanelProps = {
 type Feedback = {
   tone: "error" | "success";
   text: string;
+  technicalDetails?: string;
 };
 
 const levelOptions = Object.entries(courseLevelLabels) as Array<[CourseLevel, string]>;
@@ -81,16 +82,10 @@ export function ForgeCourseContextPanel({
   const router = useRouter();
   const [feedback, setFeedback] = useState<Feedback | undefined>();
   const [improvement, setImprovement] = useState<ForgeCourseImprovement | undefined>();
+  const [lastInput, setLastInput] = useState<ForgeCourseImprovementInput>();
   const [isPending, startTransition] = useTransition();
 
-  function handleGenerate(formData: FormData) {
-    const mode = getString(formData, "mode") === "improve_structure" ? "improve_structure" : "analyze";
-    const input: ForgeCourseImprovementInput = {
-      brief: buildBrief(formData, course, initialSources),
-      courseId: course.id,
-      mode
-    };
-
+  function runGenerate(input: ForgeCourseImprovementInput) {
     setFeedback(undefined);
 
     startTransition(async () => {
@@ -98,7 +93,11 @@ export function ForgeCourseContextPanel({
 
       if (!result.ok) {
         setImprovement(undefined);
-        setFeedback({ tone: "error", text: result.error });
+        setFeedback({
+          tone: "error",
+          technicalDetails: result.technicalDetails,
+          text: result.error
+        });
         return;
       }
 
@@ -108,6 +107,18 @@ export function ForgeCourseContextPanel({
         text: "Proposition Forge générée — aucune modification appliquée."
       });
     });
+  }
+
+  function handleGenerate(formData: FormData) {
+    const mode = getString(formData, "mode") === "improve_structure" ? "improve_structure" : "analyze";
+    const input: ForgeCourseImprovementInput = {
+      brief: buildBrief(formData, course, initialSources),
+      courseId: course.id,
+      mode
+    };
+
+    setLastInput(input);
+    runGenerate(input);
   }
 
   function applySuggestion(suggestion: ForgeCourseImprovement["suggestions"][number]) {
@@ -254,10 +265,25 @@ export function ForgeCourseContextPanel({
       ) : null}
 
       {feedback ? (
-        <ForgeAIStatus
-          description={feedback.text}
-          state={feedback.tone === "error" ? "error" : "success"}
-        />
+        <div className="forge-ai-error-recovery">
+          <ForgeAIStatus
+            description={feedback.text}
+            state={feedback.tone === "error" ? "error" : "success"}
+          />
+          {feedback.tone === "error" && lastInput ? (
+            <div>
+              <button className="btn btn-secondary" disabled={isPending} onClick={() => runGenerate(lastInput)} type="button">
+                Réessayer
+              </button>
+              {feedback.technicalDetails ? (
+                <details>
+                  <summary>Détails techniques</summary>
+                  <p>{feedback.technicalDetails}</p>
+                </details>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       {improvement ? (

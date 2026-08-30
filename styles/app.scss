@@ -4183,7 +4183,7 @@ a.creator-start__option:hover {
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 900px) {
   .teacher-builder__workspace {
     grid-template-columns: 1fr;
   }
@@ -4193,7 +4193,146 @@ a.creator-start__option:hover {
   }
 }
 
+.teacher-builder__mobile-context {
+  display: none;
+}
+
+.teacher-builder__publication-return {
+  display: inline-flex;
+  min-height: 44px;
+  width: fit-content;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  color: var(--accent-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.forge-source-kind {
+  display: inline-flex;
+  width: fit-content;
+  gap: var(--space-1);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  padding: var(--space-1);
+}
+
+.forge-source-kind button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.forge-source-kind button[aria-pressed="true"] {
+  background: var(--surface-card);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-xs);
+}
+
+.forge-source-kind button:focus-visible,
+.forge-ai-error-recovery summary:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.forge-source-item small[data-state="ready"] {
+  color: var(--status-success);
+}
+
+.forge-source-item small[data-state="pending"] {
+  color: var(--status-warning);
+}
+
+.forge-source-item small[data-state="error"] {
+  color: var(--status-danger);
+}
+
+.forge-ai-error-recovery {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.forge-ai-error-recovery > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.forge-ai-error-recovery details {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.forge-ai-error-recovery summary {
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--text-default);
+  font-weight: var(--font-weight-semibold);
+  line-height: 44px;
+}
+
+.forge-ai-error-recovery details p {
+  margin-top: var(--space-2);
+}
+
 @media (max-width: 760px) {
+  .teacher-builder__publication-return {
+    display: none;
+  }
+
+  .teacher-builder[data-has-selection="true"] .teacher-builder__outline {
+    display: none;
+  }
+
+  .teacher-builder__mobile-context {
+    position: sticky;
+    z-index: 8;
+    top: 68px;
+    display: grid;
+    gap: var(--space-2);
+    margin: calc(var(--space-3) * -1) calc(var(--space-3) * -1) var(--space-4);
+    border-bottom: 1px solid var(--border-soft);
+    background: color-mix(in srgb, var(--surface-card) 96%, transparent);
+    padding: var(--space-3);
+    backdrop-filter: blur(14px);
+  }
+
+  .teacher-builder__mobile-context > a {
+    display: inline-flex;
+    min-height: 44px;
+    width: fit-content;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--accent-primary);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .teacher-builder__mobile-context > div {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .teacher-builder__mobile-context span {
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .teacher-builder__mobile-context strong {
+    color: var(--text-strong);
+    font-size: var(--text-base);
+  }
+
   .teacher-builder-module__row,
   .teacher-builder-editor__heading,
   .teacher-preview-modal header {
@@ -4228,6 +4367,29 @@ a.creator-start__option:hover {
     align-items: start;
     padding: var(--space-3);
   }
+}
+
+.app-mobile-drawer .app-nav-item,
+.app-mobile-drawer .app-mobile-drawer__back {
+  min-height: 44px;
+  color: var(--learnit-slate-200);
+}
+
+.app-mobile-drawer .app-nav-item:hover,
+.app-mobile-drawer .app-nav-item:focus-visible,
+.app-mobile-drawer .app-nav-item[data-active="true"] {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.app-mobile-drawer .app-nav-item:focus-visible,
+.app-mobile-drawer .app-mobile-drawer__back:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-primary) 65%, white);
+  outline-offset: 2px;
+}
+
+.app-mobile-drawer .role-switcher[data-variant="compact"] .role-switcher__option {
+  color: var(--learnit-slate-100);
 }
 
 .admin-page {

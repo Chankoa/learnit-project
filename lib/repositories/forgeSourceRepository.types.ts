@@ -2,11 +2,24 @@ import "server-only";
 
 import type { CourseSource } from "@/types/forge-ai";
 
-export type ForgeSourceInput = {
+export type ForgeFileSourceInput = {
   courseId?: string;
   file: File;
+  kind: "file";
   title?: string;
 };
+
+export type ForgeUrlSourceInput = {
+  content: string;
+  courseId?: string;
+  finalUrl: string;
+  kind: "url";
+  mimeType: string;
+  originalUrl: string;
+  title: string;
+};
+
+export type ForgeSourceInput = ForgeFileSourceInput | ForgeUrlSourceInput;
 
 export type ForgeSourceRepository = {
   attachSourcesToCourse: (

@@ -59,18 +59,25 @@ export type CourseBrief = {
   targetLevel: CourseLevel;
 };
 
-export type CourseSourceType = "pdf" | "text" | "markdown" | "docx";
+export type CourseSourceKind = "file" | "url" | "text";
+export type CourseSourceType = "pdf" | "text" | "markdown" | "docx" | "web";
+export type CourseSourceExtractionStatus = "pending" | "ready" | "error";
 
 export type CourseSource = {
   courseId?: string;
   createdAt: string;
-  fileName: string;
-  fileSize: number;
+  extractedContent?: string;
+  extractionError?: string;
+  extractionStatus: CourseSourceExtractionStatus;
+  fileName?: string;
+  fileSize?: number;
   id: string;
   metadata?: Record<string, unknown>;
   mimeType: string;
-  storageBucket: string;
-  storagePath: string;
+  originalUrl?: string;
+  sourceKind: CourseSourceKind;
+  storageBucket?: string;
+  storagePath?: string;
   teacherId: string;
   title: string;
   type: CourseSourceType;

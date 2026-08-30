@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import {
   applyForgeCourseImprovement,
+  addForgeCourseUrlSource,
   applyForgeModuleRevision,
   applyForgeLessonProposal,
   generateForgeCourseProposal,
@@ -40,7 +41,10 @@ type ForgeActionResult<T> =
     }
   | {
       error: string;
+      errorCode?: string;
       ok: false;
+      retryable?: boolean;
+      technicalDetails?: string;
     };
 
 type ForgeImportResult =
@@ -73,8 +77,9 @@ function getErrorMessage(error: unknown) {
       case "response_incomplete":
         return "La génération IA n'a pas pu être finalisée. Réessayez.";
       case "response_empty":
+        return "Forge n’a reçu aucun contenu exploitable du provider. Réessayez.";
       case "structured_output_invalid":
-        return "La proposition générée n'a pas pu être validée.";
+        return "La proposition ne respecte pas la structure attendue par Forge. Réessayez.";
       case "response_refusal":
         return "Le provider IA a refusé cette génération.";
       case "provider_unavailable":
@@ -101,6 +106,45 @@ function getErrorMessage(error: unknown) {
   return error.message || "Forge AI est indisponible pour le moment.";
 }
 
+function getErrorResult(error: unknown) {
+  const errorMessage = getErrorMessage(error);
+
+  if (error instanceof ForgeAIProviderError) {
+    const retryable = [
+      "output_token_limit",
+      "provider_unavailable",
+      "rate_limited",
+      "request_failed",
+      "response_empty",
+      "response_incomplete",
+      "structured_output_invalid",
+      "timeout"
+    ].includes(error.code);
+
+    return {
+      error: errorMessage,
+      errorCode: error.code,
+      retryable,
+      technicalDetails: `Étape provider / sortie structurée · code ${error.code}${error.status ? ` · HTTP ${error.status}` : ""}.`
+    };
+  }
+
+  if (error instanceof Error && error.message.includes("Sortie IA invalide")) {
+    return {
+      error: errorMessage,
+      errorCode: "forge_business_validation",
+      retryable: true,
+      technicalDetails: `Étape validation métier Forge · ${error.message.slice(0, 220)}`
+    };
+  }
+
+  return {
+    error: errorMessage,
+    errorCode: "forge_request_failed",
+    retryable: true
+  };
+}
+
 export async function generateForgeCourseProposalAction(
   input: CourseBrief
 ): Promise<ForgeActionResult<ForgeCourseProposal>> {
@@ -112,7 +156,7 @@ export async function generateForgeCourseProposalAction(
     };
   } catch (error) {
     return {
-      error: getErrorMessage(error),
+      ...getErrorResult(error),
       ok: false
     };
   }
@@ -139,6 +183,24 @@ export async function uploadForgeCourseSourceAction(
       error: getErrorMessage(error),
       ok: false
     };
+  }
+}
+
+export async function addForgeCourseUrlSourceAction(
+  formData: FormData
+): Promise<ForgeActionResult<CourseSource>> {
+  try {
+    const source = await addForgeCourseUrlSource(formData);
+    revalidatePath("/app/teacher/courses/forge");
+
+    if (source.courseId) {
+      revalidatePath(`/app/teacher/courses/${source.courseId}/edit`);
+      revalidatePath(`/app/teacher/courses/${source.courseId}/builder`);
+    }
+
+    return { data: source, ok: true };
+  } catch (error) {
+    return { error: getErrorMessage(error), ok: false };
   }
 }
 
@@ -219,7 +281,7 @@ export async function reviewForgeModuleAction(input: {
     };
   } catch (error) {
     return {
-      error: getErrorMessage(error),
+      ...getErrorResult(error),
       ok: false
     };
   }
@@ -259,7 +321,7 @@ export async function generateLessonWithForgeAction(
     };
   } catch (error) {
     return {
-      error: getErrorMessage(error),
+      ...getErrorResult(error),
       ok: false
     };
   }
@@ -307,7 +369,7 @@ export async function generateForgeCourseImprovementAction(
     };
   } catch (error) {
     return {
-      error: getErrorMessage(error),
+      ...getErrorResult(error),
       ok: false
     };
   }

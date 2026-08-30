@@ -28,6 +28,7 @@ type ForgeModuleRevisionProps = {
 type Feedback = {
   state: Extract<ForgeAIState, "applied" | "error" | "stale">;
   text: string;
+  technicalDetails?: string;
 };
 
 function getFailureState(message: string): Feedback["state"] {
@@ -56,7 +57,11 @@ export function ForgeModuleRevision({
       const result = await reviewForgeModuleAction({ courseId, moduleId });
 
       if (!result.ok) {
-        setFeedback({ state: getFailureState(result.error), text: result.error });
+        setFeedback({
+          state: getFailureState(result.error),
+          technicalDetails: result.technicalDetails,
+          text: result.error
+        });
         return;
       }
 
@@ -139,7 +144,22 @@ export function ForgeModuleRevision({
       ) : null}
 
       {feedback ? (
-        <ForgeAIStatus description={feedback.text} state={feedback.state} />
+        <div className="forge-ai-error-recovery">
+          <ForgeAIStatus description={feedback.text} state={feedback.state} />
+          {feedback.state === "error" ? (
+            <div>
+              <button className="btn btn-secondary" disabled={isPending} onClick={analyzeModule} type="button">
+                Réessayer
+              </button>
+              {feedback.technicalDetails ? (
+                <details>
+                  <summary>Détails techniques</summary>
+                  <p>{feedback.technicalDetails}</p>
+                </details>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       {hasNoIssue ? (

@@ -8,8 +8,7 @@ import { CreatorWorkspaceHeader } from "@/components/app/CreatorWorkspaceHeader"
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
 
 type PublicationIssue = {
-  count?: number;
-  details?: string[];
+  description?: string;
   href?: string;
   label: string;
 };
@@ -43,20 +42,12 @@ function PublicationIssueList({ issues }: { issues: PublicationIssue[] }) {
   return (
     <ul className="teacher-publication-issue-groups">
       {issues.map((issue) => (
-        <li key={issue.label}>
+        <li key={`${issue.label}-${issue.href ?? "global"}`}>
           <div>
             <strong>{issue.label}</strong>
-            {issue.count && issue.count > 1 ? <span>{issue.count} éléments</span> : null}
+            {issue.description ? <span>{issue.description}</span> : null}
           </div>
-          {issue.details && issue.details.length > 0 ? (
-            <details>
-              <summary>Voir le détail</summary>
-              <ul>
-                {issue.details.map((detail) => <li key={detail}>{detail}</li>)}
-              </ul>
-            </details>
-          ) : null}
-          {issue.href ? <a href={issue.href}>Corriger</a> : null}
+          {issue.href ? <a href={issue.href}>Corriger cet élément</a> : null}
         </li>
       ))}
     </ul>
@@ -86,10 +77,7 @@ export function TeacherCourseCockpit({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const canPublish = publicationIssues.length === 0;
   const completedCriterionCount = publicationChecklist.filter((item) => item.complete).length;
-  const publicationIssueCount = publicationIssues.reduce(
-    (total, issue) => total + (issue.count ?? 1),
-    0
-  );
+  const publicationIssueCount = publicationIssues.length;
 
   useEffect(() => {
     setActiveTab(initialTab);

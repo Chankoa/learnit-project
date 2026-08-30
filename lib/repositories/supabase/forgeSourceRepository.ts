@@ -11,20 +11,30 @@ import type {
   ForgeSourceInput,
   ForgeSourceRepository
 } from "@/lib/repositories/forgeSourceRepository.types";
-import type { CourseSource, CourseSourceType } from "@/types/forge-ai";
+import type {
+  CourseSource,
+  CourseSourceExtractionStatus,
+  CourseSourceKind,
+  CourseSourceType
+} from "@/types/forge-ai";
 
 type SupabaseClient = NonNullable<Awaited<ReturnType<typeof createOptionalClient>>>;
 
 type SourceRow = {
   course_id: string | null;
   created_at: string;
-  file_name: string;
-  file_size: number;
+  extracted_content?: string | null;
+  extraction_error: string | null;
+  extraction_status: CourseSourceExtractionStatus;
+  file_name: string | null;
+  file_size: number | null;
   id: string;
   metadata: Record<string, unknown> | null;
   mime_type: string;
-  storage_bucket: string;
-  storage_path: string;
+  original_url: string | null;
+  source_kind: CourseSourceKind;
+  storage_bucket: string | null;
+  storage_path: string | null;
   teacher_id: string;
   title: string;
   type: CourseSourceType;
@@ -32,7 +42,8 @@ type SourceRow = {
 };
 
 const sourceSelect =
-  "id,teacher_id,course_id,title,type,file_name,storage_bucket,storage_path,mime_type,file_size,metadata,created_at,updated_at";
+  "id,teacher_id,course_id,title,type,source_kind,original_url,file_name,storage_bucket,storage_path,mime_type,file_size,extraction_status,extraction_error,metadata,created_at,updated_at";
+const sourceContentSelect = `${sourceSelect},extracted_content`;
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -44,13 +55,18 @@ function mapSource(row: SourceRow): CourseSource {
   return {
     courseId: row.course_id ?? undefined,
     createdAt: row.created_at,
-    fileName: row.file_name,
-    fileSize: row.file_size,
+    extractedContent: row.extracted_content ?? undefined,
+    extractionError: row.extraction_error ?? undefined,
+    extractionStatus: row.extraction_status,
+    fileName: row.file_name ?? undefined,
+    fileSize: row.file_size ?? undefined,
     id: row.id,
     metadata: row.metadata ?? undefined,
     mimeType: row.mime_type,
-    storageBucket: row.storage_bucket,
-    storagePath: row.storage_path,
+    originalUrl: row.original_url ?? undefined,
+    sourceKind: row.source_kind,
+    storageBucket: row.storage_bucket ?? undefined,
+    storagePath: row.storage_path ?? undefined,
     teacherId: row.teacher_id,
     title: row.title,
     type: row.type,
@@ -130,7 +146,7 @@ async function getSourcesByIds(teacherId: string, sourceIds: string[]) {
   const supabase = await getClient();
   const { data, error } = await supabase
     .from("course_sources")
-    .select(sourceSelect)
+    .select(sourceContentSelect)
     .eq("teacher_id", teacherId)
     .in("id", sourceIds);
 
@@ -142,10 +158,43 @@ async function getSourcesByIds(teacherId: string, sourceIds: string[]) {
 }
 
 async function createSource(teacherId: string, input: ForgeSourceInput) {
-  assertCourseSourceFile(input.file);
-
   const supabase = await getClient();
   await assertOwnedCourse(supabase, teacherId, input.courseId);
+
+  if (input.kind === "url") {
+    const { data, error } = await supabase
+      .from("course_sources")
+      .insert({
+        course_id: input.courseId ?? null,
+        extracted_content: input.content,
+        extraction_error: null,
+        extraction_status: "ready",
+        file_name: null,
+        file_size: null,
+        metadata: {
+          final_url: input.finalUrl,
+          generated_for: input.courseId ? "existing_course" : "course_brief"
+        },
+        mime_type: input.mimeType,
+        original_url: input.originalUrl,
+        source_kind: "url",
+        storage_bucket: null,
+        storage_path: null,
+        teacher_id: teacherId,
+        title: input.title,
+        type: "web"
+      })
+      .select(sourceSelect)
+      .single();
+
+    if (error) {
+      throw new Error(`Enregistrement de la source web impossible : ${error.message}`);
+    }
+
+    return mapSource(data as SourceRow);
+  }
+
+  assertCourseSourceFile(input.file);
 
   const storagePath = buildCourseSourcePath(
     teacherId,
@@ -177,11 +226,14 @@ async function createSource(teacherId: string, input: ForgeSourceInput) {
         generated_for: input.courseId ? "existing_course" : "course_brief"
       },
       mime_type: input.file.type || "text/plain",
+      original_url: null,
+      source_kind: "file",
       storage_bucket: courseSourceBucket,
       storage_path: storagePath,
       teacher_id: teacherId,
       title: input.title?.trim() || input.file.name,
-      type: getCourseSourceType(input.file)
+      type: getCourseSourceType(input.file),
+      extraction_status: "ready"
     })
     .select(sourceSelect)
     .single();
@@ -234,6 +286,10 @@ async function deleteSource(teacherId: string, sourceId: string) {
 
   if (error) {
     throw new Error(`Suppression de la source impossible : ${error.message}`);
+  }
+
+  if (!source.storageBucket || !source.storagePath) {
+    return;
   }
 
   const { error: removeError } = await supabase.storage
