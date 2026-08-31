@@ -12,7 +12,9 @@ import {
   ForgeAIStatus,
   type ForgeAIState
 } from "@/components/app/ForgeAIPrimitives";
+import { useTeacherAuthoringSurface } from "@/components/app/TeacherAuthoringSurface";
 import { MarkdownLessonContent } from "@/components/learning/MarkdownLessonContent";
+import { teacherAuthoringSurfaceLabels } from "@/lib/teacher-authoring";
 import type {
   ForgeLessonContentMode,
   ForgeLessonContentProposal
@@ -77,6 +79,7 @@ export function ForgeLessonAssistant({
   sourceCount,
   title
 }: ForgeLessonAssistantProps) {
+  const { activeSurface } = useTeacherAuthoringSurface();
   const router = useRouter();
   const [feedback, setFeedback] = useState<Feedback | undefined>();
   const [isPending, startTransition] = useTransition();
@@ -168,6 +171,10 @@ export function ForgeLessonAssistant({
           <div>
             <dt>Leçon</dt>
             <dd>{title}</dd>
+          </div>
+          <div>
+            <dt>Surface</dt>
+            <dd>{teacherAuthoringSurfaceLabels[activeSurface]}</dd>
           </div>
           <div>
             <dt>Sources</dt>

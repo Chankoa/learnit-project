@@ -12,6 +12,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import { TeacherAuthoringSurfaceProvider } from "@/components/app/TeacherAuthoringSurface";
+
 type TeacherAuthoringWorkspaceProps = {
   courseTitle: string;
   editor: ReactNode;
@@ -63,6 +65,7 @@ export function TeacherAuthoringWorkspace({
   const isStructureOverlay = useMediaQuery("(max-width: 899px)");
   const [activeOverlay, setActiveOverlay] = useState<OverlayPanel>(null);
   const [isForgeOpen, setIsForgeOpen] = useState(hasForgePanel);
+  const [isStructureOpen, setIsStructureOpen] = useState(true);
   const forgeButtonRef = useRef<HTMLButtonElement>(null);
   const forgePanelRef = useRef<HTMLElement>(null);
   const structureButtonRef = useRef<HTMLButtonElement>(null);
@@ -71,6 +74,7 @@ export function TeacherAuthoringWorkspace({
   useEffect(() => {
     setActiveOverlay(null);
     setIsForgeOpen(hasForgePanel);
+    setIsStructureOpen(true);
   }, [hasForgePanel, selectedId]);
 
   useEffect(() => {
@@ -91,6 +95,31 @@ export function TeacherAuthoringWorkspace({
         requestAnimationFrame(() => {
           (panel === "forge" ? forgeButtonRef.current : structureButtonRef.current)?.focus();
         });
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const panel = activeOverlay === "forge" ? forgePanelRef.current : structurePanelRef.current;
+      const focusable = panel?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (!focusable?.length) {
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     };
 
@@ -98,7 +127,8 @@ export function TeacherAuthoringWorkspace({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [activeOverlay]);
 
-  const structureHidden = isStructureOverlay && activeOverlay !== "structure";
+  const structureHidden =
+    isStructureOverlay ? activeOverlay !== "structure" : !isStructureOpen;
   const forgeHidden =
     !hasForgePanel || (isForgeOverlay ? activeOverlay !== "forge" : !isForgeOpen);
 
@@ -119,11 +149,21 @@ export function TeacherAuthoringWorkspace({
     setIsForgeOpen((current) => !current);
   }
 
+  function toggleStructure() {
+    if (isStructureOverlay) {
+      setActiveOverlay((current) => (current === "structure" ? null : "structure"));
+      return;
+    }
+
+    setIsStructureOpen((current) => !current);
+  }
+
   return (
     <section
       className="teacher-authoring"
       data-forge-open={!forgeHidden}
       data-overlay-open={Boolean(activeOverlay)}
+      data-structure-open={!structureHidden}
     >
       <header className="teacher-authoring__header">
         <Link className="teacher-authoring__back" href={returnHref}>
@@ -140,9 +180,9 @@ export function TeacherAuthoringWorkspace({
         <div className="teacher-authoring__actions">
           <button
             aria-controls="teacher-authoring-structure"
-            aria-expanded={activeOverlay === "structure"}
+            aria-expanded={!structureHidden}
             className="btn btn-secondary teacher-authoring__structure-toggle"
-            onClick={() => setActiveOverlay((current) => (current === "structure" ? null : "structure"))}
+            onClick={toggleStructure}
             ref={structureButtonRef}
             type="button"
           >
@@ -181,7 +221,23 @@ export function TeacherAuthoringWorkspace({
         />
       ) : null}
 
+      <TeacherAuthoringSurfaceProvider key={selectedId ?? "course"}>
       <div className="teacher-authoring__workspace">
+        {structureHidden && !isStructureOverlay ? (
+          <aside className="teacher-authoring__rail" aria-label="Structure réduite">
+            <button
+              aria-controls="teacher-authoring-structure"
+              aria-expanded="false"
+              aria-label="Ouvrir la structure"
+              onClick={toggleStructure}
+              ref={structureButtonRef}
+              title="Ouvrir la structure"
+              type="button"
+            >
+              <PanelLeft size={18} aria-hidden="true" />
+            </button>
+          </aside>
+        ) : null}
         <aside
           aria-label="Structure modules et leçons"
           className="teacher-authoring__structure"
@@ -189,9 +245,20 @@ export function TeacherAuthoringWorkspace({
           id="teacher-authoring-structure"
           ref={structurePanelRef}
         >
-          <div className="teacher-authoring__panel-mobile-header">
+          <div className="teacher-authoring__panel-header">
             <strong>Structure</strong>
-            <button aria-label="Fermer la structure" onClick={closeOverlay} type="button">
+            <button
+              aria-label="Fermer la structure"
+              onClick={() => {
+                if (isStructureOverlay) {
+                  closeOverlay();
+                  return;
+                }
+                setIsStructureOpen(false);
+                requestAnimationFrame(() => structureButtonRef.current?.focus());
+              }}
+              type="button"
+            >
               <X size={18} aria-hidden="true" />
             </button>
           </div>
@@ -231,7 +298,22 @@ export function TeacherAuthoringWorkspace({
           </div>
           {forgePanel}
         </aside>
+        {forgeHidden && !isForgeOverlay && hasForgePanel ? (
+          <aside className="teacher-authoring__rail teacher-authoring__rail--forge" aria-label="Forge réduite">
+            <button
+              aria-controls="teacher-authoring-forge"
+              aria-expanded="false"
+              aria-label="Ouvrir Forge"
+              onClick={toggleForge}
+              title="Ouvrir Forge"
+              type="button"
+            >
+              <Sparkles size={18} aria-hidden="true" />
+            </button>
+          </aside>
+        ) : null}
       </div>
+      </TeacherAuthoringSurfaceProvider>
     </section>
   );
 }

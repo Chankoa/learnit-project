@@ -5565,7 +5565,15 @@ a.creator-start__option:hover {
 }
 
 .teacher-authoring[data-forge-open="false"] .teacher-authoring__workspace {
-  grid-template-columns: minmax(17rem, 20rem) minmax(32rem, 1fr);
+  grid-template-columns: minmax(17rem, 20rem) minmax(32rem, 1fr) 56px;
+}
+
+.teacher-authoring[data-structure-open="false"] .teacher-authoring__workspace {
+  grid-template-columns: 64px minmax(32rem, 1fr) minmax(20rem, 23rem);
+}
+
+.teacher-authoring[data-structure-open="false"][data-forge-open="false"] .teacher-authoring__workspace {
+  grid-template-columns: 64px minmax(32rem, 1fr) 56px;
 }
 
 .teacher-authoring__structure,
@@ -5585,6 +5593,7 @@ a.creator-start__option:hover {
 
 .teacher-authoring__forge {
   border-left: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--accent-primary) 6%, var(--surface-card));
   padding: var(--space-3);
 }
 
@@ -5593,8 +5602,43 @@ a.creator-start__option:hover {
   background: var(--surface-panel);
 }
 
-.teacher-authoring__panel-mobile-header {
-  display: none;
+.teacher-authoring__rail {
+  position: sticky;
+  top: 76px;
+  display: grid;
+  height: calc(100svh - 76px);
+  align-content: start;
+  justify-content: center;
+  border-right: 1px solid var(--border-soft);
+  background: var(--surface-card);
+  padding-top: var(--space-3);
+}
+
+.teacher-authoring__rail--forge {
+  border-right: 0;
+  border-left: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--accent-primary) 6%, var(--surface-card));
+}
+
+.teacher-authoring__rail button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-panel);
+  color: var(--accent-primary);
+}
+
+.teacher-authoring__panel-header {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--border-soft);
+  padding: var(--space-2) var(--space-3);
 }
 
 .teacher-authoring__forge-header {
@@ -5624,7 +5668,7 @@ a.creator-start__option:hover {
 }
 
 .teacher-authoring__forge-header button,
-.teacher-authoring__panel-mobile-header button {
+.teacher-authoring__panel-header button {
   display: grid;
   width: 44px;
   height: 44px;
@@ -5658,12 +5702,12 @@ a.creator-start__option:hover {
 .teacher-authoring .teacher-builder-module {
   gap: var(--space-2);
   border-color: transparent;
-  background: var(--surface-panel);
-  padding: var(--space-2);
+  background: transparent;
+  padding: var(--space-1);
 }
 
 .teacher-authoring .teacher-builder-module[data-active="true"] {
-  border-color: color-mix(in srgb, var(--accent-primary) 36%, var(--border-soft));
+  border-color: transparent;
   box-shadow: none;
 }
 
@@ -5680,7 +5724,8 @@ a.creator-start__option:hover {
 }
 
 .teacher-authoring .teacher-builder-lesson[data-active="true"] {
-  border-color: color-mix(in srgb, var(--accent-primary) 34%, var(--border-soft));
+  border-color: transparent;
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--surface-card));
 }
 
 .teacher-authoring .teacher-builder-lesson > .state-badge,
@@ -5713,6 +5758,54 @@ a.creator-start__option:hover {
   gap: var(--space-6);
 }
 
+.teacher-authoring .teacher-lesson-tabs {
+  position: sticky;
+  z-index: 7;
+  top: 76px;
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--surface-panel) 96%, transparent);
+  padding: var(--space-2) 0 0;
+  backdrop-filter: blur(14px);
+}
+
+.teacher-authoring .teacher-lesson-tabs button {
+  min-height: 44px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.teacher-authoring .teacher-lesson-tabs button[aria-selected="true"] {
+  border-bottom-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.teacher-authoring .teacher-lesson-tab-workspace [data-tab] {
+  display: none;
+}
+
+.teacher-authoring .teacher-lesson-tab-workspace[data-active-tab="information"] [data-tab="information"],
+.teacher-authoring .teacher-lesson-tab-workspace[data-active-tab="content"] [data-tab="content"],
+.teacher-authoring .teacher-lesson-tab-workspace[data-active-tab="resources"] [data-tab="resources"] {
+  display: grid;
+}
+
+.teacher-authoring .teacher-lesson-tab-workspace[data-active-tab="content"] .teacher-lesson-content-textarea {
+  min-height: min(62svh, 720px);
+}
+
+.teacher-authoring .teacher-lesson-tabs button:focus-visible,
+.teacher-authoring__rail button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
 .teacher-authoring .teacher-builder-editor__section {
   gap: var(--space-4);
   border: 0;
@@ -5732,7 +5825,7 @@ a.creator-start__option:hover {
 }
 
 .teacher-authoring .teacher-lesson-content-textarea {
-  min-height: min(56svh, 680px);
+  min-height: min(62svh, 720px);
 }
 
 .teacher-authoring__save {
@@ -5819,6 +5912,11 @@ a.creator-start__option:hover {
     grid-template-columns: minmax(17rem, 20rem) minmax(0, 1fr);
   }
 
+  .teacher-authoring[data-structure-open="false"] .teacher-authoring__workspace,
+  .teacher-authoring[data-structure-open="false"][data-forge-open="false"] .teacher-authoring__workspace {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
   .teacher-authoring__forge {
     position: fixed;
     z-index: 70;
@@ -5828,6 +5926,10 @@ a.creator-start__option:hover {
     height: calc(100svh - 76px);
     border-left: 1px solid var(--border-soft);
     box-shadow: var(--shadow-lg);
+  }
+
+  .teacher-authoring__rail {
+    display: none;
   }
 }
 
@@ -5873,6 +5975,11 @@ a.creator-start__option:hover {
     grid-template-columns: 1fr;
   }
 
+  .teacher-authoring[data-structure-open="false"] .teacher-authoring__workspace,
+  .teacher-authoring[data-structure-open="false"][data-forge-open="false"] .teacher-authoring__workspace {
+    grid-template-columns: 1fr;
+  }
+
   .teacher-authoring__structure {
     position: fixed;
     z-index: 70;
@@ -5889,7 +5996,7 @@ a.creator-start__option:hover {
     height: 100svh;
   }
 
-  .teacher-authoring__panel-mobile-header {
+  .teacher-authoring__panel-header {
     position: sticky;
     z-index: 2;
     top: 0;
@@ -5962,6 +6069,17 @@ a.creator-start__option:hover {
 
   .teacher-authoring .teacher-builder-editor__heading {
     gap: var(--space-3);
+  }
+
+  .teacher-authoring .teacher-lesson-tabs {
+    top: 0;
+    margin-inline: calc(var(--space-3) * -1);
+    padding-inline: var(--space-3);
+  }
+
+  .teacher-authoring .teacher-lesson-tabs button {
+    flex: 1;
+    padding-inline: var(--space-1);
   }
 
   .teacher-authoring .teacher-resource-forms {

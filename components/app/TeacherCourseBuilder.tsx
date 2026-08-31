@@ -29,6 +29,7 @@ import {
 } from "@/app/app/teacher/courses/actions";
 import { TeacherConfirmForm } from "@/components/app/TeacherConfirmForm";
 import { TeacherAuthoringWorkspace } from "@/components/app/TeacherAuthoringWorkspace";
+import { TeacherLessonTabs } from "@/components/app/TeacherLessonTabs";
 import { ForgeLessonAssistant } from "@/components/app/ForgeLessonAssistant";
 import { ForgeModuleRevision } from "@/components/app/ForgeModuleRevision";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
@@ -224,12 +225,18 @@ export function TeacherCourseBuilder({
                     </Link>
                   </div>
                 </div>
+                <TeacherLessonTabs lessonId={selectedLesson.id}>
                 <form
                   action={updateTeacherLessonAction.bind(null, course.id, selectedLesson.id)}
                   className="teacher-builder-editor__stack"
                 >
                   {returnToPublication ? <input name="returnTo" type="hidden" value="publication" /> : null}
-                  <section className="teacher-builder-editor__section">
+                  <section
+                    className="teacher-builder-editor__section"
+                    data-tab="information"
+                    id={`lesson-information-${selectedLesson.id}`}
+                    role="tabpanel"
+                  >
                     <div>
                       <span>Informations</span>
                       <h3>Paramètres de la leçon</h3>
@@ -279,7 +286,12 @@ export function TeacherCourseBuilder({
                     </div>
                   </section>
 
-                  <section className="teacher-builder-editor__section">
+                  <section
+                    className="teacher-builder-editor__section"
+                    data-tab="content"
+                    id={`lesson-content-${selectedLesson.id}`}
+                    role="tabpanel"
+                  >
                     <div>
                       <span>Contenu</span>
                       <h3>Markdown pédagogique</h3>
@@ -307,7 +319,12 @@ export function TeacherCourseBuilder({
                   </div>
                 </form>
 
-                <section className="teacher-builder-editor__section teacher-resource-editor">
+                <section
+                  className="teacher-builder-editor__section teacher-resource-editor"
+                  data-tab="resources"
+                  id={`lesson-resources-${selectedLesson.id}`}
+                  role="tabpanel"
+                >
                   <div>
                     <span>Ressources</span>
                     <h3>Supports associés</h3>
@@ -452,6 +469,7 @@ export function TeacherCourseBuilder({
                     </form>
                   </div>
                 </section>
+                </TeacherLessonTabs>
               </section>
             ) : null}
           </section>
