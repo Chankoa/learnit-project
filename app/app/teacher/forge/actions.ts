@@ -125,7 +125,7 @@ function getErrorResult(error: unknown) {
       error: errorMessage,
       errorCode: error.code,
       retryable,
-      technicalDetails: `Étape provider / sortie structurée · code ${error.code}${error.status ? ` · HTTP ${error.status}` : ""}.`
+      technicalDetails: `Étape ${error.stage ?? "provider / sortie structurée"} · code ${error.code}${error.finishReason ? ` · fin ${error.finishReason}` : ""}${error.status ? ` · HTTP ${error.status}` : ""}.`
     };
   }
 

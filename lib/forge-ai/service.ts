@@ -268,8 +268,10 @@ function logFailure(
   const isRateLimited = usage?.code === "rate_limited" || message.includes("Limite temporaire");
   console.error("[forge-ai] generation failed", {
     durationMs: Date.now() - startedAt,
+    finishReason: usage?.finishReason,
     promptType,
-    reason: message
+    reason: message,
+    stage: usage?.stage
   });
 
   return logForgeGeneration({

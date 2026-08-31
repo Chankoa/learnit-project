@@ -15,6 +15,12 @@ import { getForgeAIConfig } from "@/lib/forge-ai/config";
 import { lessonProposalToMarkdown } from "@/lib/forge-ai/lesson-markdown";
 import { getMaxOutputTokens } from "@/lib/forge-ai/token-budget";
 import {
+  classifyStructuredFinishReason,
+  describeStructuredOutput,
+  type ForgeStructuredFinishFailure,
+  type ForgeStructuredOutputStage
+} from "@/lib/forge-ai/structured-output";
+import {
   parseJsonObject,
   validateForgeCourseImprovement,
   validateForgeCourseProposal,
@@ -78,8 +84,10 @@ export type ForgeAIProviderErrorCode =
 
 export class ForgeAIProviderError extends Error {
   code: ForgeAIProviderErrorCode;
+  finishReason?: string;
   inputTokens?: number;
   outputTokens?: number;
+  stage?: ForgeStructuredOutputStage;
   status?: number;
   totalTokens?: number;
 
@@ -87,14 +95,20 @@ export class ForgeAIProviderError extends Error {
     code: ForgeAIProviderErrorCode,
     message: string,
     status?: number,
-    usage?: Pick<ForgeAIJsonResponse, "inputTokens" | "outputTokens" | "totalTokens">
+    usage?: Pick<ForgeAIJsonResponse, "inputTokens" | "outputTokens" | "totalTokens">,
+    diagnostics?: {
+      finishReason?: string;
+      stage?: ForgeStructuredOutputStage;
+    }
   ) {
     super(message);
     this.name = "ForgeAIProviderError";
     this.code = code;
+    this.finishReason = diagnostics?.finishReason;
     this.inputTokens = usage?.inputTokens;
     this.outputTokens = usage?.outputTokens;
     this.status = status;
+    this.stage = diagnostics?.stage;
     this.totalTokens = usage?.totalTokens;
   }
 }
@@ -899,6 +913,18 @@ function getAiSdkProviderError(error: unknown) {
   }
 
   if (NoObjectGeneratedError.isInstance(error)) {
+    const stage = error.message.includes("could not parse")
+      ? "json_parse"
+      : "schema_validation";
+
+    console.error("[forge-ai] structured output rejected", {
+      causeType: error.cause instanceof Error ? error.cause.name : "unknown",
+      finishReason: error.finishReason ?? "unknown",
+      output: describeStructuredOutput(error.text ?? ""),
+      responseId: error.response?.id ?? "unknown",
+      stage
+    });
+
     return new ForgeAIProviderError(
       "structured_output_invalid",
       "AI SDK could not parse or validate the structured output.",
@@ -907,14 +933,18 @@ function getAiSdkProviderError(error: unknown) {
         inputTokens: error.usage?.inputTokens,
         outputTokens: error.usage?.outputTokens,
         totalTokens: error.usage?.totalTokens
-      }
+      },
+      { finishReason: error.finishReason, stage }
     );
   }
 
   if (NoOutputGeneratedError.isInstance(error)) {
     return new ForgeAIProviderError(
-      "structured_output_invalid",
-      "AI SDK returned no structured output."
+      "response_empty",
+      "AI SDK returned no structured output.",
+      undefined,
+      undefined,
+      { stage: "output_missing" }
     );
   }
 
@@ -952,20 +982,48 @@ function getAiSdkProvider(): ForgeAIProvider {
           system: request.systemPrompt
         });
 
+        const usage = {
+          inputTokens: result.usage.inputTokens,
+          outputTokens: result.usage.outputTokens,
+          totalTokens: result.usage.totalTokens
+        };
+        const finishFailure = classifyStructuredFinishReason(result.finishReason);
+
+        if (finishFailure) {
+          const messages: Record<ForgeStructuredFinishFailure["code"], string> = {
+            output_token_limit:
+              "Provider IA response stopped after reaching the output token limit.",
+            response_incomplete: `Provider IA response incomplete (${result.finishReason}).`,
+            response_refusal: "Provider IA stopped the response because of a content filter."
+          };
+
+          throw new ForgeAIProviderError(
+            finishFailure.code,
+            messages[finishFailure.code],
+            undefined,
+            usage,
+            { finishReason: result.finishReason, stage: finishFailure.stage }
+          );
+        }
+
+        const output = result.output;
+
         return {
           durationMs: Date.now() - startedAt,
-          inputTokens: result.usage.inputTokens,
-          json: result.output,
+          inputTokens: usage.inputTokens,
+          json: output,
           model: config.model,
-          outputTokens: result.usage.outputTokens,
+          outputTokens: usage.outputTokens,
           provider: "ai-sdk",
-          totalTokens: result.usage.totalTokens
+          totalTokens: usage.totalTokens
         };
       } catch (error) {
         const providerError = getAiSdkProviderError(error);
         console.error("[forge-ai] AI SDK generation failed", {
           code: providerError.code,
+          finishReason: providerError.finishReason,
           model: config.model,
+          stage: providerError.stage,
           status: providerError.status
         });
         throw providerError;
