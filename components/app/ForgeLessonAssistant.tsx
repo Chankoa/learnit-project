@@ -21,8 +21,11 @@ import type {
 type ForgeLessonAssistantProps = {
   content?: string;
   courseId: string;
+  courseTitle: string;
   description?: string;
   lessonId: string;
+  moduleTitle: string;
+  sourceCount: number;
   title: string;
 };
 
@@ -67,8 +70,11 @@ function fromLines(value: string) {
 export function ForgeLessonAssistant({
   content,
   courseId,
+  courseTitle,
   description,
   lessonId,
+  moduleTitle,
+  sourceCount,
   title
 }: ForgeLessonAssistantProps) {
   const router = useRouter();
@@ -148,9 +154,27 @@ export function ForgeLessonAssistant({
   return (
     <section className="forge-lesson-assistant" aria-live="polite">
       <div>
-        <span>Forge AI</span>
+        <span>Contexte actif</span>
         <h3>Assistant de cette leçon</h3>
-        <p>Contexte : « {title} ». Portée : cette leçon uniquement. Forge utilise le cours, le module, les leçons voisines et les sources associées.</p>
+        <dl className="forge-lesson-assistant__context">
+          <div>
+            <dt>Formation</dt>
+            <dd>{courseTitle}</dd>
+          </div>
+          <div>
+            <dt>Module</dt>
+            <dd>{moduleTitle}</dd>
+          </div>
+          <div>
+            <dt>Leçon</dt>
+            <dd>{title}</dd>
+          </div>
+          <div>
+            <dt>Sources</dt>
+            <dd>{sourceCount} source{sourceCount > 1 ? "s" : ""} associée{sourceCount > 1 ? "s" : ""}</dd>
+          </div>
+        </dl>
+        <p>Forge recharge ce cours, ce module, les leçons voisines et les sources associées avant de préparer une proposition.</p>
       </div>
 
       <div className="forge-lesson-assistant__controls">

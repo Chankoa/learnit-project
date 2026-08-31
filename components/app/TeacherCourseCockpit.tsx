@@ -2,7 +2,8 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import { Eye, Send, X } from "lucide-react";
+import { Eye, PenLine, Send, X } from "lucide-react";
+import Link from "next/link";
 
 import { CreatorWorkspaceHeader } from "@/components/app/CreatorWorkspaceHeader";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
@@ -20,9 +21,11 @@ type PublicationChecklistItem = {
 
 type TeacherCourseCockpitProps = {
   courseTitle: string;
+  editHref: string;
   enrollmentLabel: string;
   forgeContent: ReactNode;
   informationContent: ReactNode;
+  initialPublishDialog?: boolean;
   initialTab?: CockpitTabId;
   isPublished: boolean;
   lessonCountLabel: string;
@@ -56,9 +59,11 @@ function PublicationIssueList({ issues }: { issues: PublicationIssue[] }) {
 
 export function TeacherCourseCockpit({
   courseTitle,
+  editHref,
   enrollmentLabel,
   forgeContent,
   informationContent,
+  initialPublishDialog = false,
   initialTab = "information",
   isPublished,
   lessonCountLabel,
@@ -82,6 +87,12 @@ export function TeacherCourseCockpit({
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    if (initialPublishDialog && !isPublished) {
+      setDialogMode("publish");
+    }
+  }, [initialPublishDialog, isPublished]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -168,20 +179,24 @@ export function TeacherCourseCockpit({
       <CreatorWorkspaceHeader
         actions={
           <>
-          <a className="btn btn-secondary" href={previewHref} target="_blank" rel="noreferrer">
-            <Eye size={17} aria-hidden="true" />
-            {isPublished ? "Voir sur le site" : "Prévisualiser"}
-          </a>
-          {isPublished ? (
-            <button className="btn btn-secondary" onClick={() => setDialogMode("unpublish")} type="button">
-              Dépublier
-            </button>
-          ) : (
-            <button className="btn btn-primary" onClick={() => setDialogMode("publish")} type="button">
-              <Send size={17} aria-hidden="true" />
-              Publier la formation
-            </button>
-          )}
+            <Link className="btn btn-secondary" href={previewHref} target="_blank" rel="noreferrer">
+              <Eye size={17} aria-hidden="true" />
+              {isPublished ? "Voir sur le site" : "Prévisualiser"}
+            </Link>
+            <Link className="btn btn-primary" href={editHref}>
+              <PenLine size={17} aria-hidden="true" />
+              Modifier
+            </Link>
+            {isPublished ? (
+              <button className="btn btn-secondary" onClick={() => setDialogMode("unpublish")} type="button">
+                Gérer la publication
+              </button>
+            ) : (
+              <button className="btn btn-secondary" onClick={() => setDialogMode("publish")} type="button">
+                <Send size={17} aria-hidden="true" />
+                {canPublish ? "Publier" : "Préparer la publication"}
+              </button>
+            )}
           </>
         }
         eyebrow="Création sélectionnée"

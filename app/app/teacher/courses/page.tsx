@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  ArrowRight,
+  ClipboardCheck,
   Eye,
   GraduationCap,
-  Layers3,
-  MoreHorizontal,
+  PenLine,
   Plus,
   Sparkles,
   Users
@@ -18,9 +17,11 @@ import {
   countTeacherLessons,
   formatLessonCount,
   formatModuleCount,
+  getPublicationIssues,
   getTeacherStudioCourses
 } from "@/lib/teacher-service";
 import { formatTeacherDate, teacherCourseStatusLabels } from "@/lib/teacher";
+import { getTeacherPublicationHref } from "@/lib/teacher-authoring";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
@@ -54,70 +55,90 @@ export default async function TeacherCoursesPage() {
         }
       />
 
-      <section className="teacher-course-management-grid" aria-label="Créations pédagogiques">
+      <section className="teacher-editorial-catalogue" aria-label="Catalogue éditorial">
         {courses.length > 0 ? (
-          courses.map((course) => (
-            <article className="teacher-management-card" key={course.id}>
-              <div className="teacher-management-card__heading">
-                <div>
-                  <span>{course.domain.name}</span>
+          courses.map((course) => {
+            const canPublish = getPublicationIssues(course).length === 0;
+            const isPublished = course.status === "published";
+            const previewHref =
+              isPublished && course.slug
+                ? `/formations/${course.slug}`
+                : `/app/teacher/courses/${course.id}/preview`;
+            const publicationHref = getTeacherPublicationHref({
+              canPublish,
+              courseId: course.id,
+              isPublished
+            });
+
+            return (
+              <article className="teacher-editorial-item" key={course.id}>
+                <div className="teacher-editorial-item__identity">
+                  <div className="teacher-editorial-item__topline">
+                    <span>{course.domain.name}</span>
+                    <span className="state-badge" data-state={course.status}>
+                      {teacherCourseStatusLabels[course.status]}
+                    </span>
+                  </div>
                   <h2>{course.title}</h2>
-                  <p>{course.description}</p>
+                  {course.description ? <p>{course.description}</p> : null}
                 </div>
-                <span className="state-badge" data-state={course.status}>
-                  {teacherCourseStatusLabels[course.status]}
-                </span>
-              </div>
 
-              <p className="teacher-management-card__summary">
-                {formatModuleCount(course.modules.length)} · {formatLessonCount(countTeacherLessons(course))} · {course.enrolledLearnerCount ?? 0} {(course.enrolledLearnerCount ?? 0) > 1 ? "inscrits" : "inscrit"}
-                <br />
-                Mis à jour le {formatTeacherDate(course.updatedAt)}
-              </p>
+                <dl className="teacher-editorial-item__meta">
+                  <div>
+                    <dt>Structure</dt>
+                    <dd>{formatModuleCount(course.modules.length)} · {formatLessonCount(countTeacherLessons(course))}</dd>
+                  </div>
+                  <div>
+                    <dt>Apprenants</dt>
+                    <dd>{course.enrolledLearnerCount ?? 0} {(course.enrolledLearnerCount ?? 0) > 1 ? "inscrits" : "inscrit"}</dd>
+                  </div>
+                  <div>
+                    <dt>Mise à jour</dt>
+                    <dd>{formatTeacherDate(course.updatedAt)}</dd>
+                  </div>
+                </dl>
 
-              <div className="creator-card-actions">
-                <Link className="btn btn-primary" href={`/app/teacher/courses/${course.id}/edit`}>
-                  {course.status === "draft" ? "Continuer" : "Gérer"}
-                  <ArrowRight size={16} aria-hidden="true" />
-                </Link>
-                <details>
-                  <summary className="creator-card-actions__menu-trigger">
-                    <MoreHorizontal size={18} aria-hidden="true" />
-                    Actions
-                  </summary>
-                  <div className="creator-card-actions__secondary">
-                    <Link href={`/app/teacher/courses/${course.id}/builder`}>
-                      <Layers3 size={16} aria-hidden="true" />
-                      Éditer le parcours
+                <div className="teacher-editorial-item__actions">
+                  <Link className="btn btn-primary" href={`/app/teacher/courses/${course.id}/builder`}>
+                    <PenLine size={16} aria-hidden="true" />
+                    Modifier
+                  </Link>
+                  <div className="teacher-editorial-item__quick-actions" aria-label={`Raccourcis pour ${course.title}`}>
+                    <Link
+                      aria-label={isPublished ? `Voir ${course.title} sur le site` : `Prévisualiser ${course.title}`}
+                      className="teacher-icon-button"
+                      href={previewHref}
+                      rel="noreferrer"
+                      target="_blank"
+                      title={isPublished ? "Voir sur le site" : "Prévisualiser"}
+                    >
+                      <Eye size={17} aria-hidden="true" />
                     </Link>
-                    <Link href={`/app/teacher/courses/${course.id}/edit?tab=forge`}>
-                      <Sparkles size={16} aria-hidden="true" />
-                      Travailler avec Forge
+                    <Link
+                      aria-label={`Travailler sur ${course.title} avec Forge`}
+                      className="teacher-icon-button"
+                      href={`/app/teacher/courses/${course.id}/edit?tab=forge`}
+                      title="Forge AI"
+                    >
+                      <Sparkles size={17} aria-hidden="true" />
                     </Link>
-                    {course.status === "published" && course.slug ? (
-                      <Link href={`/formations/${course.slug}`} rel="noreferrer" target="_blank">
-                        <Eye size={16} aria-hidden="true" />
-                        Voir sur le site
-                      </Link>
-                    ) : (
-                      <Link
-                        href={`/app/teacher/courses/${course.id}/preview`}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        <Eye size={16} aria-hidden="true" />
-                        Prévisualiser
-                      </Link>
-                    )}
-                    <Link href={`/app/teacher/courses/${course.id}/enrollments`}>
-                      <Users size={16} aria-hidden="true" />
-                      Apprenants
+                    <Link
+                      aria-label={`Gérer les apprenants de ${course.title}`}
+                      className="teacher-icon-button"
+                      href={`/app/teacher/courses/${course.id}/enrollments`}
+                      title="Apprenants"
+                    >
+                      <Users size={17} aria-hidden="true" />
                     </Link>
                   </div>
-                </details>
-              </div>
-            </article>
-          ))
+                  <Link className="btn btn-secondary teacher-editorial-item__publication" href={publicationHref}>
+                    <ClipboardCheck size={16} aria-hidden="true" />
+                    {isPublished ? "Gérer la publication" : canPublish ? "Publier" : "Préparer la publication"}
+                  </Link>
+                </div>
+              </article>
+            );
+          })
         ) : (
           <AppEmptyState
             action={

@@ -32,6 +32,7 @@ type EditTeacherCoursePageProps = {
   searchParams?: Promise<{
     error?: string | string[];
     message?: string | string[];
+    publish?: string | string[];
     tab?: string | string[];
   }>;
 };
@@ -123,7 +124,9 @@ export default async function EditTeacherCoursePage({
             mode="edit"
           />
         }
+        editHref={`/app/teacher/courses/${course.id}/builder`}
         initialTab={initialTab}
+        initialPublishDialog={getSingleParam(query?.publish) === "1"}
         isPublished={isPublished}
         lessonCountLabel={formatLessonCount(lessonCount)}
         moduleCountLabel={formatModuleCount(course.modules.length)}

@@ -28,6 +28,7 @@ import {
   updateTeacherModuleAction
 } from "@/app/app/teacher/courses/actions";
 import { TeacherConfirmForm } from "@/components/app/TeacherConfirmForm";
+import { TeacherAuthoringWorkspace } from "@/components/app/TeacherAuthoringWorkspace";
 import { ForgeLessonAssistant } from "@/components/app/ForgeLessonAssistant";
 import { ForgeModuleRevision } from "@/components/app/ForgeModuleRevision";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
@@ -59,6 +60,7 @@ type TeacherCourseBuilderProps = {
   returnToPublication?: boolean;
   selectedLessonId?: string;
   selectedModuleId?: string;
+  sourceCount: number;
 };
 
 const lessonTypeOptions = Object.entries(lessonTypeLabels) as Array<[LessonType, string]>;
@@ -99,7 +101,8 @@ export function TeacherCourseBuilder({
   previewLessonId,
   returnToPublication = false,
   selectedLessonId,
-  selectedModuleId
+  selectedModuleId,
+  sourceCount
 }: TeacherCourseBuilderProps) {
   const selectedLesson = getLessonById(course, selectedLessonId);
   const selectedModule =
@@ -111,6 +114,7 @@ export function TeacherCourseBuilder({
   const previewLesson = getLessonById(course, previewLessonId);
   const previewModule = previewLesson ? getModuleForLesson(course, previewLesson) : undefined;
   const addModuleAction = createTeacherModuleAction.bind(null, course.id);
+  const navigationOrigin = returnToPublication ? "publication" : undefined;
 
   return (
     <div className="teacher-builder" data-has-selection={Boolean(selectedModule || selectedLesson)}>
@@ -126,29 +130,380 @@ export function TeacherCourseBuilder({
         </div>
       ) : null}
 
-      <div className="teacher-builder__toolbar">
-        <div>
-          <span>Éditeur de parcours</span>
-          <h2>{course.title}</h2>
-          <p>
-            {formatModuleCount(course.modules.length)} · {formatLessonCount(course.modules.reduce((total, module) => total + module.lessons.length, 0))} · {getTeacherCourseDuration(course)} min
-          </p>
-        </div>
-        <form action={addModuleAction}>
-          <TeacherSubmitButton pendingLabel="Ajout...">
-            <Plus size={17} aria-hidden="true" />
-            Ajouter un module
-          </TeacherSubmitButton>
-        </form>
-      </div>
+      <TeacherAuthoringWorkspace
+        courseTitle={course.title}
+        editor={
+          <section className="teacher-builder__panel" aria-label="Panneau d'édition">
+            {returnToPublication ? (
+              <Link
+                className="teacher-builder__publication-return"
+                href={`/app/teacher/courses/${course.id}/edit?tab=publication`}
+              >
+                <ArrowLeft size={17} aria-hidden="true" />
+                Retour à la publication
+              </Link>
+            ) : null}
+            {!selectedModule && !selectedLesson ? (
+              <div className="teacher-builder-empty">
+                <span>
+                  <Layers3 size={24} aria-hidden="true" />
+                </span>
+                <h2>Aucun élément sélectionné</h2>
+                <p>Sélectionnez un module ou une leçon dans la structure pour afficher son éditeur.</p>
+              </div>
+            ) : null}
 
-      <div className="teacher-builder__workspace">
-        <aside className="teacher-builder__outline" aria-label="Structure modules et leçons">
+            {selectedModule && !selectedLesson ? (
+              <section className="teacher-builder-editor" aria-label="Éditeur de module">
+                <div className="teacher-builder-editor__heading">
+                  <div>
+                    <span>Module sélectionné</span>
+                    <h2>{selectedModule.title}</h2>
+                  </div>
+                </div>
+                <form
+                  action={updateTeacherModuleAction.bind(null, course.id, selectedModule.id)}
+                  className="teacher-form-grid"
+                >
+                  {returnToPublication ? <input name="returnTo" type="hidden" value="publication" /> : null}
+                  <label className="teacher-field teacher-field--wide">
+                    <span>Titre</span>
+                    <input name="title" required defaultValue={selectedModule.title} />
+                  </label>
+                  <label className="teacher-field teacher-field--wide">
+                    <span>Description</span>
+                    <textarea name="description" rows={6} defaultValue={selectedModule.description} />
+                  </label>
+                  <label className="teacher-field">
+                    <span>Durée estimée</span>
+                    <input
+                      min={0}
+                      name="durationMinutes"
+                      type="number"
+                      defaultValue={selectedModule.durationMinutes ?? ""}
+                    />
+                  </label>
+                  <label className="teacher-field">
+                    <span>Statut</span>
+                    <select name="status" defaultValue={selectedModule.status ?? "draft"}>
+                      {statusOptions.map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="teacher-form-actions">
+                    <TeacherSubmitButton pendingLabel="Enregistrement...">
+                      <Save size={16} aria-hidden="true" />
+                      Enregistrer le module
+                    </TeacherSubmitButton>
+                  </div>
+                </form>
+              </section>
+            ) : null}
+
+            {selectedLesson && selectedModule ? (
+              <section className="teacher-builder-editor" aria-label="Éditeur de leçon">
+                <div className="teacher-builder-editor__heading">
+                  <div>
+                    <span>Leçon sélectionnée</span>
+                    <h2>{selectedLesson.title}</h2>
+                  </div>
+                  <div className="teacher-builder-editor__actions">
+                    <Link
+                      className="btn btn-secondary"
+                      href={getBuilderHref(course.id, {
+                        from: navigationOrigin,
+                        lesson: selectedLesson.id,
+                        preview: selectedLesson.id
+                      })}
+                    >
+                      <Eye size={16} aria-hidden="true" />
+                      Prévisualiser le rendu
+                    </Link>
+                  </div>
+                </div>
+                <form
+                  action={updateTeacherLessonAction.bind(null, course.id, selectedLesson.id)}
+                  className="teacher-builder-editor__stack"
+                >
+                  {returnToPublication ? <input name="returnTo" type="hidden" value="publication" /> : null}
+                  <section className="teacher-builder-editor__section">
+                    <div>
+                      <span>Informations</span>
+                      <h3>Paramètres de la leçon</h3>
+                    </div>
+                    <div className="teacher-form-grid">
+                      <label className="teacher-field teacher-field--wide">
+                        <span>Titre</span>
+                        <input name="title" required defaultValue={selectedLesson.title} />
+                      </label>
+                      <label className="teacher-field teacher-field--wide">
+                        <span>Résumé</span>
+                        <textarea name="description" rows={3} defaultValue={selectedLesson.description ?? ""} />
+                      </label>
+                      <label className="teacher-field">
+                        <span>Type</span>
+                        <select name="type" defaultValue={selectedLesson.type}>
+                          {lessonTypeOptions.map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="teacher-field">
+                        <span>Durée estimée</span>
+                        <input
+                          min={0}
+                          name="durationMinutes"
+                          type="number"
+                          defaultValue={selectedLesson.durationMinutes}
+                        />
+                      </label>
+                      <label className="teacher-field">
+                        <span>Statut</span>
+                        <select name="status" defaultValue={selectedLesson.status}>
+                          {statusOptions.map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="teacher-field teacher-field--wide">
+                        <span>Objectifs</span>
+                        <textarea name="objectives" rows={5} defaultValue={toLines(selectedLesson.objectives)} />
+                      </label>
+                    </div>
+                  </section>
+
+                  <section className="teacher-builder-editor__section">
+                    <div>
+                      <span>Contenu</span>
+                      <h3>Markdown pédagogique</h3>
+                    </div>
+                    <label className="teacher-field teacher-field--wide">
+                      <span>Contenu</span>
+                      <textarea
+                        className="teacher-lesson-content-textarea"
+                        id={lessonContentTextareaId}
+                        name="content"
+                        rows={22}
+                        defaultValue={selectedLesson.content ?? ""}
+                      />
+                      <small className="teacher-field-note">
+                        Markdown pris en charge : titres, paragraphes, listes, emphase, liens et blocs de code.
+                      </small>
+                    </label>
+                  </section>
+
+                  <div className="teacher-form-actions teacher-authoring__save">
+                    <TeacherSubmitButton pendingLabel="Enregistrement...">
+                      <Save size={16} aria-hidden="true" />
+                      Enregistrer la leçon
+                    </TeacherSubmitButton>
+                  </div>
+                </form>
+
+                <section className="teacher-builder-editor__section teacher-resource-editor">
+                  <div>
+                    <span>Ressources</span>
+                    <h3>Supports associés</h3>
+                  </div>
+
+                  {selectedLessonResources.length > 0 ? (
+                    <div className="teacher-resource-list">
+                      {selectedLessonResources.map((resource) => (
+                        <article className="teacher-resource-card" key={resource.id}>
+                          <div>
+                            <span className="state-badge" data-state="published">
+                              {teacherResourceTypeLabels[resource.type]}
+                            </span>
+                            <h4>{resource.title}</h4>
+                            {resource.description ? <p>{resource.description}</p> : null}
+                            <small>
+                              {resource.fileName ?? resource.href}
+                              {resource.fileSize ? ` · ${formatFileSize(resource.fileSize)}` : ""}
+                            </small>
+                          </div>
+                          <TeacherConfirmForm
+                            action={deleteTeacherLessonResourceAction.bind(
+                              null,
+                              course.id,
+                              selectedLesson.id,
+                              resource.id
+                            )}
+                            message="Supprimer cette ressource ? Le fichier associé sera aussi supprimé si nécessaire."
+                          >
+                            <button className="teacher-icon-button" aria-label="Supprimer la ressource" type="submit">
+                              <Trash2 size={16} aria-hidden="true" />
+                            </button>
+                          </TeacherConfirmForm>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="teacher-builder-empty teacher-builder-empty--compact">
+                      <span>
+                        <FilePlus2 size={22} aria-hidden="true" />
+                      </span>
+                      <h2>Aucune ressource associée à cette leçon.</h2>
+                      <p>Ajoutez un lien ou téléversez un fichier pour enrichir le support apprenant.</p>
+                    </div>
+                  )}
+
+                  <div className="teacher-resource-forms">
+                    <form
+                      action={createTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id)}
+                      className="teacher-form-grid"
+                    >
+                      <label className="teacher-field">
+                        <span>Titre</span>
+                        <input name="resourceTitle" required placeholder="Checklist de préparation" />
+                      </label>
+                      <label className="teacher-field">
+                        <span>Type</span>
+                        <select name="resourceType" defaultValue="link">
+                          {resourceTypeOptions.map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="teacher-field teacher-field--wide">
+                        <span>Description courte</span>
+                        <input name="resourceDescription" placeholder="Ce que l'apprenant trouvera dans cette ressource." />
+                      </label>
+                      <label className="teacher-field teacher-field--wide">
+                        <span>URL</span>
+                        <input name="resourceHref" required placeholder="https://..." type="url" />
+                      </label>
+                      <label className="teacher-field">
+                        <span>Accès</span>
+                        <select name="resourceAccess" defaultValue="enrolled">
+                          {resourceAccessOptions.map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="teacher-form-actions">
+                        <TeacherSubmitButton pendingLabel="Ajout...">
+                          <FilePlus2 size={16} aria-hidden="true" />
+                          Ajouter le lien
+                        </TeacherSubmitButton>
+                      </div>
+                    </form>
+
+                    <form
+                      action={uploadTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id)}
+                      className="teacher-form-grid"
+                    >
+                      <label className="teacher-field">
+                        <span>Titre</span>
+                        <input name="fileResourceTitle" placeholder="Nom public du fichier" />
+                      </label>
+                      <label className="teacher-field">
+                        <span>Type</span>
+                        <select name="fileResourceType" defaultValue="download">
+                          {resourceTypeOptions.map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="teacher-field teacher-field--wide">
+                        <span>Description courte</span>
+                        <input name="fileResourceDescription" placeholder="PDF, template ou support à télécharger." />
+                      </label>
+                      <label className="teacher-field teacher-field--wide">
+                        <span>Fichier</span>
+                        <input
+                          accept=".pdf,image/jpeg,image/png,image/webp,image/gif,text/plain,.zip"
+                          name="resourceFile"
+                          required
+                          type="file"
+                        />
+                        <small className="teacher-field-note">
+                          Formats acceptés : PDF, image, texte ou ZIP. Taille maximale : 10 Mo.
+                        </small>
+                      </label>
+                      <label className="teacher-field">
+                        <span>Accès</span>
+                        <select name="fileResourceAccess" defaultValue="enrolled">
+                          {resourceAccessOptions.map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="teacher-form-actions">
+                        <TeacherSubmitButton pendingLabel="Téléversement...">
+                          <FilePlus2 size={16} aria-hidden="true" />
+                          Ajouter le fichier
+                        </TeacherSubmitButton>
+                      </div>
+                    </form>
+                  </div>
+                </section>
+              </section>
+            ) : null}
+          </section>
+        }
+        forgePanel={
+          selectedModule && !selectedLesson ? (
+            <div className="teacher-authoring-forge-context">
+              <dl>
+                <div><dt>Formation</dt><dd>{course.title}</dd></div>
+                <div><dt>Module</dt><dd>{selectedModule.title}</dd></div>
+              </dl>
+              <ForgeModuleRevision
+                key={selectedModule.id}
+                courseId={course.id}
+                moduleId={selectedModule.id}
+                title={selectedModule.title}
+              />
+            </div>
+          ) : selectedLesson && selectedModule ? (
+            <ForgeLessonAssistant
+              content={selectedLesson.content}
+              courseId={course.id}
+              courseTitle={course.title}
+              description={selectedLesson.description}
+              lessonId={selectedLesson.id}
+              moduleTitle={selectedModule.title}
+              sourceCount={sourceCount}
+              title={selectedLesson.title}
+            />
+          ) : undefined
+        }
+        meta={<>{formatModuleCount(course.modules.length)} · {formatLessonCount(course.modules.reduce((total, module) => total + module.lessons.length, 0))} · {getTeacherCourseDuration(course)} min</>}
+        previewHref={`/app/teacher/courses/${course.id}/preview`}
+        publicationHref={`/app/teacher/courses/${course.id}/edit?tab=publication`}
+        returnHref={returnToPublication ? `/app/teacher/courses/${course.id}/edit?tab=publication` : `/app/teacher/courses/${course.id}/edit`}
+        returnLabel={returnToPublication ? "Retour à la publication" : "Retour à la formation"}
+        selectedId={selectedLesson?.id ?? selectedModule?.id}
+        selectedKind={selectedLesson ? `Leçon ${selectedLesson.order}` : selectedModule ? `Module ${selectedModule.order}` : undefined}
+        selectedTitle={selectedLesson?.title ?? selectedModule?.title}
+        structure={
+        <div className="teacher-builder__outline">
           <div className="teacher-builder__outline-heading">
             <div>
               <span>Structure</span>
               <h2>Modules et leçons</h2>
             </div>
+            <form action={addModuleAction}>
+              <TeacherSubmitButton pendingLabel="Ajout...">
+                <Plus size={17} aria-hidden="true" />
+                <span>Ajouter</span>
+              </TeacherSubmitButton>
+            </form>
           </div>
 
           <div className="teacher-builder__modules">
@@ -173,8 +528,9 @@ export function TeacherCourseBuilder({
                 >
                   <div className="teacher-builder-module__row">
                     <Link
+                      aria-current={selectedModule?.id === module.id && !selectedLesson ? "page" : undefined}
                       className="teacher-builder-module__select"
-                      href={getBuilderHref(course.id, { module: module.id })}
+                      href={getBuilderHref(course.id, { from: navigationOrigin, module: module.id })}
                     >
                       <span>Module {module.order}</span>
                       <strong>{module.title}</strong>
@@ -230,8 +586,9 @@ export function TeacherCourseBuilder({
                         key={lesson.id}
                       >
                         <Link
+                          aria-current={selectedLesson?.id === lesson.id ? "page" : undefined}
                           className="teacher-builder-lesson__select"
-                          href={getBuilderHref(course.id, { lesson: lesson.id })}
+                          href={getBuilderHref(course.id, { from: navigationOrigin, lesson: lesson.id })}
                         >
                           <span>{lesson.order}</span>
                           <div>
@@ -302,364 +659,9 @@ export function TeacherCourseBuilder({
               );
             })}
           </div>
-        </aside>
-
-        <section className="teacher-builder__panel" aria-label="Panneau d'édition">
-          {returnToPublication ? (
-            <Link
-              className="teacher-builder__publication-return"
-              href={`/app/teacher/courses/${course.id}/edit?tab=publication`}
-            >
-              <ArrowLeft size={17} aria-hidden="true" />
-              Retour à la publication
-            </Link>
-          ) : null}
-          {selectedModule || selectedLesson ? (
-            <header className="teacher-builder__mobile-context">
-              <Link
-                href={
-                  returnToPublication
-                    ? `/app/teacher/courses/${course.id}/edit?tab=publication`
-                    : getBuilderHref(course.id, {})
-                }
-              >
-                <ArrowLeft size={17} aria-hidden="true" />
-                {returnToPublication ? "Publication" : "Parcours"}
-              </Link>
-              <div>
-                <span>{selectedLesson ? `Leçon ${selectedLesson.order}` : `Module ${selectedModule?.order}`}</span>
-                <strong>{selectedLesson?.title ?? selectedModule?.title}</strong>
-              </div>
-            </header>
-          ) : null}
-          {!selectedModule && !selectedLesson ? (
-            <div className="teacher-builder-empty">
-              <span>
-                <Layers3 size={24} aria-hidden="true" />
-              </span>
-              <h2>Aucun élément sélectionné</h2>
-              <p>Sélectionnez un module ou une leçon dans la structure pour afficher son éditeur.</p>
-            </div>
-          ) : null}
-
-          {selectedModule && !selectedLesson ? (
-            <section className="teacher-builder-editor" aria-label="Éditeur de module">
-              <div className="teacher-builder-editor__heading">
-                <div>
-                  <span>Module sélectionné</span>
-                  <h2>{selectedModule.title}</h2>
-                </div>
-              </div>
-              <form
-                action={updateTeacherModuleAction.bind(null, course.id, selectedModule.id)}
-                className="teacher-form-grid"
-              >
-                {returnToPublication ? <input name="returnTo" type="hidden" value="publication" /> : null}
-                <label className="teacher-field teacher-field--wide">
-                  <span>Titre</span>
-                  <input name="title" required defaultValue={selectedModule.title} />
-                </label>
-                <label className="teacher-field teacher-field--wide">
-                  <span>Description</span>
-                  <textarea name="description" rows={4} defaultValue={selectedModule.description} />
-                </label>
-                <label className="teacher-field">
-                  <span>Durée estimée</span>
-                  <input
-                    min={0}
-                    name="durationMinutes"
-                    type="number"
-                    defaultValue={selectedModule.durationMinutes ?? ""}
-                  />
-                </label>
-                <label className="teacher-field">
-                  <span>Statut</span>
-                  <select name="status" defaultValue={selectedModule.status ?? "draft"}>
-                    {statusOptions.map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div className="teacher-form-actions">
-                  <TeacherSubmitButton pendingLabel="Enregistrement...">
-                    <Save size={16} aria-hidden="true" />
-                    Enregistrer le module
-                  </TeacherSubmitButton>
-                </div>
-              </form>
-              <ForgeModuleRevision
-                key={selectedModule.id}
-                courseId={course.id}
-                moduleId={selectedModule.id}
-                title={selectedModule.title}
-              />
-            </section>
-          ) : null}
-
-          {selectedLesson && selectedModule ? (
-            <section className="teacher-builder-editor" aria-label="Éditeur de leçon">
-              <div className="teacher-builder-editor__heading">
-                <div>
-                  <span>Leçon sélectionnée</span>
-                  <h2>{selectedLesson.title}</h2>
-                </div>
-                <div className="teacher-builder-editor__actions">
-                  <Link
-                    className="btn btn-secondary"
-                    href={getBuilderHref(course.id, {
-                      lesson: selectedLesson.id,
-                      preview: selectedLesson.id
-                    })}
-                  >
-                    <Eye size={16} aria-hidden="true" />
-                    Prévisualiser le rendu
-                  </Link>
-                </div>
-              </div>
-              <form
-                action={updateTeacherLessonAction.bind(null, course.id, selectedLesson.id)}
-                className="teacher-builder-editor__stack"
-              >
-                {returnToPublication ? <input name="returnTo" type="hidden" value="publication" /> : null}
-                <section className="teacher-builder-editor__section">
-                  <div>
-                    <span>Informations</span>
-                    <h3>Paramètres de la leçon</h3>
-                  </div>
-                  <div className="teacher-form-grid">
-                    <label className="teacher-field teacher-field--wide">
-                      <span>Titre</span>
-                      <input name="title" required defaultValue={selectedLesson.title} />
-                    </label>
-                    <label className="teacher-field teacher-field--wide">
-                      <span>Résumé</span>
-                      <textarea name="description" rows={3} defaultValue={selectedLesson.description ?? ""} />
-                    </label>
-                    <label className="teacher-field">
-                      <span>Type</span>
-                      <select name="type" defaultValue={selectedLesson.type}>
-                        {lessonTypeOptions.map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="teacher-field">
-                      <span>Durée estimée</span>
-                      <input
-                        min={0}
-                        name="durationMinutes"
-                        type="number"
-                        defaultValue={selectedLesson.durationMinutes}
-                      />
-                    </label>
-                    <label className="teacher-field">
-                      <span>Statut</span>
-                      <select name="status" defaultValue={selectedLesson.status}>
-                        {statusOptions.map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="teacher-field teacher-field--wide">
-                      <span>Objectifs</span>
-                      <textarea name="objectives" rows={4} defaultValue={toLines(selectedLesson.objectives)} />
-                    </label>
-                  </div>
-                </section>
-
-                <section className="teacher-builder-editor__section">
-                  <div>
-                    <span>Contenu</span>
-                    <h3>Markdown pédagogique</h3>
-                  </div>
-                  <label className="teacher-field teacher-field--wide">
-                    <span>Contenu</span>
-                    <textarea
-                      className="teacher-lesson-content-textarea"
-                      id={lessonContentTextareaId}
-                      name="content"
-                      rows={18}
-                      defaultValue={selectedLesson.content ?? ""}
-                    />
-                    <small className="teacher-field-note">
-                      Markdown pris en charge : titres, paragraphes, listes, emphase, liens et blocs de code.
-                    </small>
-                  </label>
-                </section>
-
-                <div className="teacher-form-actions">
-                  <TeacherSubmitButton pendingLabel="Enregistrement...">
-                    <Save size={16} aria-hidden="true" />
-                    Enregistrer la leçon
-                  </TeacherSubmitButton>
-                </div>
-              </form>
-
-              {lessonContentTextareaId ? (
-                <ForgeLessonAssistant
-                  content={selectedLesson.content}
-                  courseId={course.id}
-                  description={selectedLesson.description}
-                  lessonId={selectedLesson.id}
-                  title={selectedLesson.title}
-                />
-              ) : null}
-
-              <section className="teacher-builder-editor__section teacher-resource-editor">
-                <div>
-                  <span>Ressources</span>
-                  <h3>Supports associés</h3>
-                </div>
-
-                {selectedLessonResources.length > 0 ? (
-                  <div className="teacher-resource-list">
-                    {selectedLessonResources.map((resource) => (
-                      <article className="teacher-resource-card" key={resource.id}>
-                        <div>
-                          <span className="state-badge" data-state="published">
-                            {teacherResourceTypeLabels[resource.type]}
-                          </span>
-                          <h4>{resource.title}</h4>
-                          {resource.description ? <p>{resource.description}</p> : null}
-                          <small>
-                            {resource.fileName ?? resource.href}
-                            {resource.fileSize ? ` · ${formatFileSize(resource.fileSize)}` : ""}
-                          </small>
-                        </div>
-                        <TeacherConfirmForm
-                          action={deleteTeacherLessonResourceAction.bind(
-                            null,
-                            course.id,
-                            selectedLesson.id,
-                            resource.id
-                          )}
-                          message="Supprimer cette ressource ? Le fichier associé sera aussi supprimé si nécessaire."
-                        >
-                          <button className="teacher-icon-button" aria-label="Supprimer la ressource" type="submit">
-                            <Trash2 size={16} aria-hidden="true" />
-                          </button>
-                        </TeacherConfirmForm>
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="teacher-builder-empty teacher-builder-empty--compact">
-                    <span>
-                      <FilePlus2 size={22} aria-hidden="true" />
-                    </span>
-                    <h2>Aucune ressource associée à cette leçon.</h2>
-                    <p>Ajoutez un lien ou téléversez un fichier pour enrichir le support apprenant.</p>
-                  </div>
-                )}
-
-                <div className="teacher-resource-forms">
-                  <form
-                    action={createTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id)}
-                    className="teacher-form-grid"
-                  >
-                    <label className="teacher-field">
-                      <span>Titre</span>
-                      <input name="resourceTitle" required placeholder="Checklist de préparation" />
-                    </label>
-                    <label className="teacher-field">
-                      <span>Type</span>
-                      <select name="resourceType" defaultValue="link">
-                        {resourceTypeOptions.map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="teacher-field teacher-field--wide">
-                      <span>Description courte</span>
-                      <input name="resourceDescription" placeholder="Ce que l'apprenant trouvera dans cette ressource." />
-                    </label>
-                    <label className="teacher-field teacher-field--wide">
-                      <span>URL</span>
-                      <input name="resourceHref" required placeholder="https://..." type="url" />
-                    </label>
-                    <label className="teacher-field">
-                      <span>Accès</span>
-                      <select name="resourceAccess" defaultValue="enrolled">
-                        {resourceAccessOptions.map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <div className="teacher-form-actions">
-                      <TeacherSubmitButton pendingLabel="Ajout...">
-                        <FilePlus2 size={16} aria-hidden="true" />
-                        Ajouter le lien
-                      </TeacherSubmitButton>
-                    </div>
-                  </form>
-
-                  <form
-                    action={uploadTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id)}
-                    className="teacher-form-grid"
-                  >
-                    <label className="teacher-field">
-                      <span>Titre</span>
-                      <input name="fileResourceTitle" placeholder="Nom public du fichier" />
-                    </label>
-                    <label className="teacher-field">
-                      <span>Type</span>
-                      <select name="fileResourceType" defaultValue="download">
-                        {resourceTypeOptions.map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="teacher-field teacher-field--wide">
-                      <span>Description courte</span>
-                      <input name="fileResourceDescription" placeholder="PDF, template ou support à télécharger." />
-                    </label>
-                    <label className="teacher-field teacher-field--wide">
-                      <span>Fichier</span>
-                      <input
-                        accept=".pdf,image/jpeg,image/png,image/webp,image/gif,text/plain,.zip"
-                        name="resourceFile"
-                        required
-                        type="file"
-                      />
-                      <small className="teacher-field-note">
-                        Formats acceptés : PDF, image, texte ou ZIP. Taille maximale : 10 Mo.
-                      </small>
-                    </label>
-                    <label className="teacher-field">
-                      <span>Accès</span>
-                      <select name="fileResourceAccess" defaultValue="enrolled">
-                        {resourceAccessOptions.map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <div className="teacher-form-actions">
-                      <TeacherSubmitButton pendingLabel="Téléversement...">
-                        <FilePlus2 size={16} aria-hidden="true" />
-                        Ajouter le fichier
-                      </TeacherSubmitButton>
-                    </div>
-                  </form>
-                </div>
-              </section>
-            </section>
-          ) : null}
-        </section>
-      </div>
+        </div>
+        }
+      />
 
       {previewLesson && previewModule ? (
         <div className="teacher-preview-modal" role="dialog" aria-modal="true" aria-label="Prévisualisation leçon">
@@ -674,7 +676,7 @@ export function TeacherCourseBuilder({
               </div>
               <Link
                 aria-label="Fermer la prévisualisation"
-                href={getBuilderHref(course.id, { lesson: previewLesson.id })}
+                href={getBuilderHref(course.id, { from: navigationOrigin, lesson: previewLesson.id })}
               >
                 <X size={18} aria-hidden="true" />
               </Link>

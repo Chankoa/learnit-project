@@ -12,6 +12,7 @@ import { AppTopbar } from "@/components/app/AppTopbar";
 import { RoleSwitcher } from "@/components/app/RoleSwitcher";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { isTeacherAuthoringPath } from "@/lib/teacher-authoring";
 import type { ApplicationRole, NavigationItem } from "@/lib/navigation";
 
 type AppShellProps = {
@@ -36,28 +37,36 @@ export function AppShell({
 }: AppShellProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isTeacherFocusMode =
+    role === "teacher" && isTeacherAuthoringPath(pathname);
 
   function closeMobileMenu() {
     setIsMobileMenuOpen(false);
   }
 
   return (
-    <div className="app-shell" data-role={role}>
-      <AppSidebar navigationItems={navigationItems} pathname={pathname} role={role} title={title} />
+    <div className="app-shell" data-focus-mode={isTeacherFocusMode} data-role={role}>
+      {!isTeacherFocusMode ? (
+        <AppSidebar navigationItems={navigationItems} pathname={pathname} role={role} title={title} />
+      ) : null}
 
       <div className="app-workspace">
-        <AppTopbar
-          isMenuOpen={isMobileMenuOpen}
-          onMenuToggle={() => setIsMobileMenuOpen((current) => !current)}
-          role={role}
-          title={title}
-        />
+        {!isTeacherFocusMode ? (
+          <AppTopbar
+            isMenuOpen={isMobileMenuOpen}
+            onMenuToggle={() => setIsMobileMenuOpen((current) => !current)}
+            role={role}
+            title={title}
+          />
+        ) : null}
 
-        <div className="app-desktop-actions">
-          <ThemeToggle />
-        </div>
+        {!isTeacherFocusMode ? (
+          <div className="app-desktop-actions">
+            <ThemeToggle />
+          </div>
+        ) : null}
 
-        {isMobileMenuOpen ? (
+        {isMobileMenuOpen && !isTeacherFocusMode ? (
           <aside
             className="app-mobile-drawer"
             id="app-mobile-drawer"
@@ -87,7 +96,7 @@ export function AppShell({
           </aside>
         ) : null}
 
-        <main className="app-main" id="main-content">
+        <main className={isTeacherFocusMode ? "app-main app-main--focus" : "app-main"} id="main-content">
           <DemoModeBanner />
           {children}
         </main>
