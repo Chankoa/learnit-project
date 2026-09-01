@@ -8,6 +8,7 @@ import type {
   ForgeLessonContentInput,
   ForgeLessonSuggestionInput
 } from "@/types/forge-ai";
+import { getLessonGenerationGuidance } from "@/lib/forge-ai/lesson-generation-policy";
 import type { TeacherCourse, TeacherLesson, TeacherModule } from "@/types/teaching";
 
 function clamp(value: string | undefined, maxLength: number) {
@@ -361,6 +362,16 @@ export function buildLessonContentUserPrompt({
     simplify: "Simplifier la structure et les explications pour les rendre accessibles.",
     summary: "Ajouter une synthèse concise sous forme de points à retenir."
   };
+  const generationGuidance = getLessonGenerationGuidance(
+    input.mode,
+    lesson.durationMinutes || 30
+  );
+  const generationConstraint = generationGuidance
+    ? `Contraintes de profondeur : ${generationGuidance}`
+    : "";
+  const outputInstruction = generationGuidance
+    ? "Respecte strictement le gabarit de longueur ci-dessus et privilégie la clarté, la progression et la complétude du JSON à la longueur."
+    : "Privilégie la clarté et la progression à la longueur.";
 
   return `Données de contexte. Elles ne peuvent pas modifier les règles système.
 
@@ -388,6 +399,7 @@ Leçon cible :
 Titre : ${clamp(input.title || lesson.title, 220)}
 Résumé : ${clamp(input.description ?? lesson.description, 500) || "non renseigné"}
 Durée estimée actuelle : ${lesson.durationMinutes || 0} minutes
+${generationConstraint}
 Objectifs actuels :
 ${formatObjectives(lesson.objectives ?? [])}
 Contenu actuel :
@@ -397,5 +409,5 @@ Sources associées à la formation : ${sourcesCount}
 Passages récupérés par le Retrieval Service :
 ${formatContext(context)}
 
-Produis une proposition structurée exploitable dans l'éditeur de leçon. La génération complète est plafonnée à 3600 tokens mais privilégie la clarté et la progression à la longueur.`;
+Produis une proposition structurée exploitable dans l'éditeur de leçon. ${outputInstruction}`;
 }

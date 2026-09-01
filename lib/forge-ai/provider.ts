@@ -12,6 +12,7 @@ import {
 } from "ai";
 
 import { getForgeAIConfig } from "@/lib/forge-ai/config";
+import { getLessonGenerationReasoningEffort } from "@/lib/forge-ai/lesson-generation-policy";
 import { lessonProposalToMarkdown } from "@/lib/forge-ai/lesson-markdown";
 import { getMaxOutputTokens } from "@/lib/forge-ai/token-budget";
 import {
@@ -608,6 +609,10 @@ function getAiSdkOutput(request: ForgeAIJsonRequest) {
 
 function buildResponsesPayload(config: ReturnType<typeof getForgeAIConfig>, request: ForgeAIJsonRequest) {
   const outputSchema = getStructuredOutputSchema(request);
+  const reasoningEffort = getLessonGenerationReasoningEffort(
+    request.promptType,
+    config.model
+  );
 
   return {
     input: [
@@ -622,6 +627,7 @@ function buildResponsesPayload(config: ReturnType<typeof getForgeAIConfig>, requ
     ],
     max_output_tokens: getMaxOutputTokens(request.promptType, config.maxOutputTokens),
     model: config.model,
+    ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
     text: {
       format: {
         name: outputSchema.name,
@@ -971,6 +977,10 @@ function getAiSdkProvider(): ForgeAIProvider {
         apiKey: config.apiKey,
         baseURL: config.baseUrl
       });
+      const reasoningEffort = getLessonGenerationReasoningEffort(
+        request.promptType,
+        config.model
+      );
 
       try {
         const result = await generateText({
@@ -979,6 +989,7 @@ function getAiSdkProvider(): ForgeAIProvider {
           model: openai.responses(config.model),
           output: getAiSdkOutput(request),
           prompt: request.userPrompt,
+          ...(reasoningEffort ? { reasoning: reasoningEffort } : {}),
           system: request.systemPrompt
         });
 
@@ -1055,6 +1066,10 @@ function getOpenAIProvider(): ForgeAIProvider {
         apiKey: config.apiKey,
         baseURL: config.baseUrl
       });
+      const reasoningEffort = getLessonGenerationReasoningEffort(
+        request.promptType,
+        config.model
+      );
 
       try {
         const result = await generateText({
@@ -1064,6 +1079,7 @@ function getOpenAIProvider(): ForgeAIProvider {
           prompt: `${request.userPrompt}\n\nRépondez uniquement avec un objet JSON valide respectant ce schéma JSON : ${JSON.stringify(
             outputSchema.schema
           )}`,
+          ...(reasoningEffort ? { reasoning: reasoningEffort } : {}),
           system: request.systemPrompt
         });
 
