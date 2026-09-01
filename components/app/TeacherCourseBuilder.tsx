@@ -5,8 +5,10 @@ import {
   BookOpenCheck,
   Clock3,
   Eye,
+  FileUp,
   FilePlus2,
   Layers3,
+  Link2,
   Plus,
   Save,
   Trash2,
@@ -30,6 +32,7 @@ import {
 import { TeacherConfirmForm } from "@/components/app/TeacherConfirmForm";
 import { TeacherAuthoringWorkspace } from "@/components/app/TeacherAuthoringWorkspace";
 import { TeacherLessonTabs } from "@/components/app/TeacherLessonTabs";
+import { TeacherModuleDisclosure } from "@/components/app/TeacherModuleDisclosure";
 import { ForgeLessonAssistant } from "@/components/app/ForgeLessonAssistant";
 import { ForgeModuleRevision } from "@/components/app/ForgeModuleRevision";
 import { TeacherSubmitButton } from "@/components/app/TeacherSubmitButton";
@@ -374,43 +377,54 @@ export function TeacherCourseBuilder({
                   <div className="teacher-resource-forms">
                     <form
                       action={createTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id)}
-                      className="teacher-form-grid"
+                      className="teacher-resource-form"
                     >
-                      <label className="teacher-field">
-                        <span>Titre</span>
-                        <input name="resourceTitle" required placeholder="Checklist de préparation" />
-                      </label>
-                      <label className="teacher-field">
-                        <span>Type</span>
-                        <select name="resourceType" defaultValue="link">
-                          {resourceTypeOptions.map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="teacher-field teacher-field--wide">
-                        <span>Description courte</span>
-                        <input name="resourceDescription" placeholder="Ce que l'apprenant trouvera dans cette ressource." />
-                      </label>
-                      <label className="teacher-field teacher-field--wide">
-                        <span>URL</span>
-                        <input name="resourceHref" required placeholder="https://..." type="url" />
-                      </label>
-                      <label className="teacher-field">
-                        <span>Accès</span>
-                        <select name="resourceAccess" defaultValue="enrolled">
-                          {resourceAccessOptions.map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                      <header className="teacher-resource-form__header">
+                        <span className="teacher-resource-form__icon">
+                          <Link2 aria-hidden="true" size={18} />
+                        </span>
+                        <div>
+                          <h4>Ajouter un lien</h4>
+                          <p>Associez une page ou un support accessible en ligne.</p>
+                        </div>
+                      </header>
+                      <div className="teacher-resource-form__fields teacher-form-grid">
+                        <label className="teacher-field">
+                          <span>Titre</span>
+                          <input name="resourceTitle" required placeholder="Checklist de préparation" />
+                        </label>
+                        <label className="teacher-field">
+                          <span>Type</span>
+                          <select name="resourceType" defaultValue="link">
+                            {resourceTypeOptions.map(([value, label]) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="teacher-field teacher-field--wide">
+                          <span>Description courte</span>
+                          <input name="resourceDescription" placeholder="Ce que l'apprenant trouvera dans cette ressource." />
+                        </label>
+                        <label className="teacher-field teacher-field--wide">
+                          <span>URL</span>
+                          <input name="resourceHref" required placeholder="https://..." type="url" />
+                        </label>
+                        <label className="teacher-field">
+                          <span>Accès</span>
+                          <select name="resourceAccess" defaultValue="enrolled">
+                            {resourceAccessOptions.map(([value, label]) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
                       <div className="teacher-form-actions">
                         <TeacherSubmitButton pendingLabel="Ajout...">
-                          <FilePlus2 size={16} aria-hidden="true" />
+                          <Link2 size={16} aria-hidden="true" />
                           Ajouter le lien
                         </TeacherSubmitButton>
                       </div>
@@ -418,51 +432,62 @@ export function TeacherCourseBuilder({
 
                     <form
                       action={uploadTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id)}
-                      className="teacher-form-grid"
+                      className="teacher-resource-form"
                     >
-                      <label className="teacher-field">
-                        <span>Titre</span>
-                        <input name="fileResourceTitle" placeholder="Nom public du fichier" />
-                      </label>
-                      <label className="teacher-field">
-                        <span>Type</span>
-                        <select name="fileResourceType" defaultValue="download">
-                          {resourceTypeOptions.map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="teacher-field teacher-field--wide">
-                        <span>Description courte</span>
-                        <input name="fileResourceDescription" placeholder="PDF, template ou support à télécharger." />
-                      </label>
-                      <label className="teacher-field teacher-field--wide">
-                        <span>Fichier</span>
-                        <input
-                          accept=".pdf,image/jpeg,image/png,image/webp,image/gif,text/plain,.zip"
-                          name="resourceFile"
-                          required
-                          type="file"
-                        />
-                        <small className="teacher-field-note">
-                          Formats acceptés : PDF, image, texte ou ZIP. Taille maximale : 10 Mo.
-                        </small>
-                      </label>
-                      <label className="teacher-field">
-                        <span>Accès</span>
-                        <select name="fileResourceAccess" defaultValue="enrolled">
-                          {resourceAccessOptions.map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                      <header className="teacher-resource-form__header">
+                        <span className="teacher-resource-form__icon">
+                          <FileUp aria-hidden="true" size={18} />
+                        </span>
+                        <div>
+                          <h4>Téléverser un fichier</h4>
+                          <p>Ajoutez un document à consulter ou à télécharger.</p>
+                        </div>
+                      </header>
+                      <div className="teacher-resource-form__fields teacher-form-grid">
+                        <label className="teacher-field">
+                          <span>Nom public</span>
+                          <input name="fileResourceTitle" placeholder="Nom public du fichier" />
+                        </label>
+                        <label className="teacher-field">
+                          <span>Type</span>
+                          <select name="fileResourceType" defaultValue="download">
+                            {resourceTypeOptions.map(([value, label]) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="teacher-field teacher-field--wide">
+                          <span>Description courte</span>
+                          <input name="fileResourceDescription" placeholder="PDF, template ou support à télécharger." />
+                        </label>
+                        <label className="teacher-field teacher-field--wide">
+                          <span>Fichier</span>
+                          <input
+                            accept=".pdf,image/jpeg,image/png,image/webp,image/gif,text/plain,.zip"
+                            name="resourceFile"
+                            required
+                            type="file"
+                          />
+                          <small className="teacher-field-note">
+                            Formats acceptés : PDF, image, texte ou ZIP. Taille maximale : 10 Mo.
+                          </small>
+                        </label>
+                        <label className="teacher-field">
+                          <span>Accès</span>
+                          <select name="fileResourceAccess" defaultValue="enrolled">
+                            {resourceAccessOptions.map(([value, label]) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
                       <div className="teacher-form-actions">
                         <TeacherSubmitButton pendingLabel="Téléversement...">
-                          <FilePlus2 size={16} aria-hidden="true" />
+                          <FileUp size={16} aria-hidden="true" />
                           Ajouter le fichier
                         </TeacherSubmitButton>
                       </div>
@@ -538,23 +563,12 @@ export function TeacherCourseBuilder({
             {course.modules.map((module, moduleIndex) => {
               const addLessonAction = createTeacherLessonAction.bind(null, course.id, module.id);
 
-              return (
-                <section
-                  className="teacher-builder-module"
-                  data-active={selectedModule?.id === module.id}
-                  key={module.id}
-                >
-                  <div className="teacher-builder-module__row">
-                    <Link
-                      aria-current={selectedModule?.id === module.id && !selectedLesson ? "page" : undefined}
-                      className="teacher-builder-module__select"
-                      href={getBuilderHref(course.id, { from: navigationOrigin, module: module.id })}
-                    >
-                      <span>Module {module.order}</span>
-                      <strong>{module.title}</strong>
-                      <small>{module.description}</small>
-                    </Link>
+              const lessonListId = `teacher-module-lessons-${module.id}`;
+              const containsSelectedLesson = module.lessons.some((lesson) => lesson.id === selectedLesson?.id);
 
+              return (
+                <TeacherModuleDisclosure
+                  actions={
                     <div className="teacher-icon-actions">
                       <form action={moveTeacherModuleAction.bind(null, course.id, module.id, -1)}>
                         <button
@@ -585,19 +599,35 @@ export function TeacherCourseBuilder({
                         </button>
                       </TeacherConfirmForm>
                     </div>
-                  </div>
-
-                  <div className="teacher-builder-module__meta">
-                    <span>{formatLessonCount(module.lessons.length)}</span>
-                    <span>
-                      <Clock3 size={15} aria-hidden="true" />
-                      {module.durationMinutes ?? module.lessons.reduce((total, lesson) => total + lesson.durationMinutes, 0)} min
-                    </span>
-                    <span className="state-badge" data-state={module.status ?? "draft"}>
-                      {teacherModuleStatusLabels[module.status ?? "draft"]}
-                    </span>
-                  </div>
-
+                  }
+                  active={selectedModule?.id === module.id}
+                  controlsId={lessonListId}
+                  forcedOpen={containsSelectedLesson}
+                  heading={
+                    <Link
+                      aria-current={selectedModule?.id === module.id && !selectedLesson ? "page" : undefined}
+                      className="teacher-builder-module__select"
+                      href={getBuilderHref(course.id, { from: navigationOrigin, module: module.id })}
+                    >
+                      <span>Module {module.order}</span>
+                      <strong>{module.title}</strong>
+                      <small>{module.description}</small>
+                    </Link>
+                  }
+                  key={module.id}
+                  meta={
+                    <div className="teacher-builder-module__meta">
+                      <span>{formatLessonCount(module.lessons.length)}</span>
+                      <span>
+                        <Clock3 size={15} aria-hidden="true" />
+                        {module.durationMinutes ?? module.lessons.reduce((total, lesson) => total + lesson.durationMinutes, 0)} min
+                      </span>
+                      <span className="state-badge" data-state={module.status ?? "draft"}>
+                        {teacherModuleStatusLabels[module.status ?? "draft"]}
+                      </span>
+                    </div>
+                  }
+                >
                   <div className="teacher-builder-lessons">
                     {module.lessons.map((lesson, lessonIndex) => (
                       <article
@@ -679,7 +709,7 @@ export function TeacherCourseBuilder({
                       Ajouter une leçon
                     </TeacherSubmitButton>
                   </form>
-                </section>
+                </TeacherModuleDisclosure>
               );
             })}
           </div>

@@ -143,6 +143,8 @@ Inputs, selects and textareas share:
 
 The lesson content textarea remains larger than metadata fields but is capped to preserve context on laptop and mobile.
 
+Lesson resources use two matched contextual panels: link and file. Their headers, fields and actions share the same rhythm, while distinct Lucide icons make the choice scannable. The layout remains two-column only while each form keeps a useful width, then becomes one column on tablet and mobile.
+
 ## Tabs
 
 `Informations | Contenu | Ressources` use plain text, a two-pixel violet indicator, medium inactive weight and semibold active weight. On mobile they scroll horizontally instead of wrapping.
@@ -159,10 +161,12 @@ Structure behaves as an explorer:
 
 - modules are separated groups rather than cards;
 - lessons are compact selectable rows connected by a subtle sequential axis;
-- lesson numbers keep a stable circular alignment while metadata and status remain secondary;
+- lesson numbers keep a stable, non-semantic alignment on the sequential axis while metadata and status remain secondary;
 - the active lesson uses `accent-soft` plus a vertical violet indicator;
 - rose marks the editorial module label only;
 - reordering and destructive controls stay accessible but visually secondary.
+
+Modules use one local disclosure control whose chevron means expand/collapse only. Arrow icons are reserved for ordering and the trash icon for deletion. A module containing the selected lesson remains expanded so the active object cannot disappear from its context. Badges communicate real editorial status only; lesson numbers never reuse badge styling.
 
 ### Editor
 

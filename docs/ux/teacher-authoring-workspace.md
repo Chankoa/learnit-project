@@ -122,3 +122,11 @@ Sur desktop, Forge est redimensionnable depuis son séparateur gauche :
 - préférence locale minimale et versionnée sous `forge:authoring-panel:v1`.
 
 Le drag met à jour le token de layout `--teacher-forge-width` sans provoquer un rendu React à chaque mouvement. La valeur est validée avant lecture et écriture. Sous 1280 px, le séparateur et l’action d’agrandissement disparaissent : Forge conserve le drawer existant. Structure et Forge utilisent des entrées directionnelles légères, désactivées avec `prefers-reduced-motion`.
+
+## Sprint 10.T2.3 — fermeture visuelle Creator
+
+La Structure finalise son vocabulaire d’explorateur séquentiel : le module est un groupe, la leçon une ligne, le numéro un repère d’ordre et le badge un statut métier. Le chevron ne sert qu’au repli local du module ; les flèches ne servent qu’au réordonnancement et la corbeille à la suppression. Un groupe contenant la leçon active reste ouvert afin de préserver le contexte visible. Ce repli est un état client local : il ne modifie ni l’URL canonique, ni la sélection, ni les Server Actions.
+
+L’onglet Ressources conserve les deux mutations existantes mais les présente comme deux points de départ explicites et symétriques : `Ajouter un lien` et `Téléverser un fichier`. Les panneaux utilisent les mêmes champs, règles d’accès et validations backend qu’avant. Ils passent en une colonne sous le breakpoint tablette et ne créent aucun scroll horizontal.
+
+L’alignement icône/texte est consolidé dans le contenu commun de `TeacherSubmitButton` et la primitive globale `.btn`, plutôt que corrigé action par action. Les CTA Ressources et la sauvegarde héritent donc du même axe, du même gap et de la même échelle Lucide.

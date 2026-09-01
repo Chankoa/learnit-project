@@ -73,3 +73,12 @@ test("Teacher polish exposes the Structure timeline and desktop Forge resizer", 
   assert.match(appStyles, /--teacher-forge-width/);
   assert.match(appStyles, /teacher-authoring-drawer-enter/);
 });
+
+test("Teacher closure polish keeps resource panels and button icon alignment on shared primitives", () => {
+  assert.match(globals, /\.btn__content\s*\{/);
+  assert.match(globals, /\.btn__content\s*>\s*svg/);
+  assert.match(appStyles, /\.teacher-resource-form\s*\{/);
+  assert.match(appStyles, /\.teacher-resource-form__header/);
+  assert.match(appStyles, /\.teacher-resource-form__fields/);
+  assert.match(appStyles, /\.teacher-builder-module__toggle\[aria-expanded="false"\]/);
+});

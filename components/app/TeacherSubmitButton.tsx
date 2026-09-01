@@ -20,7 +20,7 @@ export function TeacherSubmitButton({
   return (
     <button aria-disabled={pending} className={className} disabled={pending} type="submit">
       {pending ? <Loader2 className="auth-button-spinner" size={16} aria-hidden="true" /> : null}
-      <span>{pending ? pendingLabel : children}</span>
+      <span className="btn__content">{pending ? pendingLabel : children}</span>
     </button>
   );
 }

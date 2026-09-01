@@ -6360,7 +6360,48 @@ a.creator-start__option:hover {
 
 .teacher-authoring .teacher-builder-module__row {
   align-items: start;
-  gap: 0;
+  gap: var(--space-1);
+}
+
+.teacher-authoring .teacher-builder-module__controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding-top: var(--space-1);
+}
+
+.teacher-authoring .teacher-builder-module__toggle {
+  display: inline-grid;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.teacher-authoring .teacher-builder-module__toggle svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.75;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.teacher-authoring .teacher-builder-module__toggle[aria-expanded="false"] svg {
+  transform: rotate(-90deg);
+}
+
+.teacher-authoring .teacher-builder-module__toggle:hover:not(:disabled),
+.teacher-authoring .teacher-builder-module__toggle:focus-visible {
+  background: var(--surface-soft);
+  color: var(--text-primary);
+}
+
+.teacher-authoring .teacher-builder-module__toggle:disabled {
+  cursor: default;
+  opacity: 0.55;
 }
 
 .teacher-authoring .teacher-builder-module__select {
@@ -6395,6 +6436,15 @@ a.creator-start__option:hover {
   padding-inline: var(--space-2);
 }
 
+.teacher-authoring .teacher-builder-module__body {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.teacher-authoring .teacher-builder-module__body[hidden] {
+  display: none;
+}
+
 .teacher-authoring .teacher-builder-lessons {
   position: relative;
   gap: 2px;
@@ -6406,7 +6456,7 @@ a.creator-start__option:hover {
   z-index: 0;
   top: 1.25rem;
   bottom: 1.25rem;
-  left: 1.625rem;
+  left: 1.25rem;
   width: 1px;
   background: var(--border-soft);
   content: "";
@@ -6416,7 +6466,7 @@ a.creator-start__option:hover {
   position: relative;
   z-index: 1;
   min-height: 48px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(4.5rem, auto);
   align-items: center;
   gap: 2px;
   border: 0;
@@ -6445,25 +6495,24 @@ a.creator-start__option:hover {
 
 .teacher-authoring .teacher-builder-lesson__select {
   min-height: 44px;
-  grid-template-columns: 2rem minmax(0, 1fr);
+  grid-template-columns: 1.5rem minmax(0, 1fr);
   gap: var(--space-2);
   padding: var(--space-1) var(--space-1);
 }
 
 .teacher-authoring .teacher-builder-lesson__select > span:first-child {
   z-index: 1;
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid var(--border-soft);
-  border-radius: 999px;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0;
+  border-radius: var(--radius-sm);
   background: var(--surface-panel);
   color: var(--text-muted);
   font-weight: var(--font-weight-semibold);
 }
 
 .teacher-authoring .teacher-builder-lesson[data-active="true"] .teacher-builder-lesson__select > span:first-child {
-  border-color: color-mix(in srgb, var(--accent-primary) 36%, var(--border-soft));
-  background: color-mix(in srgb, var(--accent-primary) 13%, var(--surface-panel));
+  background: color-mix(in srgb, var(--accent-primary) 15%, var(--surface-panel));
   color: var(--accent-primary);
 }
 
@@ -6531,6 +6580,90 @@ a.creator-start__option:hover {
   background: transparent;
   color: var(--text-muted);
   opacity: 0.28;
+}
+
+.teacher-authoring .teacher-resource-forms {
+  align-items: stretch;
+  gap: var(--space-4);
+}
+
+.teacher-authoring .teacher-resource-form {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-4);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface-soft);
+  padding: var(--space-4);
+}
+
+.teacher-authoring .teacher-resource-form__header {
+  display: grid;
+  min-height: 3.25rem;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+}
+
+.teacher-authoring .teacher-resource-form__icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+}
+
+.teacher-authoring .teacher-resource-form__icon svg {
+  stroke-width: 1.75;
+}
+
+.teacher-authoring .teacher-resource-form__header > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.teacher-authoring .teacher-resource-form__header h4 {
+  color: var(--text-primary);
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--leading-snug);
+}
+
+.teacher-authoring .teacher-resource-form__header p {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  line-height: var(--leading-normal);
+}
+
+.teacher-authoring .teacher-resource-form__fields {
+  grid-template-columns: 1fr;
+}
+
+.teacher-authoring .teacher-resource-form__fields .teacher-field--wide {
+  grid-column: auto;
+}
+
+.teacher-authoring .teacher-resource-form .teacher-form-actions {
+  justify-content: flex-start;
+  margin-top: auto;
+}
+
+.teacher-authoring .teacher-resource-form .teacher-form-actions .btn {
+  min-width: 10.5rem;
+}
+
+.teacher-authoring .teacher-builder-empty--compact {
+  min-height: 8rem;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.teacher-authoring .teacher-builder-empty--compact > span {
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 .teacher-authoring .teacher-builder__panel {
@@ -6781,6 +6914,10 @@ a.creator-start__option:hover {
     inset: 0;
   }
 
+  .teacher-authoring .teacher-resource-forms {
+    grid-template-columns: 1fr;
+  }
+
   .teacher-authoring .teacher-builder__panel {
     min-height: calc(100svh - 104px);
   }
@@ -6851,10 +6988,19 @@ a.creator-start__option:hover {
   .teacher-authoring__save .btn {
     width: 100%;
   }
+
+  .teacher-authoring .teacher-resource-form {
+    padding: var(--space-3);
+  }
+
+  .teacher-authoring .teacher-resource-form .teacher-form-actions .btn {
+    width: 100%;
+  }
 }
 
 @media (pointer: coarse) {
   .teacher-authoring .teacher-icon-actions button,
+  .teacher-authoring .teacher-builder-module__toggle,
   .teacher-authoring__rail button,
   .teacher-authoring__forge-header button,
   .teacher-authoring__panel-header button {
