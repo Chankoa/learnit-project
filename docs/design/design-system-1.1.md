@@ -158,7 +158,8 @@ Badges are compact, semibold and secondary to titles. Their colors communicate r
 Structure behaves as an explorer:
 
 - modules are separated groups rather than cards;
-- lessons are compact selectable rows;
+- lessons are compact selectable rows connected by a subtle sequential axis;
+- lesson numbers keep a stable circular alignment while metadata and status remain secondary;
 - the active lesson uses `accent-soft` plus a vertical violet indicator;
 - rose marks the editorial module label only;
 - reordering and destructive controls stay accessible but visually secondary.
@@ -170,6 +171,8 @@ The Editor owns `surface-panel`, limits content width to 60 rem and uses a simpl
 ### Forge
 
 The Forge panel itself owns the AI tint. Context, actions, status and proposal use mostly neutral internal surfaces. Violet identifies Forge interactions; nested lavender cards are avoided.
+
+On desktop, the Forge panel can be resized from 20 rem to 44 rem, while remaining capped by the viewport and the Editor minimum width. The separator supports pointer and keyboard input. The last width is stored locally in a versioned, non-sensitive preference; responsive drawers do not expose free resizing.
 
 ## Responsive
 

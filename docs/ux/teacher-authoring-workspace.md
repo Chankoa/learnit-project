@@ -101,6 +101,24 @@ Restent inchangés : Supabase, Auth, RLS, repositories, Server Actions, provider
 ## Compromis et dette
 
 - détection du champ actif reportée jusqu’à ce que le contrat Forge accepte explicitement cette portée ;
-- pas de focus trap complet de type bibliothèque : les panneaux temporaires utilisent les primitives accessibles du projet, un fond de fermeture, Échap et retour de focus ;
+- les panneaux temporaires utilisent le focus trap natif du workspace, un fond de fermeture, Échap et le retour du focus au déclencheur ;
 - la préférence de fermeture de Forge n’est pas persistée entre appareils ;
 - les ressources restent dans la continuité verticale de l’éditeur afin de préserver les formulaires existants et les saisies non enregistrées.
+
+## Sprint 10.T2.2 — Structure et états des panneaux
+
+La Structure adopte une lecture d’explorateur éditorial plus compacte : modules séparés par le rythme et un séparateur fin, leçons reliées par un axe vertical discret, numéro stable, métadonnées secondaires et état actif associant fond léger, accent latéral, typographie et `aria-current`. Le badge reste l’unique indicateur de statut métier ; aucun check de complétion non supporté par les données n’a été ajouté.
+
+Les actions de réorganisation et suppression utilisent la même famille Lucide, une échelle et un trait uniformes, des libellés accessibles et un tooltip natif. Elles restent secondaires au pointeur, visibles au focus et conservent une cible de 44 px sur pointeur grossier.
+
+Sur desktop, Forge est redimensionnable depuis son séparateur gauche :
+
+- largeur initiale : 352 px (`22rem`) ;
+- minimum : 320 px (`20rem`) ;
+- maximum : 704 px (`44rem`), limité également à 48 % du viewport et à l’espace réellement disponible pour l’Éditeur ;
+- flèches gauche/droite : ajustement clavier de 16 px, 32 px avec Maj ;
+- `Home` / `End` : largeur minimale / maximale ;
+- action explicite pour élargir puis restaurer ;
+- préférence locale minimale et versionnée sous `forge:authoring-panel:v1`.
+
+Le drag met à jour le token de layout `--teacher-forge-width` sans provoquer un rendu React à chaque mouvement. La valeur est validée avant lecture et écriture. Sous 1280 px, le séparateur et l’action d’agrandissement disparaissent : Forge conserve le drawer existant. Structure et Forge utilisent des entrées directionnelles légères, désactivées avec `prefers-reduced-motion`.

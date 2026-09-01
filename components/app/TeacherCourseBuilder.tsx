@@ -560,6 +560,7 @@ export function TeacherCourseBuilder({
                         <button
                           aria-label="Déplacer le module vers le haut"
                           disabled={moduleIndex === 0}
+                          title="Déplacer le module vers le haut"
                           type="submit"
                         >
                           <ArrowUp size={16} aria-hidden="true" />
@@ -569,6 +570,7 @@ export function TeacherCourseBuilder({
                         <button
                           aria-label="Déplacer le module vers le bas"
                           disabled={moduleIndex === course.modules.length - 1}
+                          title="Déplacer le module vers le bas"
                           type="submit"
                         >
                           <ArrowDown size={16} aria-hidden="true" />
@@ -578,7 +580,7 @@ export function TeacherCourseBuilder({
                         action={deleteTeacherModuleAction.bind(null, course.id, module.id)}
                         message="Supprimer ce module ? Cette action est autorisée seulement si le module est vide."
                       >
-                        <button aria-label="Supprimer le module" type="submit">
+                        <button aria-label="Supprimer le module" title="Supprimer le module" type="submit">
                           <Trash2 size={16} aria-hidden="true" />
                         </button>
                       </TeacherConfirmForm>
@@ -616,52 +618,56 @@ export function TeacherCourseBuilder({
                             </p>
                           </div>
                         </Link>
-                        <span className="state-badge" data-state={lesson.status}>
-                          {teacherLessonStatusLabels[lesson.status]}
-                        </span>
-                        <div className="teacher-icon-actions">
-                          <form
-                            action={moveTeacherLessonAction.bind(
-                              null,
-                              course.id,
-                              module.id,
-                              lesson.id,
-                              -1
-                            )}
-                          >
-                            <button
-                              aria-label="Déplacer la leçon vers le haut"
-                              disabled={lessonIndex === 0}
-                              type="submit"
+                        <div className="teacher-builder-lesson__trailing">
+                          <span className="state-badge" data-state={lesson.status}>
+                            {teacherLessonStatusLabels[lesson.status]}
+                          </span>
+                          <div className="teacher-icon-actions">
+                            <form
+                              action={moveTeacherLessonAction.bind(
+                                null,
+                                course.id,
+                                module.id,
+                                lesson.id,
+                                -1
+                              )}
                             >
-                              <ArrowUp size={15} aria-hidden="true" />
-                            </button>
-                          </form>
-                          <form
-                            action={moveTeacherLessonAction.bind(
-                              null,
-                              course.id,
-                              module.id,
-                              lesson.id,
-                              1
-                            )}
-                          >
-                            <button
-                              aria-label="Déplacer la leçon vers le bas"
-                              disabled={lessonIndex === module.lessons.length - 1}
-                              type="submit"
+                              <button
+                                aria-label="Déplacer la leçon vers le haut"
+                                disabled={lessonIndex === 0}
+                                title="Déplacer la leçon vers le haut"
+                                type="submit"
+                              >
+                                <ArrowUp size={15} aria-hidden="true" />
+                              </button>
+                            </form>
+                            <form
+                              action={moveTeacherLessonAction.bind(
+                                null,
+                                course.id,
+                                module.id,
+                                lesson.id,
+                                1
+                              )}
                             >
-                              <ArrowDown size={15} aria-hidden="true" />
-                            </button>
-                          </form>
-                          <TeacherConfirmForm
-                            action={deleteTeacherLessonAction.bind(null, course.id, lesson.id, module.id)}
-                            message="Supprimer cette leçon ? Seules les leçons en brouillon sont supprimables."
-                          >
-                            <button aria-label="Supprimer la leçon" type="submit">
-                              <Trash2 size={15} aria-hidden="true" />
-                            </button>
-                          </TeacherConfirmForm>
+                              <button
+                                aria-label="Déplacer la leçon vers le bas"
+                                disabled={lessonIndex === module.lessons.length - 1}
+                                title="Déplacer la leçon vers le bas"
+                                type="submit"
+                              >
+                                <ArrowDown size={15} aria-hidden="true" />
+                              </button>
+                            </form>
+                            <TeacherConfirmForm
+                              action={deleteTeacherLessonAction.bind(null, course.id, lesson.id, module.id)}
+                              message="Supprimer cette leçon ? Seules les leçons en brouillon sont supprimables."
+                            >
+                              <button aria-label="Supprimer la leçon" title="Supprimer la leçon" type="submit">
+                                <Trash2 size={15} aria-hidden="true" />
+                              </button>
+                            </TeacherConfirmForm>
+                          </div>
                         </div>
                       </article>
                     ))}

@@ -4,15 +4,32 @@ import {
   ArrowLeft,
   ClipboardCheck,
   Eye,
+  Maximize2,
+  Minimize2,
   PanelLeft,
   Sparkles,
   X
 } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type {
+  CSSProperties,
+  KeyboardEvent as ReactKeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+  ReactNode
+} from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { TeacherAuthoringSurfaceProvider } from "@/components/app/TeacherAuthoringSurface";
+import {
+  clampForgePanelWidth,
+  FORGE_PANEL_DEFAULT_WIDTH,
+  FORGE_PANEL_MAX_WIDTH,
+  FORGE_PANEL_MIN_WIDTH,
+  FORGE_PANEL_WIDTH_STORAGE_KEY,
+  getForgePanelMaxWidth,
+  parseForgePanelPreference,
+  serializeForgePanelPreference
+} from "@/lib/teacher-authoring-preferences";
 
 type TeacherAuthoringWorkspaceProps = {
   courseTitle: string;
@@ -30,6 +47,12 @@ type TeacherAuthoringWorkspaceProps = {
 };
 
 type OverlayPanel = "forge" | "structure" | null;
+
+type ForgeResizeSession = {
+  pointerId: number;
+  startWidth: number;
+  startX: number;
+};
 
 function useMediaQuery(query: string) {
   const [matches, setMatches] = useState(false);
@@ -66,10 +89,44 @@ export function TeacherAuthoringWorkspace({
   const [activeOverlay, setActiveOverlay] = useState<OverlayPanel>(null);
   const [isForgeOpen, setIsForgeOpen] = useState(hasForgePanel);
   const [isStructureOpen, setIsStructureOpen] = useState(true);
+  const [forgeWidth, setForgeWidth] = useState(FORGE_PANEL_DEFAULT_WIDTH);
+  const [forgeMaxWidth, setForgeMaxWidth] = useState(FORGE_PANEL_MAX_WIDTH);
+  const [isForgeResizing, setIsForgeResizing] = useState(false);
+  const authoringRef = useRef<HTMLElement>(null);
   const forgeButtonRef = useRef<HTMLButtonElement>(null);
   const forgePanelRef = useRef<HTMLElement>(null);
+  const forgeResizeRef = useRef<ForgeResizeSession | null>(null);
+  const forgeRestoreWidthRef = useRef(FORGE_PANEL_DEFAULT_WIDTH);
+  const forgeWidthRef = useRef(FORGE_PANEL_DEFAULT_WIDTH);
   const structureButtonRef = useRef<HTMLButtonElement>(null);
   const structurePanelRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const updateForViewport = () => {
+      const maximum = getForgePanelMaxWidth(window.innerWidth);
+      const width = clampForgePanelWidth(forgeWidthRef.current, window.innerWidth);
+
+      setForgeMaxWidth(maximum);
+      forgeWidthRef.current = width;
+      setForgeWidth(width);
+    };
+
+    try {
+      const storedWidth = parseForgePanelPreference(
+        window.localStorage.getItem(FORGE_PANEL_WIDTH_STORAGE_KEY)
+      );
+
+      if (storedWidth !== null) {
+        forgeWidthRef.current = storedWidth;
+      }
+    } catch {
+      // Local preferences are optional (private browsing and storage policies can block them).
+    }
+
+    updateForViewport();
+    window.addEventListener("resize", updateForViewport);
+    return () => window.removeEventListener("resize", updateForViewport);
+  }, []);
 
   useEffect(() => {
     setActiveOverlay(null);
@@ -103,11 +160,13 @@ export function TeacherAuthoringWorkspace({
       }
 
       const panel = activeOverlay === "forge" ? forgePanelRef.current : structurePanelRef.current;
-      const focusable = panel?.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      );
+      const focusable = Array.from(
+        panel?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      ).filter((element) => element.getClientRects().length > 0);
 
-      if (!focusable?.length) {
+      if (!focusable.length) {
         return;
       }
 
@@ -158,12 +217,131 @@ export function TeacherAuthoringWorkspace({
     setIsStructureOpen((current) => !current);
   }
 
+  function previewForgeWidth(width: number) {
+    const nextWidth = clampForgePanelWidth(width, window.innerWidth);
+
+    forgeWidthRef.current = nextWidth;
+    authoringRef.current?.style.setProperty("--teacher-forge-width", `${nextWidth}px`);
+    return nextWidth;
+  }
+
+  function persistForgeWidth(width: number) {
+    try {
+      window.localStorage.setItem(
+        FORGE_PANEL_WIDTH_STORAGE_KEY,
+        serializeForgePanelPreference(width)
+      );
+    } catch {
+      // Resizing remains functional even when local preferences cannot be stored.
+    }
+  }
+
+  function commitForgeWidth(width: number) {
+    const nextWidth = previewForgeWidth(width);
+
+    setForgeWidth(nextWidth);
+    persistForgeWidth(nextWidth);
+  }
+
+  function handleForgeResizeStart(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.button !== 0 || isForgeOverlay) {
+      return;
+    }
+
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    forgeResizeRef.current = {
+      pointerId: event.pointerId,
+      startWidth: forgeWidthRef.current,
+      startX: event.clientX
+    };
+    setIsForgeResizing(true);
+  }
+
+  function handleForgeResizeMove(event: ReactPointerEvent<HTMLDivElement>) {
+    const session = forgeResizeRef.current;
+
+    if (!session || session.pointerId !== event.pointerId) {
+      return;
+    }
+
+    previewForgeWidth(session.startWidth + session.startX - event.clientX);
+  }
+
+  function handleForgeResizeEnd(event: ReactPointerEvent<HTMLDivElement>) {
+    const session = forgeResizeRef.current;
+
+    if (!session || session.pointerId !== event.pointerId) {
+      return;
+    }
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    forgeResizeRef.current = null;
+    setIsForgeResizing(false);
+    setForgeWidth(forgeWidthRef.current);
+    persistForgeWidth(forgeWidthRef.current);
+  }
+
+  function handleForgeResizeCancel(event: ReactPointerEvent<HTMLDivElement>) {
+    const session = forgeResizeRef.current;
+
+    if (!session || session.pointerId !== event.pointerId) {
+      return;
+    }
+
+    forgeResizeRef.current = null;
+    setIsForgeResizing(false);
+    commitForgeWidth(session.startWidth);
+  }
+
+  function handleForgeResizeKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    const step = event.shiftKey ? 32 : 16;
+    let nextWidth: number | null = null;
+
+    if (event.key === "ArrowLeft") {
+      nextWidth = forgeWidthRef.current + step;
+    } else if (event.key === "ArrowRight") {
+      nextWidth = forgeWidthRef.current - step;
+    } else if (event.key === "Home") {
+      nextWidth = FORGE_PANEL_MIN_WIDTH;
+    } else if (event.key === "End") {
+      nextWidth = forgeMaxWidth;
+    }
+
+    if (nextWidth === null) {
+      return;
+    }
+
+    event.preventDefault();
+    commitForgeWidth(nextWidth);
+  }
+
+  function toggleForgeExpanded() {
+    const isExpanded = forgeWidth >= forgeMaxWidth - 1;
+
+    if (isExpanded) {
+      commitForgeWidth(forgeRestoreWidthRef.current);
+      return;
+    }
+
+    forgeRestoreWidthRef.current = forgeWidth;
+    commitForgeWidth(forgeMaxWidth);
+  }
+
+  const isForgeExpanded = forgeWidth >= forgeMaxWidth - 1;
+
   return (
     <section
       className="teacher-authoring"
       data-forge-open={!forgeHidden}
+      data-forge-resizing={isForgeResizing}
       data-overlay-open={Boolean(activeOverlay)}
       data-structure-open={!structureHidden}
+      ref={authoringRef}
+      style={{ "--teacher-forge-width": `${forgeWidth}px` } as CSSProperties}
     >
       <header className="teacher-authoring__header">
         <Link className="teacher-authoring__back" href={returnHref}>
@@ -222,7 +400,7 @@ export function TeacherAuthoringWorkspace({
       ) : null}
 
       <TeacherAuthoringSurfaceProvider key={selectedId ?? "course"}>
-      <div className="teacher-authoring__workspace">
+        <div className="teacher-authoring__workspace">
         {structureHidden && !isStructureOverlay ? (
           <aside className="teacher-authoring__rail" aria-label="Structure réduite">
             <button
@@ -257,6 +435,7 @@ export function TeacherAuthoringWorkspace({
                 setIsStructureOpen(false);
                 requestAnimationFrame(() => structureButtonRef.current?.focus());
               }}
+              title="Fermer la structure"
               type="button"
             >
               <X size={18} aria-hidden="true" />
@@ -276,27 +455,66 @@ export function TeacherAuthoringWorkspace({
           id="teacher-authoring-forge"
           ref={forgePanelRef}
         >
-          <div className="teacher-authoring__forge-header">
-            <div>
-              <span>Forge AI</span>
-              <strong>Contexte de travail</strong>
+          {!isForgeOverlay ? (
+            <div
+              aria-label="Redimensionner le panneau Forge"
+              aria-orientation="vertical"
+              aria-valuemax={forgeMaxWidth}
+              aria-valuemin={FORGE_PANEL_MIN_WIDTH}
+              aria-valuenow={forgeWidth}
+              aria-valuetext={`${forgeWidth} pixels`}
+              className="teacher-authoring__forge-resize"
+              onKeyDown={handleForgeResizeKeyDown}
+              onPointerCancel={handleForgeResizeCancel}
+              onPointerDown={handleForgeResizeStart}
+              onPointerMove={handleForgeResizeMove}
+              onPointerUp={handleForgeResizeEnd}
+              role="separator"
+              tabIndex={0}
+              title="Redimensionner Forge"
+            />
+          ) : null}
+          <div className="teacher-authoring__forge-scroll">
+            <div className="teacher-authoring__forge-header">
+              <div>
+                <span>Forge AI</span>
+                <strong>Contexte de travail</strong>
+              </div>
+              <div className="teacher-authoring__forge-tools">
+                {!isForgeOverlay ? (
+                  <button
+                    aria-label={isForgeExpanded ? "Restaurer la largeur de Forge" : "Élargir Forge"}
+                    className="teacher-authoring__forge-expand"
+                    onClick={toggleForgeExpanded}
+                    title={isForgeExpanded ? "Restaurer la largeur" : "Élargir Forge"}
+                    type="button"
+                  >
+                    {isForgeExpanded ? (
+                      <Minimize2 size={17} aria-hidden="true" />
+                    ) : (
+                      <Maximize2 size={17} aria-hidden="true" />
+                    )}
+                  </button>
+                ) : null}
+                <button
+                  aria-label="Fermer Forge"
+                  onClick={() => {
+                    if (isForgeOverlay) {
+                      closeOverlay();
+                    } else {
+                      setIsForgeOpen(false);
+                      requestAnimationFrame(() => forgeButtonRef.current?.focus());
+                    }
+                  }}
+                  title="Fermer Forge"
+                  type="button"
+                >
+                  <X size={18} aria-hidden="true" />
+                </button>
+              </div>
             </div>
-            <button
-              aria-label="Fermer Forge"
-              onClick={() => {
-                if (isForgeOverlay) {
-                  closeOverlay();
-                } else {
-                  setIsForgeOpen(false);
-                  requestAnimationFrame(() => forgeButtonRef.current?.focus());
-                }
-              }}
-              type="button"
-            >
-              <X size={18} aria-hidden="true" />
-            </button>
+            {forgePanel}
           </div>
-          {forgePanel}
         </aside>
         {forgeHidden && !isForgeOverlay && hasForgePanel ? (
           <aside className="teacher-authoring__rail teacher-authoring__rail--forge" aria-label="Forge réduite">
@@ -312,7 +530,7 @@ export function TeacherAuthoringWorkspace({
             </button>
           </aside>
         ) : null}
-      </div>
+        </div>
       </TeacherAuthoringSurfaceProvider>
     </section>
   );

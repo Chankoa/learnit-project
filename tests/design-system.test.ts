@@ -49,7 +49,7 @@ test("shared styles do not consume undefined design tokens", () => {
   const styles = `${tokens}\n${themes}\n${globals}\n${appStyles}`;
   const definitions = new Set(Array.from(styles.matchAll(/--([a-z0-9_-]+)\s*:/gi), (match) => match[1]));
   const usages = new Set(Array.from(styles.matchAll(/var\(--([a-z0-9_-]+)/gi), (match) => match[1]));
-  const componentOwnedTokens = new Set(["skeleton-table-columns"]);
+  const componentOwnedTokens = new Set(["skeleton-table-columns", "teacher-forge-width"]);
   const undefinedTokens = Array.from(usages).filter(
     (token) => !definitions.has(token) && !componentOwnedTokens.has(token)
   );
@@ -65,4 +65,11 @@ test("Teacher calibration stays scoped and preserves functional breakpoints", ()
   assert.match(appStyles, /@media \(max-width: 560px\)/);
   assert.match(appStyles, /@media \(pointer: coarse\)/);
   assert.match(appStyles, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
+test("Teacher polish exposes the Structure timeline and desktop Forge resizer", () => {
+  assert.match(appStyles, /\.teacher-builder-lessons::before/);
+  assert.match(appStyles, /\.teacher-authoring__forge-resize/);
+  assert.match(appStyles, /--teacher-forge-width/);
+  assert.match(appStyles, /teacher-authoring-drawer-enter/);
 });
