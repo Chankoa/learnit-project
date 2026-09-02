@@ -7,7 +7,13 @@ export type ForgeLessonReasoningEffort = "low";
 
 const boundedLessonPromptTypes = new Set<ForgePromptType>([
   "lesson_generate",
-  "lesson_improve"
+  "lesson_improve",
+  "learner_explain",
+  "learner_clarify",
+  "learner_rephrase",
+  "learner_example",
+  "learner_question",
+  "learner_freeform"
 ]);
 
 function getSectionRange(durationMinutes: number) {

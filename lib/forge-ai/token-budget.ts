@@ -17,7 +17,13 @@ const maxOutputTokensByPromptType: Record<ForgePromptType, number> = {
   lesson_outline: 1200,
   lesson_plan: 1200,
   lesson_simplify: 1600,
-  lesson_summary: 900
+  lesson_summary: 900,
+  learner_explain: 800,
+  learner_clarify: 700,
+  learner_rephrase: 700,
+  learner_example: 800,
+  learner_question: 600,
+  learner_freeform: 900
 };
 
 export function getMaxOutputTokens(promptType: ForgePromptType, globalLimit: number) {

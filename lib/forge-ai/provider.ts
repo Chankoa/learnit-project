@@ -27,7 +27,8 @@ import {
   validateForgeCourseProposal,
   validateForgeCourseRevisionProposal,
   validateForgeLessonContentProposal,
-  validateForgeLessonSuggestion
+  validateForgeLessonSuggestion,
+  validateLearnerForgeResponse
 } from "@/lib/forge-ai/validation";
 import type {
   CourseBrief,
@@ -39,7 +40,9 @@ import type {
   ForgeLessonContentInput,
   ForgeLessonContentProposal,
   ForgeLessonSuggestionInput,
-  ForgePromptType
+  ForgePromptType,
+  LearnerForgeInput,
+  LearnerForgeResponse
 } from "@/types/forge-ai";
 
 type ForgeAIJsonRequest = {
@@ -49,7 +52,8 @@ type ForgeAIJsonRequest = {
     | ForgeCourseIntent
     | ForgeCourseRevisionInput
     | ForgeLessonContentInput
-    | ForgeLessonSuggestionInput;
+    | ForgeLessonSuggestionInput
+    | LearnerForgeInput;
   promptType: ForgePromptType;
   systemPrompt: string;
   userPrompt: string;
@@ -138,6 +142,26 @@ function isLessonContentInput(
   input: ForgeAIJsonRequest["input"]
 ): input is ForgeLessonContentInput {
   return "mode" in input && "lessonId" in input;
+}
+
+function isLearnerForgeInput(
+  input: ForgeAIJsonRequest["input"]
+): input is LearnerForgeInput {
+  return "action" in input && "lessonId" in input && "courseId" in input &&
+    ["explain", "clarify", "rephrase", "example", "question", "freeform"].includes(input.action);
+}
+
+function getMockLearnerForgeResponse(input: LearnerForgeInput): LearnerForgeResponse {
+  const answer = input.action === "question"
+    ? "Commencez par relier l'idée principale de la leçon à un cas concret."
+    : "Voici une explication concise fondée sur le contenu de cette leçon. Repérez d'abord l'idée principale, puis vérifiez comment elle s'applique dans l'exemple proposé.";
+
+  return {
+    answer,
+    checkQuestion: "Comment reformuleriez-vous l'idée principale avec vos propres mots ?",
+    example: input.action === "example" ? "Imaginez une situation simple où cette notion guide une décision concrète." : "",
+    sourceReferences: []
+  };
 }
 
 function getMockCourseProposal(input: CourseBrief | ForgeCourseIntent) {
@@ -363,7 +387,9 @@ function getMockLessonContentProposal(input: ForgeLessonContentInput): ForgeLess
 const mockProvider: ForgeAIProvider = {
   async generateJson(request) {
     const startedAt = Date.now();
-    const json = isCourseRevision(request.input)
+    const json = isLearnerForgeInput(request.input)
+      ? getMockLearnerForgeResponse(request.input)
+      : isCourseRevision(request.input)
       ? getMockCourseRevision(request.input)
       : isCourseImprovement(request.input)
       ? getMockCourseImprovement(request.input)
@@ -539,7 +565,27 @@ const lessonSuggestionSchema = objectSchema({
   title: stringSchema
 });
 
+const learnerForgeResponseSchema = objectSchema({
+  answer: stringSchema,
+  checkQuestion: stringSchema,
+  example: stringSchema,
+  sourceReferences: arraySchema(
+    objectSchema({
+      excerpt: stringSchema,
+      label: stringSchema,
+      sourceId: stringSchema
+    })
+  )
+});
+
 function getStructuredOutputSchema(request: ForgeAIJsonRequest) {
+  if (isLearnerForgeInput(request.input)) {
+    return {
+      name: "forge_learner_copilot",
+      schema: learnerForgeResponseSchema
+    };
+  }
+
   if (request.promptType === "course_structure") {
     return {
       name: "forge_course_structure",
@@ -583,6 +629,8 @@ function validateStructuredOutput(request: ForgeAIJsonRequest, value: unknown) {
           ? validateForgeCourseRevisionProposal(value)
         : request.promptType === "course_improvement"
           ? validateForgeCourseImprovement(value)
+          : isLearnerForgeInput(request.input)
+            ? validateLearnerForgeResponse(value)
           : isLessonContentInput(request.input)
             ? validateForgeLessonContentProposal(value)
             : validateForgeLessonSuggestion(value);

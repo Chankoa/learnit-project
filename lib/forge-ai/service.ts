@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth/server";
 import { getForgeAIConfig } from "@/lib/forge-ai/config";
 import { logForgeGeneration } from "@/lib/forge-ai/generation-log";
 import { ForgeAIProviderError, getForgeAIProvider } from "@/lib/forge-ai/provider";
-import { getCourseContext } from "@/lib/forge-ai/retrieval";
+import { getCourseContext, getLearnerCourseContext } from "@/lib/forge-ai/retrieval";
 import { retrieveUrlSource } from "@/lib/forge-ai/url-source";
 import {
   buildCourseImprovementUserPrompt,
@@ -12,11 +12,13 @@ import {
   buildCourseStructureUserPrompt,
   buildLessonContentUserPrompt,
   buildLessonAssistantUserPrompt,
+  buildLearnerCopilotUserPrompt,
   forgeCourseImprovementSystemPrompt,
   forgeCourseRevisionSystemPrompt,
   forgeCourseStructureSystemPrompt,
   forgeLessonContentSystemPrompt,
-  forgeLessonAssistantSystemPrompt
+  forgeLessonAssistantSystemPrompt,
+  forgeLearnerCopilotSystemPrompt
 } from "@/lib/forge-ai/prompts";
 import { assertForgeAIRateLimit } from "@/lib/forge-ai/rate-limit";
 import {
@@ -25,10 +27,13 @@ import {
   validateForgeCourseRevisionProposal,
   validateForgeLessonContentProposal,
   validateForgeModuleRevisionProposal,
-  validateForgeLessonSuggestion
+  validateForgeLessonSuggestion,
+  validateLearnerForgeResponse
 } from "@/lib/forge-ai/validation";
 import * as forgeSourceRepository from "@/lib/repositories/forgeSourceRepository";
 import * as teacherCourseRepository from "@/lib/repositories/teacherCourseRepository";
+import * as learningRepository from "@/lib/repositories/learningRepository";
+import { getLmsDataSource } from "@/lib/lms";
 import type { CourseLevel } from "@/types/course";
 import type {
   CourseBrief,
@@ -47,7 +52,10 @@ import type {
   ForgeLessonSuggestion,
   ForgeLessonSuggestionInput,
   ForgeModuleRevisionApplyInput,
-  ForgePromptType
+  ForgePromptType,
+  LearnerForgeAction,
+  LearnerForgeInput,
+  LearnerForgeResponse
 } from "@/types/forge-ai";
 import type { TeacherCourse } from "@/types/teaching";
 
@@ -889,6 +897,156 @@ export async function generateForgeLessonSuggestion(
     await logFailure(profile.id, `lesson_${sanitized.action}` as ForgePromptType, startedAt, error, {
       contextId: lesson.id,
       contextType: "lesson"
+    });
+    throw error;
+  }
+}
+
+const learnerPromptTypes: Record<LearnerForgeAction, ForgePromptType> = {
+  explain: "learner_explain",
+  clarify: "learner_clarify",
+  rephrase: "learner_rephrase",
+  example: "learner_example",
+  question: "learner_question",
+  freeform: "learner_freeform"
+};
+
+function filterLearnerSourceReferences(
+  response: LearnerForgeResponse,
+  sourceLabels: Map<string, string>
+): LearnerForgeResponse {
+  return {
+    ...response,
+    sourceReferences: response.sourceReferences
+      .filter((reference) => sourceLabels.has(reference.sourceId))
+      .map((reference) => ({
+        ...reference,
+        label: sourceLabels.get(reference.sourceId) || reference.label
+      }))
+  };
+}
+
+async function getLearnerForgeContext(input: LearnerForgeInput) {
+  const profile = await requireRole("learner", "/app/learner");
+  const [course, enrollment] = await Promise.all([
+    getLmsDataSource().getCourse({ id: input.courseId }),
+    learningRepository.getEnrollment(input.courseId)
+  ]);
+
+  if (!course || !enrollment) {
+    throw new Error("Cette leçon n'est pas disponible dans vos apprentissages.");
+  }
+
+  const lessons = course.modules.flatMap((module) => module.lessons);
+  const lesson = lessons.find((item) => item.id === input.lessonId);
+  const module = course.modules.find((item) => item.lessons.some((entry) => entry.id === input.lessonId));
+
+  if (!lesson || lesson.status === "locked") {
+    throw new Error("Cette leçon n'est pas accessible.");
+  }
+
+  const sources = await forgeSourceRepository.getLearnerCourseSources(course.id);
+  const sourceIds = sources.map((source) => source.id);
+  const lessonIndex = lessons.findIndex((item) => item.id === lesson.id);
+  const query = [course.title, module?.title, lesson.title, lesson.description, lesson.content, input.question]
+    .filter(Boolean)
+    .join(" ");
+  const context = await getLearnerCourseContext(course.id, sourceIds, {
+    maxSnippets: 4,
+    query
+  });
+
+  return {
+    context,
+    course,
+    lesson,
+    module,
+    position: `${lessonIndex + 1} sur ${lessons.length}`,
+    profile,
+    sourceIds
+  };
+}
+
+export async function getLearnerForgeSourceSummary(courseId: string) {
+  const profile = await requireRole("learner", "/app/learner");
+  const enrollment = await learningRepository.getEnrollment(courseId);
+
+  if (!profile || !enrollment) {
+    return { count: 0, titles: [] as string[] };
+  }
+
+  const sources = await forgeSourceRepository.getLearnerCourseSources(courseId);
+  return {
+    count: sources.length,
+    titles: sources.slice(0, 6).map((source) => source.title)
+  };
+}
+
+export async function generateLearnerForgeResponse(
+  input: LearnerForgeInput
+): Promise<LearnerForgeResponse> {
+  const sanitized: LearnerForgeInput = {
+    action: input.action,
+    courseId: input.courseId,
+    lessonId: input.lessonId,
+    question: truncate(input.question ?? "", 600)
+  };
+
+  if (sanitized.action === "freeform" && (sanitized.question?.length ?? 0) < 3) {
+    throw new Error("Posez une question un peu plus précise sur cette leçon.");
+  }
+
+  const learnerContext = await getLearnerForgeContext(sanitized);
+  const promptType = learnerPromptTypes[sanitized.action];
+  const startedAt = Date.now();
+  assertForgeAIRateLimit(learnerContext.profile.id, promptType);
+
+  try {
+    const provider = getForgeAIProvider();
+    const providerResponse = await provider.generateJson({
+      input: sanitized,
+      promptType,
+      systemPrompt: forgeLearnerCopilotSystemPrompt,
+      userPrompt: buildLearnerCopilotUserPrompt({
+        action: sanitized.action,
+        context: learnerContext.context,
+        course: learnerContext.course,
+        lesson: learnerContext.lesson,
+        module: learnerContext.module,
+        position: learnerContext.position,
+        question: sanitized.question
+      })
+    });
+    const sourceLabels = new Map(
+      learnerContext.context.snippets.map((snippet) => [snippet.sourceId, snippet.sourceTitle])
+    );
+    const response = filterLearnerSourceReferences(
+      validateLearnerForgeResponse(providerResponse.json),
+      sourceLabels
+    );
+    const referencedSourceIds = response.sourceReferences.map((reference) => reference.sourceId);
+
+    await logForgeGeneration({
+      contextId: learnerContext.lesson.id,
+      contextType: "lesson",
+      durationMs: providerResponse.durationMs,
+      inputTokens: providerResponse.inputTokens,
+      model: providerResponse.model,
+      outputTokens: providerResponse.outputTokens,
+      promptType,
+      provider: providerResponse.provider,
+      sourceIds: referencedSourceIds,
+      status: "success",
+      totalTokens: providerResponse.totalTokens,
+      userId: learnerContext.profile.id
+    });
+
+    return response;
+  } catch (error) {
+    await logFailure(learnerContext.profile.id, promptType, startedAt, error, {
+      contextId: learnerContext.lesson.id,
+      contextType: "lesson",
+      sourceIds: learnerContext.sourceIds
     });
     throw error;
   }

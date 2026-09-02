@@ -7,7 +7,8 @@ import type {
   ForgeLessonCalloutType,
   ForgeLessonContentProposal,
   ForgeLessonSection,
-  ForgeLessonSuggestion
+  ForgeLessonSuggestion,
+  LearnerForgeResponse
 } from "@/types/forge-ai";
 import { lessonProposalToMarkdown } from "@/lib/forge-ai/lesson-markdown";
 import type { TeacherCourse } from "@/types/teaching";
@@ -362,5 +363,36 @@ export function validateForgeLessonContentProposal(value: unknown): ForgeLessonC
   return {
     ...proposal,
     contentMarkdown: lessonProposalToMarkdown(proposal)
+  };
+}
+
+export function validateLearnerForgeResponse(value: unknown): LearnerForgeResponse {
+  if (!isRecord(value)) {
+    throw new Error("Sortie IA invalide : objet Learner attendu.");
+  }
+
+  const referencesSource = Array.isArray(value.sourceReferences) ? value.sourceReferences : [];
+  const sourceReferences = referencesSource.slice(0, 4).flatMap((referenceValue) => {
+    if (!isRecord(referenceValue)) {
+      return [];
+    }
+
+    const sourceId = stringValue(referenceValue.sourceId);
+    const label = stringValue(referenceValue.label);
+
+    return sourceId && label
+      ? [{
+          excerpt: contentString(referenceValue.excerpt).slice(0, 240),
+          label: label.slice(0, 160),
+          sourceId
+        }]
+      : [];
+  });
+
+  return {
+    answer: boundedRequiredString(value.answer, "réponse Learner", 1800),
+    checkQuestion: contentString(value.checkQuestion).slice(0, 400),
+    example: contentString(value.example).slice(0, 900),
+    sourceReferences
   };
 }

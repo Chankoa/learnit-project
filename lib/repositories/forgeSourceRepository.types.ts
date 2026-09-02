@@ -31,4 +31,6 @@ export type ForgeSourceRepository = {
   deleteSource: (teacherId: string, sourceId: string) => Promise<void>;
   getSources: (teacherId: string, courseId?: string) => Promise<CourseSource[]>;
   getSourcesByIds: (teacherId: string, sourceIds: string[]) => Promise<CourseSource[]>;
+  getLearnerCourseSources: (courseId: string) => Promise<CourseSource[]>;
+  getLearnerCourseSourcesByIds: (courseId: string, sourceIds: string[]) => Promise<CourseSource[]>;
 };

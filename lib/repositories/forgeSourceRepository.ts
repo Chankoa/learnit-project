@@ -33,3 +33,9 @@ export const getSources = (teacherId: string, courseId?: string) =>
 
 export const getSourcesByIds = (teacherId: string, sourceIds: string[]) =>
   getForgeSourceRepository().getSourcesByIds(teacherId, sourceIds);
+
+export const getLearnerCourseSources = (courseId: string) =>
+  getForgeSourceRepository().getLearnerCourseSources(courseId);
+
+export const getLearnerCourseSourcesByIds = (courseId: string, sourceIds: string[]) =>
+  getForgeSourceRepository().getLearnerCourseSourcesByIds(courseId, sourceIds);

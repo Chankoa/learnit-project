@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { CompletionButton } from "@/components/learning/CompletionButton";
-import { LearningShell } from "@/components/learning/LearningShell";
+import { LearnerLessonWorkspace } from "@/components/learning/LearnerLessonWorkspace";
 import { LessonHeader } from "@/components/learning/LessonHeader";
 import { MarkdownLessonContent } from "@/components/learning/MarkdownLessonContent";
 import { LessonNotes } from "@/components/learning/LessonNotes";
@@ -12,6 +12,7 @@ import { ResourceList } from "@/components/learning/ResourceList";
 import { getLessonMdxComponent } from "@/content/lessons/registry";
 import { requireRole } from "@/lib/auth/server";
 import { getLearningCourseState, getLessonNote } from "@/lib/learning-service";
+import { getLearnerForgeSourceSummary } from "@/lib/forge-ai/service";
 import { createPageMetadata } from "@/lib/seo";
 
 type LessonPageProps = {
@@ -62,7 +63,10 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   const MdxLesson = getLessonMdxComponent(courseSlug, lessonSlug);
-  const note = await getLessonNote(lesson.id);
+  const [note, sourceSummary] = await Promise.all([
+    getLessonNote(lesson.id),
+    getLearnerForgeSourceSummary(data.course.id)
+  ]);
   const module = data.modules.find((item) => item.lessons.some((item) => item.id === lesson.id));
   const lessonIndex = data.lessons.findIndex((item) => item.id === lesson.id);
   const initials = profile.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
@@ -70,9 +74,13 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const resources = lesson.resources ?? module?.resources ?? [];
 
   return (
-    <LearningShell
+    <LearnerLessonWorkspace
+      courseId={data.course.id}
+      courseTitle={data.course.title}
       identity={{ name: profile.name, initials, avatarUrl: profile.avatarUrl }}
       learner={learner}
+      lessonId={lesson.id}
+      lessonTitle={lesson.title}
       mobileDrawerContent={
         <LessonSidebar
           course={data.course}
@@ -81,23 +89,21 @@ export default async function LessonPage({ params }: LessonPageProps) {
           percentage={data.percentage}
         />
       }
-      pageTitle={data.course.title}
-      variant="lesson"
-    >
-      <div className="lesson-page-layout">
+      sidebar={
         <LessonSidebar
           course={data.course}
-            currentLessonId={lesson.id}
+          currentLessonId={lesson.id}
           modules={data.modules}
           percentage={data.percentage}
         />
-
-        <article className="lesson-page">
-          <LessonHeader
-            course={data.course}
-            lesson={lesson}
-            module={module}
-          />
+      }
+      sourceSummary={sourceSummary}
+    >
+      <LessonHeader
+        course={data.course}
+        lesson={lesson}
+        module={module}
+      />
           {MdxLesson ? (
             <div className="lesson-content lesson-content--mdx">
               <MdxLesson />
@@ -127,8 +133,6 @@ export default async function LessonPage({ params }: LessonPageProps) {
             nextLesson={lessonIndex >= 0 ? data.lessons[lessonIndex + 1] : undefined}
             previousLesson={lessonIndex > 0 ? data.lessons[lessonIndex - 1] : undefined}
           />
-        </article>
-      </div>
-    </LearningShell>
+    </LearnerLessonWorkspace>
   );
 }

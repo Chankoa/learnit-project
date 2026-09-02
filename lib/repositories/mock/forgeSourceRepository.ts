@@ -21,5 +21,11 @@ export const mockForgeSourceRepository: ForgeSourceRepository = {
   },
   async getSourcesByIds() {
     return [];
+  },
+  async getLearnerCourseSources() {
+    return [];
+  },
+  async getLearnerCourseSourcesByIds() {
+    return [];
   }
 };

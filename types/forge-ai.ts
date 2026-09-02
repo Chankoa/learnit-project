@@ -16,7 +16,13 @@ export type ForgePromptType =
   | "lesson_plan"
   | "lesson_intro"
   | "lesson_summary"
-  | "lesson_simplify";
+  | "lesson_simplify"
+  | "learner_explain"
+  | "learner_clarify"
+  | "learner_rephrase"
+  | "learner_example"
+  | "learner_question"
+  | "learner_freeform";
 
 export type ForgeGenerationStatus =
   | "success"
@@ -287,4 +293,26 @@ export type ForgeLessonSuggestion = {
   action: ForgeLessonAction;
   content: string;
   title: string;
+};
+
+export type LearnerForgeAction =
+  | "explain"
+  | "clarify"
+  | "rephrase"
+  | "example"
+  | "question"
+  | "freeform";
+
+export type LearnerForgeInput = {
+  action: LearnerForgeAction;
+  courseId: string;
+  lessonId: string;
+  question?: string;
+};
+
+export type LearnerForgeResponse = {
+  answer: string;
+  checkQuestion: string;
+  example: string;
+  sourceReferences: ForgeSourceReference[];
 };

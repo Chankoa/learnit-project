@@ -24,6 +24,7 @@ type LearningShellProps = {
     initials: string;
     avatarUrl?: string;
   };
+  headerActions?: ReactNode;
   mobileDrawerContent?: ReactNode;
   pageTitle: string;
   variant?: "default" | "lesson";
@@ -33,6 +34,7 @@ export function LearningShell({
   children,
   learner,
   identity,
+  headerActions,
   mobileDrawerContent,
   pageTitle,
   variant = "default"
@@ -161,6 +163,7 @@ export function LearningShell({
           </div>
 
           <div className="learning-header__actions">
+            {headerActions}
             <ThemeToggle />
             <div className="learning-profile">
               <span>{identity?.avatarUrl ? <img alt="" src={identity.avatarUrl} /> : identity?.initials ?? learner.initials}</span>

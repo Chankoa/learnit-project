@@ -185,3 +185,34 @@ export async function getCourseContext(
     snippets
   };
 }
+
+export async function getLearnerCourseContext(
+  courseId: string,
+  sourceIds: string[] = [],
+  options: CourseContextOptions = {}
+): Promise<CourseContext> {
+  const uniqueSourceIds = Array.from(new Set(sourceIds.filter(Boolean))).slice(0, 8);
+  const snippetLimit = options.maxSnippets ?? maxSnippets;
+
+  if (uniqueSourceIds.length === 0) {
+    return { sourceCount: 0, snippets: [] };
+  }
+
+  const sources = await forgeSourceRepository.getLearnerCourseSourcesByIds(
+    courseId,
+    uniqueSourceIds
+  );
+  const terms = getQueryTerms(options.query);
+  const snippets = (await Promise.all(sources.map(readSource)))
+    .flat()
+    .map((snippet, index) => ({
+      index,
+      score: scoreSnippet(snippet, terms),
+      snippet
+    }))
+    .sort((first, second) => second.score - first.score || first.index - second.index)
+    .slice(0, snippetLimit)
+    .map((item) => item.snippet);
+
+  return { sourceCount: sources.length, snippets };
+}

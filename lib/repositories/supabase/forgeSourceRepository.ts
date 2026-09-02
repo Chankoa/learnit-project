@@ -157,6 +157,46 @@ async function getSourcesByIds(teacherId: string, sourceIds: string[]) {
   return (data as SourceRow[]).map(mapSource);
 }
 
+async function getLearnerCourseSources(courseId: string) {
+  if (!isUuid(courseId)) {
+    return [];
+  }
+
+  const supabase = await getClient();
+  const { data, error } = await supabase
+    .from("course_sources")
+    .select(sourceSelect)
+    .eq("course_id", courseId)
+    .eq("extraction_status", "ready")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Lecture des sources du cours impossible : ${error.message}`);
+  }
+
+  return (data as SourceRow[]).map(mapSource);
+}
+
+async function getLearnerCourseSourcesByIds(courseId: string, sourceIds: string[]) {
+  if (!isUuid(courseId) || sourceIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await getClient();
+  const { data, error } = await supabase
+    .from("course_sources")
+    .select(sourceContentSelect)
+    .eq("course_id", courseId)
+    .eq("extraction_status", "ready")
+    .in("id", sourceIds);
+
+  if (error) {
+    throw new Error(`Lecture du contexte documentaire impossible : ${error.message}`);
+  }
+
+  return (data as SourceRow[]).map(mapSource);
+}
+
 async function createSource(teacherId: string, input: ForgeSourceInput) {
   const supabase = await getClient();
   await assertOwnedCourse(supabase, teacherId, input.courseId);
@@ -306,5 +346,7 @@ export const supabaseForgeSourceRepository: ForgeSourceRepository = {
   createSource,
   deleteSource,
   getSources,
-  getSourcesByIds
+  getSourcesByIds,
+  getLearnerCourseSources,
+  getLearnerCourseSourcesByIds
 };
