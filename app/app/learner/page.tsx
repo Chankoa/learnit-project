@@ -3,14 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  Award,
-  BookOpenText,
   Clock3,
-  FileCheck2,
   GraduationCap,
   Library,
   PlayCircle,
-  Sparkles
 } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
@@ -34,6 +30,10 @@ export default async function LearnerAppPage() {
   const nextLesson = dashboard.nextCourse?.nextLesson ?? dashboard.nextCourse?.currentLesson;
   const hasCourses = dashboard.courses.length > 0;
   const completedCourseCount = dashboard.courses.filter((course) => course.enrollment?.status === "completed").length;
+  const resumeCourse = dashboard.nextCourse;
+  const otherActiveCourses = resumeCourse
+    ? dashboard.activeCourses.filter((course) => course.course.id !== resumeCourse.course.id)
+    : dashboard.activeCourses;
 
   return (
     <div className="app-page learner-page">
@@ -63,60 +63,51 @@ export default async function LearnerAppPage() {
         }
       />
 
-      {hasCourses ? (
-        <section className="learning-metrics learner-metrics" aria-label="Progression globale">
-          <article>
+      {resumeCourse && nextLesson ? (
+        <section className="learning-panel learning-panel--resume" aria-labelledby="resume-heading">
+          <div className="learning-panel__heading">
+            <div>
+              <span>À reprendre</span>
+              <h2 id="resume-heading">Reprendre votre apprentissage</h2>
+            </div>
             <span className="learning-metric-icon learning-metric-icon--purple">
-              <GraduationCap size={19} aria-hidden="true" />
+              <PlayCircle size={20} aria-hidden="true" />
             </span>
+          </div>
+          <div className="learner-resume">
             <div>
-              <small>Mes apprentissages</small>
-              <strong>{dashboard.courses.length}</strong>
+              <span>{resumeCourse.course.domain.name}</span>
+              <h3>{resumeCourse.course.title}</h3>
+              <p>{nextLesson.title}</p>
             </div>
-          </article>
-          <article>
-            <span className="learning-metric-icon learning-metric-icon--cyan">
-              <Sparkles size={19} aria-hidden="true" />
-            </span>
-            <div>
-              <small>Progression</small>
-              <strong>{dashboard.globalProgress.percentage}%</strong>
+            <div className="learner-resume__progress">
+              <strong>{resumeCourse.percentage}%</strong>
+              <span>{resumeCourse.completedCount}/{resumeCourse.totalLessons} leçons terminées</span>
+              <div className="learning-progress" aria-label={`${resumeCourse.percentage}% de progression`}>
+                <span style={{ width: `${resumeCourse.percentage}%` }} />
+              </div>
             </div>
-          </article>
-          <article>
-            <span className="learning-metric-icon learning-metric-icon--green">
-              <BookOpenText size={19} aria-hidden="true" />
-            </span>
-            <div>
-              <small>Formations en cours</small>
-              <strong>{dashboard.activeCourses.length}</strong>
-            </div>
-          </article>
-          <article>
-            <span className="learning-metric-icon learning-metric-icon--amber">
-              <Award size={19} aria-hidden="true" />
-            </span>
-            <div>
-              <small>Terminées</small>
-              <strong>{completedCourseCount}</strong>
-            </div>
-          </article>
+            <Link className="btn btn-primary" href={resumeCourse.ctaHref}>
+              Reprendre
+              <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
         </section>
-      ) : (
+      ) : !hasCourses ? (
         <AppEmptyState
           action={<Link className="btn btn-primary" href="/formations">Explorer les formations</Link>}
           description="Explorez le catalogue et commencez votre premier parcours."
           icon={GraduationCap}
           title="Aucune formation en cours"
         />
-      )}
+      ) : null}
 
-      <div className="dashboard-primary-grid">
+      {otherActiveCourses.length > 0 ? (
         <section className="learning-panel">
           <div className="learning-panel__heading">
             <div>
-              <span>Formations en cours</span>
-              <h2>Parcours à reprendre</h2>
+              <span>En cours</span>
+              <h2>Autres apprentissages actifs</h2>
             </div>
             <Link className="text-link" href="/app/learner/courses">
               Tout voir
@@ -125,7 +116,7 @@ export default async function LearnerAppPage() {
           </div>
 
           <div className="learner-list">
-            {dashboard.activeCourses.length > 0 ? dashboard.activeCourses.map((summary) => (
+            {otherActiveCourses.map((summary) => (
               <article className="learner-row learner-row--course" key={summary.course.id}>
                 {summary.course.coverImage ? (
                   <div className="learner-row__media">
@@ -152,58 +143,20 @@ export default async function LearnerAppPage() {
                   {summary.ctaLabel}
                 </Link>
               </article>
-            )) : (
-              <AppEmptyState
-                action={<Link className="btn btn-primary" href="/formations">Explorer les formations</Link>}
-                description="Inscrivez-vous à une formation pour la retrouver ici et reprendre votre progression."
-                icon={GraduationCap}
-                title="Aucune formation en cours"
-              />
-            )}
+            ))}
           </div>
         </section>
+      ) : null}
 
-        <section className="learning-panel learning-panel--next">
-          <div className="learning-panel__heading">
-            <div>
-              <span>Prochaine leçon</span>
-              <h2>{nextLesson?.title ?? "Aucune leçon planifiée"}</h2>
-            </div>
-            <span className="learning-metric-icon learning-metric-icon--purple">
-              <PlayCircle size={20} aria-hidden="true" />
-            </span>
-          </div>
-
-          {nextLesson && dashboard.nextCourse ? (
-            <>
-              <p>{nextLesson.description}</p>
-              <div className="next-lesson-meta">
-                <span>
-                  <Clock3 size={16} aria-hidden="true" />
-                  {formatCourseDuration(nextLesson.durationMinutes)}
-                </span>
-                <span>
-                  <GraduationCap size={16} aria-hidden="true" />
-                  {dashboard.nextCourse.course.title}
-                </span>
-              </div>
-              <Link className="btn btn-primary" href={dashboard.nextCourse.ctaHref}>
-                Reprendre
-                <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-            </>
-          ) : (
-            <AppEmptyState
-              action={<Link className="btn btn-primary" href="/formations">Explorer les formations</Link>}
-              description="Votre prochaine leçon apparaîtra dès qu'une formation sera commencée."
-              icon={PlayCircle}
-              title="Aucune reprise disponible"
-            />
-          )}
+      {hasCourses ? (
+        <section className="learner-dashboard-stats" aria-label="Synthèse de progression">
+          <span><strong>{dashboard.globalProgress.percentage}%</strong> progression globale</span>
+          <span><strong>{dashboard.activeCourses.length}</strong> apprentissage{dashboard.activeCourses.length > 1 ? "s" : ""} en cours</span>
+          <span><strong>{completedCourseCount}</strong> terminé{completedCourseCount > 1 ? "s" : ""}</span>
         </section>
-      </div>
+      ) : null}
 
-      <div className="dashboard-secondary-grid">
+      {dashboard.favoriteResources.length > 0 ? (
         <section className="learning-panel">
           <div className="learning-panel__heading">
             <div>
@@ -217,7 +170,7 @@ export default async function LearnerAppPage() {
           </div>
 
           <div className="resource-list">
-            {dashboard.favoriteResources.length > 0 ? dashboard.favoriteResources.map((resource) => (
+            {dashboard.favoriteResources.map((resource) => (
               <article key={resource.id}>
                 <span className="learning-resource-icon">
                   <Library size={17} aria-hidden="true" />
@@ -228,55 +181,10 @@ export default async function LearnerAppPage() {
                 </div>
                 <span>{resource.type}</span>
               </article>
-            )) : (
-              <AppEmptyState
-                description="Ajoutez des ressources aux favoris pour les retrouver ici."
-                icon={Library}
-                title="Aucune ressource"
-              />
-            )}
+            ))}
           </div>
         </section>
-
-        <section className="learning-panel">
-          <div className="learning-panel__heading">
-            <div>
-              <span>Travaux à terminer</span>
-              <h2>Livrables et exercices</h2>
-            </div>
-            <FileCheck2 size={20} aria-hidden="true" />
-          </div>
-
-          <div className="deliverable-list">
-            <AppEmptyState
-              description="Le suivi des livrables sera disponible prochainement."
-              icon={FileCheck2}
-              title="Aucun travail en attente"
-            />
-          </div>
-        </section>
-      </div>
-
-      <section className="learning-panel">
-        <div className="learning-panel__heading">
-          <div>
-            <span>Certificats</span>
-            <h2>Disponibles ou à venir</h2>
-          </div>
-          <Link className="text-link" href="/app/learner/certificates">
-            Voir les certificats
-            <ArrowRight size={16} aria-hidden="true" />
-          </Link>
-        </div>
-
-        <div className="learner-certificate-strip">
-          <AppEmptyState
-            description="Les certificats disponibles ou à venir seront listés ici."
-            icon={Award}
-            title="Aucun certificat"
-          />
-        </div>
-      </section>
+      ) : null}
     </div>
   );
 }
