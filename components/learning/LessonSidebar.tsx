@@ -76,7 +76,7 @@ export function LessonSidebar({
   return (
     <aside className="lesson-sidebar" aria-label={`Parcours ${course.title}`}>
       <div className="lesson-sidebar__summary">
-        <Link href={`/learn/${course.slug}`}>Vue du parcours</Link>
+        <Link href={`/learn/${course.slug}`}>Retour au parcours</Link>
         <h2>{course.title}</h2>
         <div className="learning-progress" aria-label={`${percentage}% de progression`}>
           <span style={{ width: `${percentage}%` }} />

@@ -3236,6 +3236,32 @@ section[id] {
   color: var(--text-strong);
 }
 
+.learning-context-return,
+.learning-context-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.learning-context-return:hover,
+.learning-context-return:focus-visible,
+.learning-context-button:hover,
+.learning-context-button:focus-visible {
+  color: var(--accent-primary);
+}
+
+.learning-context-button {
+  display: none;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+
 .learning-main {
   width: min(100%, 1440px);
   margin-inline: auto;
@@ -3662,6 +3688,10 @@ section[id] {
     display: grid;
   }
 
+  .learning-context-button {
+    display: inline-flex;
+  }
+
   .learning-mobile-drawer-overlay {
     position: fixed;
     z-index: 70;
@@ -3784,6 +3814,13 @@ section[id] {
   .learning-header__title > div > span,
   .learning-profile > div {
     display: none;
+  }
+
+  .learning-context-return {
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .learning-header__title h1,
@@ -4080,6 +4117,17 @@ a.learning-module-lesson:hover {
   background: var(--surface-muted);
 }
 
+a.learning-module-lesson[aria-current="step"] {
+  border-left: 3px solid var(--accent-primary);
+  padding-left: calc(var(--space-5) - 3px);
+  background: color-mix(in srgb, var(--accent-primary) 9%, transparent);
+}
+
+a.learning-module-lesson[aria-current="step"] strong {
+  color: var(--text-strong);
+  font-weight: var(--font-weight-bold);
+}
+
 .learning-module-lesson > span:first-child {
   display: grid;
   width: 34px;
@@ -4125,10 +4173,6 @@ a.learning-module-lesson:hover {
 .learning-shell[data-variant="lesson"] > .learning-sidebar,
 .learning-shell[data-variant="lesson"] > .learning-mobile-nav {
   display: none;
-}
-
-.learning-shell[data-variant="lesson"] .learning-menu-button {
-  display: grid;
 }
 
 .learning-shell[data-variant="lesson"] .learning-main {

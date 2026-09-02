@@ -105,7 +105,7 @@ export const learnerNavigation = [
     isActive: (pathname) => pathname === "/app/learner" || pathname === "/dashboard"
   },
   {
-    label: "Mes formations",
+    label: "Mes apprentissages",
     href: "/app/learner/courses",
     icon: GraduationCap,
     role: "learner",

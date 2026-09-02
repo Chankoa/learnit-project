@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BookOpenText,
   ChevronLeft,
   Menu,
   X
@@ -81,7 +82,7 @@ export function LearningShell({
             const isActive = isNavigationItemActive(item, pathname);
 
             return (
-              <Link data-active={isActive} href={item.href} key={item.label}>
+              <Link aria-current={isActive ? "page" : undefined} data-active={isActive} href={item.href} key={item.label}>
                 <Icon size={18} aria-hidden="true" />
                 <span>{item.label}</span>
               </Link>
@@ -107,16 +108,35 @@ export function LearningShell({
       <div className="learning-workspace">
         <header className="learning-header">
           <div className="learning-header__title">
-            <button
-              aria-expanded={isMobileMenuOpen}
-              aria-controls="learning-mobile-drawer"
-              aria-label={isMobileMenuOpen ? "Fermer la navigation" : "Ouvrir la navigation"}
-              className="learning-menu-button"
-              type="button"
-              onClick={() => setIsMobileMenuOpen((current) => !current)}
-            >
-              {isMobileMenuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
-            </button>
+            {variant === "lesson" ? (
+              <>
+                <Link className="learning-context-return" href="/app/learner">
+                  <ChevronLeft size={18} aria-hidden="true" />
+                  Retour au tableau de bord
+                </Link>
+                <button
+                  aria-expanded={isMobileMenuOpen}
+                  aria-controls="learning-mobile-drawer"
+                  className="learning-context-button"
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen((current) => !current)}
+                >
+                  {isMobileMenuOpen ? <X size={18} aria-hidden="true" /> : <BookOpenText size={18} aria-hidden="true" />}
+                  {isMobileMenuOpen ? "Fermer le parcours" : "Parcours"}
+                </button>
+              </>
+            ) : (
+              <button
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="learning-mobile-drawer"
+                aria-label={isMobileMenuOpen ? "Fermer la navigation" : "Ouvrir la navigation"}
+                className="learning-menu-button"
+                type="button"
+                onClick={() => setIsMobileMenuOpen((current) => !current)}
+              >
+                {isMobileMenuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+              </button>
+            )}
             <div>
               <Link className="learning-header__home-link" href="/app/learner">
                 Espace apprenant
@@ -152,7 +172,7 @@ export function LearningShell({
               tabIndex={-1}
             >
               <div className="learning-mobile-drawer__heading">
-                <strong>Navigation</strong>
+                <strong>{variant === "lesson" ? "Parcours" : "Navigation"}</strong>
                 <button aria-label="Fermer la navigation" onClick={closeMobileMenu} type="button">
                   <X size={20} aria-hidden="true" />
                 </button>
@@ -199,7 +219,7 @@ export function LearningShell({
               key={item.label}
             >
               <Icon size={19} aria-hidden="true" />
-              <span>{item.label.replace("Tableau de bord", "Accueil").replace("Mes formations", "Formations")}</span>
+              <span>{item.label.replace("Tableau de bord", "Accueil").replace("Mes apprentissages", "Apprentissages")}</span>
             </Link>
           );
         })}

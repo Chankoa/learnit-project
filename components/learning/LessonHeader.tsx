@@ -23,7 +23,7 @@ export function LessonHeader({ course, lesson, module }: LessonHeaderProps) {
   return (
     <header className="lesson-header">
       <nav className="lesson-breadcrumb" aria-label="Fil d'Ariane">
-        <Link href="/app/learner">Espace apprenant</Link>
+        <Link href="/app/learner/courses">Mes apprentissages</Link>
         <ChevronRight size={14} aria-hidden="true" />
         <Link href={`/learn/${course.slug}`}>{course.title}</Link>
         {module ? (
@@ -32,6 +32,8 @@ export function LessonHeader({ course, lesson, module }: LessonHeaderProps) {
             <span>{module.title}</span>
           </>
         ) : null}
+        <ChevronRight size={14} aria-hidden="true" />
+        <span aria-current="page">{lesson.title}</span>
       </nav>
 
       <div className="lesson-header__meta">

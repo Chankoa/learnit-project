@@ -40,7 +40,7 @@ export default async function LearnerAppPage() {
       <AppBreadcrumb
         items={[
           { label: "Accès plateforme", href: "/app" },
-          { label: "Espace apprenant" }
+          { label: "Tableau de bord" }
         ]}
       />
 
@@ -52,7 +52,7 @@ export default async function LearnerAppPage() {
           hasCourses ? (
             <Link className="btn btn-secondary" href="/app/learner/courses">
               <GraduationCap size={17} aria-hidden="true" />
-              Mes formations
+              Mes apprentissages
             </Link>
           ) : (
             <Link className="btn btn-primary" href="/formations">
@@ -70,7 +70,7 @@ export default async function LearnerAppPage() {
               <GraduationCap size={19} aria-hidden="true" />
             </span>
             <div>
-              <small>Mes formations</small>
+              <small>Mes apprentissages</small>
               <strong>{dashboard.courses.length}</strong>
             </div>
           </article>

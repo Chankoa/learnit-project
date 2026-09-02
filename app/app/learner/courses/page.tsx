@@ -16,7 +16,7 @@ import { createPageMetadata } from "@/lib/seo";
 import type { LearnerEnrollmentStatus } from "@/types/learning";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Mes formations",
+  title: "Mes apprentissages",
   description: "Retrouvez les formations en cours, terminées et non commencées de l'apprenant.",
   path: "/app/learner/courses",
   noIndex: true
@@ -56,13 +56,13 @@ export default async function LearnerCoursesPage() {
     <div className="app-page learner-page">
       <AppBreadcrumb
         items={[
-          { label: "Espace apprenant", href: "/app/learner" },
-          { label: "Mes formations" }
+          { label: "Tableau de bord", href: "/app/learner" },
+          { label: "Mes apprentissages" }
         ]}
       />
 
       <AppPageHeader
-        eyebrow="Mes formations"
+        eyebrow="Mes apprentissages"
         title="Vos parcours d'apprentissage"
         description="Suivez les formations en cours, retrouvez celles déjà terminées et lancez les parcours non commencés."
         actions={

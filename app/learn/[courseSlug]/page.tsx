@@ -26,7 +26,7 @@ export async function generateMetadata({
 
   return data
     ? createPageMetadata({
-        title: `Mon parcours - ${data.course.title}`,
+        title: `Parcours - ${data.course.title}`,
         description: `Suivez les modules et les leçons de ${data.course.title}.`,
         path: `/learn/${data.course.slug}`,
         image: data.course.coverImage,
@@ -52,7 +52,7 @@ export default async function LearningCoursePage({
   const learner = { id: profile.id, firstName: profile.name, displayName: profile.name, email: profile.email, initials };
 
   return (
-    <LearningShell identity={{ name: profile.name, initials, avatarUrl: profile.avatarUrl }} learner={learner} pageTitle="Mon parcours">
+    <LearningShell identity={{ name: profile.name, initials, avatarUrl: profile.avatarUrl }} learner={learner} pageTitle="Parcours">
       <div className="learning-course-page">
         <section className="learning-course-hero">
           <div>
@@ -169,6 +169,7 @@ export default async function LearningCoursePage({
                       </div>
                     ) : (
                       <Link
+                        aria-current={lesson.id === data.currentLesson?.id ? "step" : undefined}
                         className="learning-module-lesson"
                         href={`/learn/${data.course.slug}/${lesson.slug}`}
                         key={lesson.id}
