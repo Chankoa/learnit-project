@@ -159,6 +159,12 @@ export function LearnerLessonWorkspace({
       aria-label="Copilote Forge"
       className="learner-forge-panel"
       id="learner-forge-panel"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeForge();
+        }
+      }}
       ref={panelRef}
       tabIndex={-1}
     >
