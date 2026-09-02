@@ -109,10 +109,10 @@ export function LearnerLessonWorkspace({
       }
     }
 
-    window.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keydown", onKeyDown, true);
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("keydown", onKeyDown, true);
     };
   }, [isForgeOpen]);
 
