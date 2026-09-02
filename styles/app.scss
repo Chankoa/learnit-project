@@ -6878,6 +6878,7 @@ a.creator-start__option:hover {
   }
 
   .teacher-authoring__forge {
+    position: fixed;
     top: 68px;
     width: min(27rem, calc(100vw - var(--space-4)));
     height: calc(100svh - 68px);
@@ -6891,14 +6892,41 @@ a.creator-start__option:hover {
 }
 
 @media (max-width: 899px) {
+  .teacher-focus-page,
+  .teacher-focus-page .teacher-builder,
+  .teacher-authoring,
+  .teacher-authoring__workspace,
+  .teacher-authoring__editor,
+  .teacher-authoring .teacher-builder__panel {
+    width: 100%;
+    min-width: 0;
+  }
+
   .teacher-authoring__header {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
+  .teacher-authoring__workspace,
+  .teacher-authoring[data-forge-open="false"] .teacher-authoring__workspace,
+  .teacher-authoring[data-structure-open="false"] .teacher-authoring__workspace,
+  .teacher-authoring[data-structure-open="false"][data-forge-open="false"] .teacher-authoring__workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .teacher-authoring__editor {
+    grid-column: 1;
+  }
+
+  .teacher-authoring__rail {
+    display: none;
+  }
+
   .teacher-authoring__structure,
   .teacher-authoring__forge {
+    position: fixed;
     top: 0;
-    height: 100svh;
+    height: 100dvh;
+    max-height: 100dvh;
     animation-name: teacher-authoring-drawer-enter;
   }
 
@@ -6920,6 +6948,16 @@ a.creator-start__option:hover {
 
   .teacher-authoring .teacher-builder__panel {
     min-height: calc(100svh - 104px);
+  }
+
+  .teacher-authoring .teacher-builder-empty {
+    width: 100%;
+    min-width: 0;
+    padding-inline: var(--space-4);
+  }
+
+  .teacher-authoring .teacher-builder-empty p {
+    max-width: 28rem;
   }
 }
 
@@ -6949,11 +6987,36 @@ a.creator-start__option:hover {
 
 @media (max-width: 560px) {
   .teacher-authoring__header {
+    width: 100%;
+    min-width: 0;
     padding: var(--space-2) var(--space-3);
+  }
+
+  .teacher-authoring__back {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .teacher-authoring__identity strong {
     font-size: var(--font-size-section-title);
+  }
+
+  .teacher-authoring__actions .btn {
+    width: var(--target-touch);
+    height: var(--target-touch);
+    min-width: var(--target-touch);
+    min-height: var(--target-touch);
+    flex: 0 0 var(--target-touch);
+    gap: 0;
+    padding: 0;
+    color: var(--text-primary);
+    font-size: 0;
+  }
+
+  .teacher-authoring__actions .btn svg {
+    color: currentColor;
   }
 
   .teacher-authoring .teacher-builder__panel {

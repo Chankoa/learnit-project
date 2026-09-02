@@ -82,3 +82,22 @@ test("Teacher closure polish keeps resource panels and button icon alignment on 
   assert.match(appStyles, /\.teacher-resource-form__fields/);
   assert.match(appStyles, /\.teacher-builder-module__toggle\[aria-expanded="false"\]/);
 });
+
+test("Teacher Focus Mode overrides every desktop grid state on mobile", () => {
+  const mobileQueryStart = appStyles.lastIndexOf("@media (max-width: 899px)");
+  const mobileQueryEnd = appStyles.indexOf(
+    "@keyframes teacher-authoring-drawer-enter",
+    mobileQueryStart
+  );
+  const mobileRules = appStyles.slice(mobileQueryStart, mobileQueryEnd);
+
+  assert.ok(mobileQueryStart >= 0);
+  assert.match(
+    mobileRules,
+    /\.teacher-authoring\[data-structure-open="false"\]\[data-forge-open="false"\] \.teacher-authoring__workspace[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/
+  );
+  assert.match(mobileRules, /\.teacher-authoring__editor\s*\{[\s\S]*?grid-column:\s*1/);
+  assert.match(mobileRules, /\.teacher-authoring__rail\s*\{[\s\S]*?display:\s*none/);
+  assert.match(mobileRules, /\.teacher-authoring__structure,[\s\S]*?position:\s*fixed/);
+  assert.match(mobileRules, /height:\s*100dvh/);
+});
