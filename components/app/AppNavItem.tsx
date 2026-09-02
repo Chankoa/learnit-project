@@ -19,6 +19,7 @@ export function AppNavItem({ item, pathname, onNavigate }: AppNavItemProps) {
       data-active={active}
       href={item.href}
       onClick={onNavigate}
+      title={item.label}
     >
       <Icon size={18} aria-hidden="true" />
       <span>{item.label}</span>

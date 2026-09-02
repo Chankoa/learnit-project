@@ -37,6 +37,7 @@ export function AppShell({
 }: AppShellProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const isTeacherFocusMode =
     role === "teacher" && isTeacherAuthoringPath(pathname);
 
@@ -45,9 +46,21 @@ export function AppShell({
   }
 
   return (
-    <div className="app-shell" data-focus-mode={isTeacherFocusMode} data-role={role}>
+    <div
+      className="app-shell"
+      data-focus-mode={isTeacherFocusMode}
+      data-role={role}
+      data-sidebar-collapsed={isSidebarCollapsed}
+    >
       {!isTeacherFocusMode ? (
-        <AppSidebar navigationItems={navigationItems} pathname={pathname} role={role} title={title} />
+        <AppSidebar
+          isCollapsed={isSidebarCollapsed}
+          navigationItems={navigationItems}
+          onCollapseToggle={() => setIsSidebarCollapsed((current) => !current)}
+          pathname={pathname}
+          role={role}
+          title={title}
+        />
       ) : null}
 
       <div className="app-workspace">
