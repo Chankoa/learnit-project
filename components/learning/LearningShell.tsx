@@ -40,9 +40,11 @@ export function LearningShell({
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const drawerRef = useRef<HTMLElement>(null);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
 
   function closeMobileMenu() {
     setIsMobileMenuOpen(false);
+    requestAnimationFrame(() => mobileMenuButtonRef.current?.focus());
   }
 
   useEffect(() => {
@@ -119,9 +121,17 @@ export function LearningShell({
                   aria-controls="learning-mobile-drawer"
                   aria-label={isMobileMenuOpen ? "Fermer le parcours" : "Ouvrir le parcours"}
                   className="btn btn-secondary learning-context-button"
+                  ref={mobileMenuButtonRef}
                   title={isMobileMenuOpen ? "Fermer le parcours" : "Ouvrir le parcours"}
                   type="button"
-                  onClick={() => setIsMobileMenuOpen((current) => !current)}
+                  onClick={() => {
+                    if (isMobileMenuOpen) {
+                      closeMobileMenu();
+                      return;
+                    }
+
+                    setIsMobileMenuOpen(true);
+                  }}
                 >
                   {isMobileMenuOpen ? <X size={17} aria-hidden="true" /> : <PanelLeft size={17} aria-hidden="true" />}
                 </button>
