@@ -1,5 +1,6 @@
 import { LogOut, Menu, X } from "lucide-react";
 import Link from "next/link";
+import type { RefObject } from "react";
 
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import type { ApplicationRole } from "@/lib/navigation";
@@ -8,6 +9,7 @@ type AppTopbarProps = {
   role: ApplicationRole;
   title: string;
   isMenuOpen: boolean;
+  menuButtonRef?: RefObject<HTMLButtonElement>;
   onMenuToggle: () => void;
 };
 
@@ -18,7 +20,7 @@ const roleLabels: Record<ApplicationRole, string> = {
   admin: "Admin"
 };
 
-export function AppTopbar({ role, title, isMenuOpen, onMenuToggle }: AppTopbarProps) {
+export function AppTopbar({ role, title, isMenuOpen, menuButtonRef, onMenuToggle }: AppTopbarProps) {
   return (
     <header className="app-topbar">
       <button
@@ -26,6 +28,7 @@ export function AppTopbar({ role, title, isMenuOpen, onMenuToggle }: AppTopbarPr
         aria-controls="app-mobile-drawer"
         aria-label={isMenuOpen ? "Fermer la navigation" : "Ouvrir la navigation"}
         className="app-topbar__menu"
+        ref={menuButtonRef}
         type="button"
         onClick={onMenuToggle}
       >

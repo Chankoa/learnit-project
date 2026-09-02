@@ -3,7 +3,7 @@
 import { ArrowLeft, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { AppNavItem } from "@/components/app/AppNavItem";
@@ -38,12 +38,32 @@ export function AppShell({
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileDrawerRef = useRef<HTMLElement>(null);
   const isTeacherFocusMode =
     role === "teacher" && isTeacherAuthoringPath(pathname);
 
   function closeMobileMenu() {
     setIsMobileMenuOpen(false);
   }
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      return;
+    }
+
+    mobileDrawerRef.current?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeMobileMenu();
+        mobileMenuButtonRef.current?.focus();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isMobileMenuOpen]);
 
   return (
     <div
@@ -67,6 +87,7 @@ export function AppShell({
         {!isTeacherFocusMode ? (
           <AppTopbar
             isMenuOpen={isMobileMenuOpen}
+            menuButtonRef={mobileMenuButtonRef}
             onMenuToggle={() => setIsMobileMenuOpen((current) => !current)}
             role={role}
             title={title}
@@ -84,6 +105,8 @@ export function AppShell({
             className="app-mobile-drawer"
             id="app-mobile-drawer"
             aria-label="Navigation applicative mobile"
+            ref={mobileDrawerRef}
+            tabIndex={-1}
           >
             <nav>
               {navigationItems.map((item) => (
