@@ -6938,7 +6938,7 @@ a.creator-start__option:hover {
     animation-name: teacher-authoring-structure-drawer-enter;
   }
 
-  .teacher-authoring .teacher-builder[data-has-selection="true"] .teacher-builder__outline {
+  .teacher-builder[data-has-selection="true"] .teacher-authoring .teacher-builder__outline {
     display: grid;
   }
 
