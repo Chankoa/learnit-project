@@ -6902,6 +6902,10 @@ a.creator-start__option:hover {
     min-width: 0;
   }
 
+  .teacher-authoring__back {
+    min-height: var(--target-touch);
+  }
+
   .teacher-authoring__header {
     grid-template-columns: minmax(0, 1fr) auto;
   }
@@ -6932,6 +6936,10 @@ a.creator-start__option:hover {
 
   .teacher-authoring__structure {
     animation-name: teacher-authoring-structure-drawer-enter;
+  }
+
+  .teacher-authoring .teacher-builder[data-has-selection="true"] .teacher-builder__outline {
+    display: grid;
   }
 
   .teacher-authoring__panel-header {

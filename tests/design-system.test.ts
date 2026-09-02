@@ -99,5 +99,13 @@ test("Teacher Focus Mode overrides every desktop grid state on mobile", () => {
   assert.match(mobileRules, /\.teacher-authoring__editor\s*\{[\s\S]*?grid-column:\s*1/);
   assert.match(mobileRules, /\.teacher-authoring__rail\s*\{[\s\S]*?display:\s*none/);
   assert.match(mobileRules, /\.teacher-authoring__structure,[\s\S]*?position:\s*fixed/);
+  assert.match(
+    mobileRules,
+    /\.teacher-authoring \.teacher-builder\[data-has-selection="true"\] \.teacher-builder__outline\s*\{[\s\S]*?display:\s*grid/
+  );
+  assert.match(
+    mobileRules,
+    /\.teacher-authoring__back\s*\{[\s\S]*?min-height:\s*var\(--target-touch\)/
+  );
   assert.match(mobileRules, /height:\s*100dvh/);
 });
