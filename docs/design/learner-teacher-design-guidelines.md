@@ -60,6 +60,8 @@ Les deux espaces partagent :
 
 Réutiliser les mêmes primitives lorsque cela est pertinent.
 
+Les contrôles contextuels Structure/Parcours et Forge utilisent les mêmes icônes et primitives dans les espaces Teacher et Learner. Le sens varie selon le rôle, pas le langage visuel.
+
 ---
 
 ## Différence d’intention

@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  BookOpenText,
   ChevronLeft,
   Menu,
+  PanelLeft,
   X
 } from "lucide-react";
 import Link from "next/link";
@@ -117,12 +117,13 @@ export function LearningShell({
                 <button
                   aria-expanded={isMobileMenuOpen}
                   aria-controls="learning-mobile-drawer"
-                  className="learning-context-button"
+                  aria-label={isMobileMenuOpen ? "Fermer le parcours" : "Ouvrir le parcours"}
+                  className="btn btn-secondary learning-context-button"
+                  title={isMobileMenuOpen ? "Fermer le parcours" : "Ouvrir le parcours"}
                   type="button"
                   onClick={() => setIsMobileMenuOpen((current) => !current)}
                 >
-                  {isMobileMenuOpen ? <X size={18} aria-hidden="true" /> : <BookOpenText size={18} aria-hidden="true" />}
-                  {isMobileMenuOpen ? "Fermer le parcours" : "Parcours"}
+                  {isMobileMenuOpen ? <X size={17} aria-hidden="true" /> : <PanelLeft size={17} aria-hidden="true" />}
                 </button>
               </>
             ) : (

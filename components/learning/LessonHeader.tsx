@@ -22,6 +22,10 @@ const lessonTypeLabels: Record<LessonType, string> = {
 export function LessonHeader({ course, lesson, module }: LessonHeaderProps) {
   return (
     <header className="lesson-header">
+      <div className="lesson-header__context">
+        <span>Étape sélectionnée</span>
+        <p>{module ? `${course.title} · ${module.title}` : course.title}</p>
+      </div>
       <nav className="lesson-breadcrumb" aria-label="Fil d'Ariane">
         <Link href="/app/learner/courses">Mes apprentissages</Link>
         <ChevronRight size={14} aria-hidden="true" />
@@ -35,6 +39,8 @@ export function LessonHeader({ course, lesson, module }: LessonHeaderProps) {
         <ChevronRight size={14} aria-hidden="true" />
         <span aria-current="page">{lesson.title}</span>
       </nav>
+
+      <h1>{lesson.title}</h1>
 
       <div className="lesson-header__meta">
         <span>
@@ -53,7 +59,6 @@ export function LessonHeader({ course, lesson, module }: LessonHeaderProps) {
         ) : null}
       </div>
 
-      <h1>{lesson.title}</h1>
       {lesson.description ? <p>{lesson.description}</p> : null}
 
       {lesson.objectives?.length ? (
