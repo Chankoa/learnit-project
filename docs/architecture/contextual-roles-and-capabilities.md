@@ -102,6 +102,14 @@ Rules:
 - Membership never derives progress or completion. Enrollment never grants edit, publish or member management.
 - Do not add reciprocal triggers that automatically manufacture one relation from the other. A single explicit service operation may create both only for a defined product flow, and must be idempotent.
 
+### U2.C decision: role-neutral learning access
+
+**Learning access is enrollment-based and role-neutral.** An authenticated active user may read and learn from a Parcours when their own enrollment exists and the Parcours is published, regardless of `profiles.role`. This rule applies to the canonical `/learn` routes, learning Forge context, progress, ready course sources and source-reference journaling.
+
+The public `/learn/[courseSlug]` landing page may offer enrollment only for a published `public` Parcours. A published `unlisted` or `private` Parcours is absent from Explorer; an existing enrollment can still make it available through Mes parcours or a direct canonical link. An enrollment never grants edit, publication, source management or membership management.
+
+The following remain role-based compatibility boundaries: legacy `/app/learner` layouts, Teacher authoring routes and the global Admin role. Existing `teacher_id` ownership and active course memberships continue to decide editorial capabilities.
+
 This preserves a non-contradictory model: permissions come from membership/visibility; pedagogical state comes from enrollment.
 
 ## Compatibility inventory

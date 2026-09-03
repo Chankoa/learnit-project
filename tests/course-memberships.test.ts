@@ -10,11 +10,11 @@ const migration = readFileSync(
 test("course memberships are idempotent, contextual, and preserve legacy teacher ownership", () => {
   assert.match(migration, /course_memberships/);
   assert.match(migration, /unique \(course_id, user_id\)/);
-  assert.match(migration, /references public\.courses\(id\) on delete cascade/);
-  assert.match(migration, /references public\.profiles\(id\) on delete cascade/);
+  assert.match(migration, /references public\.courses\(id\)\s+on delete cascade/);
+  assert.match(migration, /references public\.profiles\(id\)\s+on delete cascade/);
   assert.match(migration, /from public\.courses[\s\S]*teacher_id is not null/);
-  assert.match(migration, /on conflict \(course_id, user_id\) do nothing/);
-  assert.match(migration, /'owner', 'active'/);
+  assert.match(migration, /on conflict \(course_id, user_id\)\s+do nothing/);
+  assert.match(migration, /'owner',\s*'active'/);
   assert.doesNotMatch(migration, /alter table public\.courses[\s\S]*drop column[\s\S]*teacher_id/i);
 });
 

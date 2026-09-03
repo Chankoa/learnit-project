@@ -202,3 +202,9 @@ The immediate recommended sequence is U2 membership/capabilities, U3 navigation 
 ## U2 implementation note
 
 U2 adopts `participant` rather than `learner` for the contextual membership role. This keeps enrollment as the sole pedagogical relationship while leaving membership focused on access and collaboration. The first visible convergence is the unified `/app` shell and `Mes parcours`; legacy Learner and Teacher deep links remain supported.
+
+### U2.C learning access
+
+Learning is no longer a global Learner identity check on canonical paths. A person may own Parcours A and learn Parcours B from the same account when B is published and they hold an enrollment. Mes parcours resolves these as one relation per Parcours; an owner enrolled in the same Parcours sees both `Je crée` and `J'apprends`, with `Continuer` or `Revoir` taking priority over `Gérer`.
+
+Explorer remains a discoverability surface for published public Parcours only. Its CTAs are relation-aware: enrolled people continue or review, editors manage, and everyone else consults the public formation page to enroll.

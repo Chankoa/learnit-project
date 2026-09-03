@@ -6,8 +6,7 @@ import { notFound } from "next/navigation";
 import { formatCourseDuration } from "@/components/catalog/CourseCard";
 import { EnrollmentButton } from "@/components/learning/EnrollmentButton";
 import { LearningShell } from "@/components/learning/LearningShell";
-import { requireRole } from "@/lib/auth/server";
-import { getLearningCourseState } from "@/lib/learning-service";
+import { getLearningCourseState, requireLearningAccess } from "@/lib/learning-service";
 import { createPageMetadata } from "@/lib/seo";
 
 type LearningCoursePageProps = {
@@ -41,7 +40,13 @@ export default async function LearningCoursePage({
   params
 }: LearningCoursePageProps) {
   const { courseSlug } = await params;
-  const profile = await requireRole("learner", `/learn/${courseSlug}`);
+  const access = await requireLearningAccess(courseSlug, `/learn/${courseSlug}`, { allowPublicEnrollment: true });
+
+  if (!access) {
+    notFound();
+  }
+
+  const { profile } = access;
   const data = await getLearningCourseState(courseSlug);
 
   if (!data) {

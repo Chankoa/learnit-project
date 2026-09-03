@@ -173,7 +173,7 @@ export async function requireAuth(nextPath = "/app/learner") {
   return user;
 }
 
-export async function requireRole(requiredRole: UserRole, nextPath = "/app/learner") {
+export async function requireActiveProfile(nextPath = "/app") {
   await requireAuth(nextPath);
 
   const profile = await getCurrentProfile();
@@ -183,8 +183,14 @@ export async function requireRole(requiredRole: UserRole, nextPath = "/app/learn
   }
 
   if (profile.status !== "active") {
-    redirect(getAccessDeniedRedirect("status", nextPath, profile, requiredRole));
+    redirect(getAccessDeniedRedirect("status", nextPath, profile));
   }
+
+  return profile;
+}
+
+export async function requireRole(requiredRole: UserRole, nextPath = "/app/learner") {
+  const profile = await requireActiveProfile(nextPath);
 
   if (!canAccessRole(profile.role, requiredRole)) {
     redirect(getAccessDeniedRedirect("role", nextPath, profile, requiredRole));

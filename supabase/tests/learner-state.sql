@@ -40,3 +40,39 @@ begin
   end if;
 end;
 $$;
+
+-- Run after 20260903110000_role_neutral_learning_access.sql.
+-- The enrollment relation, not profiles.role, authorizes learning reads.
+do $$
+begin
+  if exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and policyname in (
+        'Users can read enrolled published courses',
+        'Users can read enrolled published course modules',
+        'Users can read enrolled published lessons',
+        'Users can read enrolled resources',
+        'Users can read enrolled ready course sources',
+        'Users can read enrolled ai generation source refs'
+      )
+      and coalesce(qual, '') like '%current_profile_role()%learner%'
+  ) then
+    raise exception 'Enrolled learning policies must not require the learner profile role';
+  end if;
+
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'enrollments'
+      and policyname = 'Users enroll themselves in published public courses'
+      and cmd = 'INSERT'
+      and coalesce(with_check, '') like '%courses.status = ''published''%'
+      and coalesce(with_check, '') like '%courses.visibility = ''public''%'
+  ) then
+    raise exception 'Enrollment creation must require a published public course';
+  end if;
+end;
+$$;

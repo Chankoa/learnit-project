@@ -17,9 +17,10 @@ import {
   getLmsCatalog,
   getLmsCatalogCourse
 } from "@/lib/lms";
-import { getCurrentProfile, getProfileHomePath } from "@/lib/auth/server";
+import { getCurrentProfile } from "@/lib/auth/server";
 import { getLearningCourseState } from "@/lib/learning-service";
 import { createPageMetadata } from "@/lib/seo";
+import { getCourseCapabilities } from "@/lib/unified-course-relations";
 
 type FormationPageProps = {
   params: Promise<{
@@ -59,20 +60,27 @@ export default async function FormationPage({ params }: FormationPageProps) {
     notFound();
   }
 
-  const learningState = profile?.role === "learner" ? await getLearningCourseState(course.slug) : undefined;
+  const [learningState, capabilities] = profile
+    ? await Promise.all([getLearningCourseState(course.slug), getCourseCapabilities(profile.id, course.id)])
+    : [undefined, undefined];
   const primaryCta = !profile
     ? {
         href: `/login?next=${encodeURIComponent(`/learn/${course.slug}`)}`,
         label: "Se connecter pour s'inscrire"
       }
-    : profile.role === "learner"
+    : learningState?.enrollment
       ? {
-          href: learningState?.enrollment ? learningState.ctaHref : `/learn/${course.slug}`,
-          label: learningState?.enrollment ? learningState.ctaLabel : "S'inscrire à la formation"
+          href: learningState.ctaHref,
+          label: learningState.ctaLabel
         }
+      : capabilities?.capabilities.includes("edit")
+        ? {
+            href: `/app/teacher/courses/${course.id}/edit`,
+            label: "Gérer le parcours"
+          }
       : {
-          href: getProfileHomePath(profile.role),
-          label: profile.role === "teacher" ? "Ouvrir l'espace enseignant" : "Ouvrir l'administration"
+          href: `/learn/${course.slug}`,
+          label: "S'inscrire à la formation"
         };
   const modules = course.modules;
   const domainCourses = catalogCourses

@@ -22,6 +22,10 @@ const hardeningMigration = readFileSync(
   new URL("../supabase/migrations/20260903092000_harden_learner_course_source_access.sql", import.meta.url),
   "utf8"
 );
+const roleNeutralMigration = readFileSync(
+  new URL("../supabase/migrations/20260903110000_role_neutral_learning_access.sql", import.meta.url),
+  "utf8"
+);
 
 test("Learner Forge uses short, action-specific budgets and low reasoning on GPT-5", () => {
   assert.equal(getMaxOutputTokens("learner_question", 4000), 600);
@@ -58,7 +62,7 @@ test("the service verifies enrollment and maps every Learner action", () => {
   for (const action of ["explain", "clarify", "rephrase", "example", "question", "freeform"]) {
     assert.match(serviceSource, new RegExp(`${action}: \\"learner_`));
   }
-  assert.match(serviceSource, /learningRepository\.getEnrollment\(input\.courseId\)/);
+  assert.match(serviceSource, /requireLearningAccess\(\{ id: input\.courseId \}, "\/app"\)/);
   assert.match(serviceSource, /lesson\.status === "locked"/);
 });
 
@@ -75,4 +79,13 @@ test("Learner course sources and Forge source references require published enrol
   assert.match(hardeningMigration, /Learners can read enrolled course source files/);
   assert.match(hardeningMigration, /Learners can create enrolled ai generation source refs/);
   assert.match(hardeningMigration, /Learners can read enrolled ai generation source refs/);
+});
+
+test("learning Forge policies are enrollment-based and cannot be bypassed by a Teacher profile", () => {
+  assert.match(roleNeutralMigration, /private\.can_read_enrolled_published_course\(lessons\.course_id\)/);
+  assert.match(roleNeutralMigration, /prompt_type not in \([\s\S]*?'learner_explain'/);
+  assert.doesNotMatch(
+    roleNeutralMigration.match(/Users can insert own learning ai generation metadata[\s\S]*?\);/)?.[0] ?? "",
+    /current_profile_role\(\) = 'learner'/
+  );
 });

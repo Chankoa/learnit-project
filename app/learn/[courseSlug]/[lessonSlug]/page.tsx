@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { CompletionButton } from "@/components/learning/CompletionButton";
 import { LearnerLessonWorkspace } from "@/components/learning/LearnerLessonWorkspace";
@@ -10,8 +10,7 @@ import { LessonNavigation } from "@/components/learning/LessonNavigation";
 import { LessonSidebar } from "@/components/learning/LessonSidebar";
 import { ResourceList } from "@/components/learning/ResourceList";
 import { getLessonMdxComponent } from "@/content/lessons/registry";
-import { requireRole } from "@/lib/auth/server";
-import { getLearningCourseState, getLessonNote } from "@/lib/learning-service";
+import { getLearningCourseState, getLessonNote, requireLearningAccess } from "@/lib/learning-service";
 import { getLearnerForgeSourceSummary } from "@/lib/forge-ai/service";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -46,20 +45,18 @@ export async function generateMetadata({
 
 export default async function LessonPage({ params }: LessonPageProps) {
   const { courseSlug, lessonSlug } = await params;
-  const profile = await requireRole("learner", `/learn/${courseSlug}/${lessonSlug}`);
+  const access = await requireLearningAccess(courseSlug, `/learn/${courseSlug}/${lessonSlug}`);
+
+  if (!access) {
+    notFound();
+  }
+
+  const { profile } = access;
   const data = await getLearningCourseState(courseSlug);
   const lesson = data?.lessons.find((item) => item.slug === lessonSlug);
 
   if (!data || !lesson) {
     notFound();
-  }
-
-  if (!data.enrollment) {
-    redirect(
-      `/access-denied?reason=resource&current=${encodeURIComponent(profile.role)}&next=${encodeURIComponent(
-        `/learn/${courseSlug}/${lessonSlug}`
-      )}`
-    );
   }
 
   const MdxLesson = getLessonMdxComponent(courseSlug, lessonSlug);

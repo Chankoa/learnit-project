@@ -1,6 +1,8 @@
 import "server-only";
 
-import { getCurrentProfile } from "@/lib/auth/server";
+import { redirect } from "next/navigation";
+
+import { getCurrentProfile, requireActiveProfile } from "@/lib/auth/server";
 import { calculateProgressCounts, type CourseProgressSummary } from "@/lib/course-progress";
 import { getLmsDataSource } from "@/lib/lms";
 import * as learningRepository from "@/lib/repositories/learningRepository";
@@ -30,6 +32,38 @@ export type LearnerResourceItem = {
   course: Course;
   favorite: boolean;
 };
+
+type LearningAccessOptions = {
+  allowPublicEnrollment?: boolean;
+};
+
+export async function requireLearningAccess(
+  courseLookup: string | { id: string },
+  nextPath: string,
+  options: LearningAccessOptions = {}
+) {
+  const profile = await requireActiveProfile(nextPath);
+  const course = await getLmsDataSource().getCourse(
+    typeof courseLookup === "string" ? { slug: courseLookup } : courseLookup
+  );
+
+  if (!course) {
+    return undefined;
+  }
+
+  if (course.status !== "published") {
+    redirect(`/access-denied?reason=course&current=${encodeURIComponent(profile.role)}&next=${encodeURIComponent(nextPath)}`);
+  }
+
+  const enrollment = await learningRepository.getEnrollment(course.id);
+  const canEnrollFromPublicLanding = options.allowPublicEnrollment && course.visibility === "public";
+
+  if (!enrollment && !canEnrollFromPublicLanding) {
+    redirect(`/access-denied?reason=resource&current=${encodeURIComponent(profile.role)}&next=${encodeURIComponent(nextPath)}`);
+  }
+
+  return { course, enrollment, profile };
+}
 
 function getPercentage(completed: number, total: number) {
   return total > 0 ? Math.round((completed / total) * 100) : 0;

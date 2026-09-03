@@ -24,7 +24,7 @@ export type UnifiedCourseRelation = {
   progress: { completedCount: number; percentage: number; totalLessons: number };
   lastActivityAt?: string;
   primaryHref: string;
-  primaryLabel: "Continuer" | "Gérer" | "Consulter";
+  primaryLabel: "Continuer" | "Revoir" | "Gérer" | "Consulter";
 };
 
 const capabilityByRole: Record<CourseMembershipRole, CourseCapability[]> = {
@@ -121,8 +121,10 @@ export async function getUnifiedCourseRelations(profile: CurrentProfile): Promis
     const courseProgress = progressRows.filter((progress) => progress.course_id === course.id);
     const progress = calculateCourseProgress(courseProgress.filter((item) => item.completed).map((item) => item.lesson_id), accessibleLessonIds);
     const lastActivityAt = latest(enrollment?.lastAccessedAt, ...courseProgress.map((item) => item.updated_at), course.updatedAt);
-    const primaryLabel: UnifiedCourseRelation["primaryLabel"] = enrollment && enrollment.status !== "completed"
-      ? "Continuer"
+    const primaryLabel: UnifiedCourseRelation["primaryLabel"] = enrollment
+      ? enrollment.status === "completed"
+        ? "Revoir"
+        : "Continuer"
       : capabilities.includes("edit")
         ? "Gérer"
         : "Consulter";

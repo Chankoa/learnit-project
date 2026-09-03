@@ -33,6 +33,7 @@ import {
 import * as forgeSourceRepository from "@/lib/repositories/forgeSourceRepository";
 import * as teacherCourseRepository from "@/lib/repositories/teacherCourseRepository";
 import * as learningRepository from "@/lib/repositories/learningRepository";
+import { requireLearningAccess } from "@/lib/learning-service";
 import { getLmsDataSource } from "@/lib/lms";
 import type { CourseLevel } from "@/types/course";
 import type {
@@ -927,15 +928,13 @@ function filterLearnerSourceReferences(
 }
 
 async function getLearnerForgeContext(input: LearnerForgeInput) {
-  const profile = await requireRole("learner", "/app/learner");
-  const [course, enrollment] = await Promise.all([
-    getLmsDataSource().getCourse({ id: input.courseId }),
-    learningRepository.getEnrollment(input.courseId)
-  ]);
+  const access = await requireLearningAccess({ id: input.courseId }, "/app");
 
-  if (!course || !enrollment) {
+  if (!access) {
     throw new Error("Cette leçon n'est pas disponible dans vos apprentissages.");
   }
+
+  const { course, profile } = access;
 
   const lessons = course.modules.flatMap((module) => module.lessons);
   const lesson = lessons.find((item) => item.id === input.lessonId);
@@ -968,14 +967,13 @@ async function getLearnerForgeContext(input: LearnerForgeInput) {
 }
 
 export async function getLearnerForgeSourceSummary(courseId: string) {
-  const profile = await requireRole("learner", "/app/learner");
-  const enrollment = await learningRepository.getEnrollment(courseId);
+  const access = await requireLearningAccess({ id: courseId }, "/app");
 
-  if (!profile || !enrollment) {
+  if (!access) {
     return { count: 0, titles: [] as string[] };
   }
 
-  const sources = await forgeSourceRepository.getLearnerCourseSources(courseId);
+  const sources = await forgeSourceRepository.getLearnerCourseSources(access.course.id);
   return {
     count: sources.length,
     titles: sources.slice(0, 6).map((source) => source.title)
