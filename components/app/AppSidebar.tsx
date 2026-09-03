@@ -13,6 +13,7 @@ type AppSidebarProps = {
   pathname: string;
   isCollapsed: boolean;
   onCollapseToggle: () => void;
+  presentation?: "legacy" | "unified";
 };
 
 const roleLabels: Record<ApplicationRole, string> = {
@@ -28,10 +29,13 @@ export function AppSidebar({
   navigationItems,
   pathname,
   isCollapsed,
-  onCollapseToggle
+  onCollapseToggle,
+  presentation = "legacy"
 }: AppSidebarProps) {
+  const isUnified = presentation === "unified";
+
   return (
-    <aside className="app-sidebar" aria-label={`Navigation ${roleLabels[role].toLowerCase()}`}>
+    <aside className="app-sidebar" aria-label={isUnified ? "Navigation LearnIt" : `Navigation ${roleLabels[role].toLowerCase()}`}>
       <div className="app-sidebar__topline">
         <Link className="app-sidebar__brand" href="/" aria-label="Retour à LearnIt" title="Retour à LearnIt">
         <LogoMark tone="inverse" />
@@ -49,7 +53,7 @@ export function AppSidebar({
       </div>
 
       <div className="app-sidebar__context">
-        <span>{roleLabels[role]}</span>
+        <span>{isUnified ? "LearnIt / Forge" : roleLabels[role]}</span>
         <strong>{title}</strong>
       </div>
 
@@ -60,7 +64,7 @@ export function AppSidebar({
       </nav>
 
       <div className="app-sidebar__tools">
-        <RoleSwitcher variant="compact" />
+        {!isUnified ? <RoleSwitcher variant="compact" /> : null}
         {role !== "visitor" ? (
           <Link className="app-sidebar__back" href="/logout" title="Déconnexion">
             <LogOut size={16} aria-hidden="true" />

@@ -3,6 +3,7 @@ import {
   Award,
   BookPlus,
   Compass,
+  FolderKanban,
   GraduationCap,
   Home,
   Info,
@@ -242,6 +243,30 @@ export const adminNavigation = [
     isActive: (pathname) => pathname === "/app/profile"
   }
 ] satisfies NavigationItem[];
+
+export function getUnifiedNavigation(isAdmin: boolean): NavigationItem[] {
+  const navigation: NavigationItem[] = [
+    { label: "Accueil", href: "/app", icon: Home, role: "learner", isActive: (pathname) => pathname === "/app" },
+    { label: "Mes parcours", href: "/app/courses", icon: FolderKanban, role: "learner", isActive: (pathname) => pathname.startsWith("/app/courses") },
+    { label: "Explorer", href: "/app/explore", icon: Compass, role: "learner", isActive: (pathname) => pathname.startsWith("/app/explore") },
+    { label: "Collaboratif", href: "/app/collaborative", icon: Users, role: "learner", isActive: (pathname) => pathname.startsWith("/app/collaborative") },
+    { label: "Ressources", href: "/app/resources", icon: Library, role: "learner", isActive: (pathname) => pathname.startsWith("/app/resources") },
+    { label: "Créer", href: "/app/teacher/courses/new", icon: BookPlus, role: "learner", isActive: (pathname) => pathname === "/app/teacher/courses/new" },
+    { label: "Profil", href: "/app/profile", icon: UserCircle, role: "learner", isActive: (pathname) => pathname === "/app/profile" }
+  ];
+
+  if (isAdmin) {
+    navigation.splice(-1, 0, {
+      label: "Administration",
+      href: "/app/admin",
+      icon: ShieldCheck,
+      role: "admin",
+      isActive: (pathname) => pathname.startsWith("/app/admin")
+    });
+  }
+
+  return navigation;
+}
 
 export const platformAccessNavigation = [
   {

@@ -11,6 +11,7 @@ type AppTopbarProps = {
   isMenuOpen: boolean;
   menuButtonRef?: RefObject<HTMLButtonElement>;
   onMenuToggle: () => void;
+  presentation?: "legacy" | "unified";
 };
 
 const roleLabels: Record<ApplicationRole, string> = {
@@ -20,7 +21,7 @@ const roleLabels: Record<ApplicationRole, string> = {
   admin: "Admin"
 };
 
-export function AppTopbar({ role, title, isMenuOpen, menuButtonRef, onMenuToggle }: AppTopbarProps) {
+export function AppTopbar({ role, title, isMenuOpen, menuButtonRef, onMenuToggle, presentation = "legacy" }: AppTopbarProps) {
   return (
     <header className="app-topbar">
       <button
@@ -36,7 +37,7 @@ export function AppTopbar({ role, title, isMenuOpen, menuButtonRef, onMenuToggle
       </button>
 
       <div className="app-topbar__title">
-        <span>{roleLabels[role]}</span>
+        <span>{presentation === "unified" ? "LearnIt / Forge" : roleLabels[role]}</span>
         <strong>{title}</strong>
       </div>
 

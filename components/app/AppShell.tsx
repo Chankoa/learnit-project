@@ -20,6 +20,7 @@ type AppShellProps = {
   navigationItems: NavigationItem[];
   children: ReactNode;
   title?: string;
+  presentation?: "legacy" | "unified";
 };
 
 const defaultTitles: Record<ApplicationRole, string> = {
@@ -33,7 +34,8 @@ export function AppShell({
   role,
   navigationItems,
   children,
-  title = defaultTitles[role]
+  title = defaultTitles[role],
+  presentation = "legacy"
 }: AppShellProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -78,6 +80,7 @@ export function AppShell({
           navigationItems={navigationItems}
           onCollapseToggle={() => setIsSidebarCollapsed((current) => !current)}
           pathname={pathname}
+          presentation={presentation}
           role={role}
           title={title}
         />
@@ -89,6 +92,7 @@ export function AppShell({
             isMenuOpen={isMobileMenuOpen}
             menuButtonRef={mobileMenuButtonRef}
             onMenuToggle={() => setIsMobileMenuOpen((current) => !current)}
+            presentation={presentation}
             role={role}
             title={title}
           />
@@ -118,7 +122,7 @@ export function AppShell({
                 />
               ))}
             </nav>
-            <RoleSwitcher variant="compact" />
+            {presentation === "legacy" ? <RoleSwitcher variant="compact" /> : null}
             {role !== "visitor" ? (
               <Link className="app-mobile-drawer__back" href="/logout" onClick={closeMobileMenu}>
                 <LogOut size={16} aria-hidden="true" />

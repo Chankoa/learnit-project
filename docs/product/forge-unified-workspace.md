@@ -198,3 +198,7 @@ Meaningful reuse and every remix need a lightweight provenance relation: origina
 | U6 | Deprecate legacy role-specific entry routes after telemetry and migration | Redirect only when canonical equivalents preserve authorization and context. |
 
 The immediate recommended sequence is U2 membership/capabilities, U3 navigation and Mes parcours, then U4 workspace convergence. U5 must not begin until authorization, source scope and provenance policy are implemented and tested.
+
+## U2 implementation note
+
+U2 adopts `participant` rather than `learner` for the contextual membership role. This keeps enrollment as the sole pedagogical relationship while leaving membership focused on access and collaboration. The first visible convergence is the unified `/app` shell and `Mes parcours`; legacy Learner and Teacher deep links remain supported.

@@ -10,7 +10,7 @@ import {
 } from "@/app/auth/actions";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
-import { AppShellFrame } from "@/components/app/AppShellFrame";
+import { UnifiedAppShell } from "@/components/app/UnifiedAppShell";
 import { getCurrentProfile, requireAuth } from "@/lib/auth/server";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -57,7 +57,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
     .toUpperCase();
 
   return (
-    <AppShellFrame role={profile.role} title="Mon profil">
+    <UnifiedAppShell profile={profile}>
       <div className="app-page profile-page">
         <AppBreadcrumb items={[{ label: "Mon profil" }]} />
         <AppPageHeader
@@ -163,6 +163,6 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           </form>
         </section>
       </div>
-    </AppShellFrame>
+    </UnifiedAppShell>
   );
 }
