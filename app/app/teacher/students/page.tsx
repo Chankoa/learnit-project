@@ -1,25 +1,36 @@
 import type { Metadata } from "next";
-import { Mail, Users } from "lucide-react";
+import { BookOpenCheck, Users } from "lucide-react";
 
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppEmptyState } from "@/components/app/AppEmptyState";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
-import {
-  formatTeacherDateTime,
-  getTeacherStudentRows,
-  teacherStudentStatusLabels
-} from "@/lib/teacher";
+import { formatTeacherDateTime } from "@/lib/teacher";
+import { getTeacherStudentTracking } from "@/lib/teacher-service";
+import type { TeacherEnrollmentStatus } from "@/lib/repositories/teacherStudentRepository";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Apprenants enseignant",
-  description: "Consultez les apprenants fictifs inscrits aux formations de l'enseignant.",
+  description: "Consultez les apprenants inscrits à vos formations et leur progression.",
   path: "/app/teacher/students",
   noIndex: true
 });
 
-export default function TeacherStudentsPage() {
-  const studentRows = getTeacherStudentRows();
+const statusLabels: Record<TeacherEnrollmentStatus, string> = {
+  "not-started": "À commencer",
+  "in-progress": "En cours",
+  completed: "Terminé"
+};
+
+function formatLearningTime(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes ? `${hours} h ${remainingMinutes} min` : `${hours} h`;
+}
+
+export default async function TeacherStudentsPage() {
+  const { rows, metrics } = await getTeacherStudentTracking();
 
   return (
     <div className="app-page teacher-page">
@@ -33,7 +44,7 @@ export default function TeacherStudentsPage() {
       <AppPageHeader
         eyebrow="Apprenants"
         title="Suivi des inscrits"
-        description="Liste fictive des apprenants inscrits aux formations de l'enseignant, avec progression et dernière activité."
+        description="Suivez les apprenants inscrits à vos formations, leur progression et leur dernière activité."
       />
 
       <section className="learning-metrics teacher-metrics" aria-label="Synthèse apprenants">
@@ -43,18 +54,16 @@ export default function TeacherStudentsPage() {
           </span>
           <div>
             <small>Apprenants</small>
-            <strong>{studentRows.length}</strong>
+            <strong>{metrics.learnerCount}</strong>
           </div>
         </article>
         <article>
           <span className="learning-metric-icon learning-metric-icon--green">
-            <Mail size={19} aria-hidden="true" />
+            <BookOpenCheck size={19} aria-hidden="true" />
           </span>
           <div>
-            <small>Actifs</small>
-            <strong>
-              {studentRows.filter(({ student }) => student.status === "active").length}
-            </strong>
+            <small>Inscriptions en cours</small>
+            <strong>{metrics.inProgressCount}</strong>
           </div>
         </article>
       </section>
@@ -68,30 +77,36 @@ export default function TeacherStudentsPage() {
           <Users size={20} aria-hidden="true" />
         </div>
 
-        {studentRows.length > 0 ? (
+        {rows.length > 0 ? (
           <div className="teacher-table teacher-table--students">
             <div className="teacher-table__row teacher-table__row--head">
               <span>Nom</span>
-              <span>Email fictif</span>
+              <span>Email</span>
               <span>Formation suivie</span>
               <span>Progression</span>
               <span>Dernière activité</span>
               <span>Statut</span>
             </div>
-            {studentRows.map(({ student, course }) => (
-              <article className="teacher-table__row" key={student.id}>
-                <span>{student.name}</span>
-                <span>{student.email}</span>
-                <span>{course?.title ?? "Formation supprimée"}</span>
-                <span>
-                  <strong>{student.progressPercentage}%</strong>
+            {rows.map((row) => (
+              <article className="teacher-table__row" key={row.enrollmentId}>
+                <span data-label="Nom">{row.learner.name}</span>
+                <span data-label="Email">{row.learner.email}</span>
+                <span data-label="Formation suivie">
+                  <strong>{row.course.title}</strong>
+                  {row.currentLesson ? <small>Étape actuelle : {row.currentLesson.title}</small> : null}
+                </span>
+                <span data-label="Progression">
+                  <strong>{row.progressPercentage}%</strong>
+                  <small>{row.completedLessons}/{row.totalLessons} leçons · {formatLearningTime(row.learningTimeMinutes)}</small>
                   <span className="learning-progress">
-                    <span style={{ width: `${student.progressPercentage}%` }} />
+                    <span style={{ width: `${row.progressPercentage}%` }} />
                   </span>
                 </span>
-                <span>{formatTeacherDateTime(student.lastActivityAt)}</span>
-                <span className="state-badge" data-state={student.status}>
-                  {teacherStudentStatusLabels[student.status]}
+                <span data-label="Dernière activité">{formatTeacherDateTime(row.lastActivityAt)}</span>
+                <span data-label="Statut">
+                  <span className="state-badge" data-state={row.status}>
+                    {statusLabels[row.status]}
+                  </span>
                 </span>
               </article>
             ))}
@@ -100,7 +115,7 @@ export default function TeacherStudentsPage() {
           <AppEmptyState
             description="Les apprenants inscrits aux formations de cet enseignant apparaîtront ici."
             icon={Users}
-            title="Aucun apprenant"
+            title="Aucun apprenant inscrit"
           />
         )}
       </section>

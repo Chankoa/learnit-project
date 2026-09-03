@@ -3,6 +3,7 @@ import "server-only";
 import { requireRole } from "@/lib/auth/server";
 import * as teacherCourseRepository from "@/lib/repositories/teacherCourseRepository";
 import * as teacherResourceRepository from "@/lib/repositories/teacherResourceRepository";
+import * as teacherStudentRepository from "@/lib/repositories/teacherStudentRepository";
 import type { CourseLevel } from "@/types/course";
 import type { LessonType } from "@/types/learning";
 import type { ResourceAccess, ResourceType } from "@/types/resource";
@@ -324,6 +325,21 @@ export async function createTeacherDomain(name: string) {
 export async function getTeacherResources(nextPath = "/app/teacher/resources") {
   const profile = await requireRole("teacher", nextPath);
   return teacherResourceRepository.getTeacherResources(profile.id);
+}
+
+export async function getTeacherStudentTracking(nextPath = "/app/teacher/students") {
+  const profile = await requireRole("teacher", nextPath);
+  const rows = await teacherStudentRepository.getTeacherEnrollmentRows(profile.id);
+
+  return {
+    rows,
+    metrics: {
+      learnerCount: new Set(rows.map(({ learner }) => learner.id)).size,
+      inProgressCount: rows.filter(({ status }) => status === "in-progress").length,
+      notStartedCount: rows.filter(({ status }) => status === "not-started").length,
+      completedCount: rows.filter(({ status }) => status === "completed").length
+    }
+  };
 }
 
 export async function getTeacherStudioCourse(courseId: string, nextPath: string) {

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getCurrentProfile } from "@/lib/auth/server";
+import { calculateProgressCounts, type CourseProgressSummary } from "@/lib/course-progress";
 import { getLmsDataSource } from "@/lib/lms";
 import * as learningRepository from "@/lib/repositories/learningRepository";
 import type { Course, CourseModule } from "@/types/course";
@@ -30,12 +31,6 @@ export type LearnerResourceItem = {
   favorite: boolean;
 };
 
-export type CourseProgressSummary = {
-  completedCount: number;
-  totalLessons: number;
-  percentage: number;
-};
-
 function getPercentage(completed: number, total: number) {
   return total > 0 ? Math.round((completed / total) * 100) : 0;
 }
@@ -52,13 +47,7 @@ function getAccessibleLessons(course: Course) {
 }
 
 export function getCourseProgress(completedLessonIds: Set<string>, totalLessons: number): CourseProgressSummary {
-  const completedCount = completedLessonIds.size;
-
-  return {
-    completedCount,
-    totalLessons,
-    percentage: getPercentage(completedCount, totalLessons)
-  };
+  return calculateProgressCounts(completedLessonIds.size, totalLessons);
 }
 
 function withLearningStatuses(

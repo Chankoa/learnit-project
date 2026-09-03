@@ -2749,6 +2749,20 @@ a.creator-start__option:hover {
   grid-template-columns: 0.8fr 1fr 1.15fr 0.8fr 0.8fr 0.65fr;
 }
 
+.teacher-table--students .teacher-table__row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.teacher-table--students .teacher-table__row > span > small {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-normal);
+}
+
 .teacher-table__row--head {
   border-top: 0;
   color: var(--text-strong);
@@ -4031,7 +4045,8 @@ a.creator-start__option:hover {
 }
 
 .state-badge[data-state="published"],
-.state-badge[data-state="active"] {
+.state-badge[data-state="active"],
+.state-badge[data-state="completed"] {
   background: color-mix(in srgb, var(--status-success) 14%, transparent);
   color: var(--status-success);
 }
@@ -4039,6 +4054,16 @@ a.creator-start__option:hover {
 .state-badge[data-state="review"] {
   background: color-mix(in srgb, var(--status-info) 14%, transparent);
   color: var(--status-info);
+}
+
+.state-badge[data-state="in-progress"] {
+  background: color-mix(in srgb, var(--status-info) 14%, transparent);
+  color: var(--status-info);
+}
+
+.state-badge[data-state="not-started"] {
+  background: color-mix(in srgb, var(--learnit-amber-400) 14%, transparent);
+  color: color-mix(in srgb, var(--learnit-amber-400) 82%, var(--text-strong));
 }
 
 .state-badge[data-state="late"] {
@@ -4167,6 +4192,47 @@ a.creator-start__option:hover {
   .teacher-builder-lesson .teacher-icon-actions {
     grid-column: 2;
     justify-content: flex-start;
+  }
+
+  .teacher-table--students {
+    overflow: visible;
+  }
+
+  .teacher-table--students .teacher-table__row--head {
+    display: none;
+  }
+
+  .teacher-table--students .teacher-table__row:not(.teacher-table__row--head) {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+    padding: var(--space-4) 0;
+  }
+
+  .teacher-table--students .teacher-table__row:not(.teacher-table__row--head) > span {
+    display: grid;
+    grid-template-columns: minmax(7rem, 35%) minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: start;
+  }
+
+  .teacher-table--students .teacher-table__row:not(.teacher-table__row--head) > span::before {
+    content: attr(data-label);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .teacher-table--students .teacher-table__row .learning-progress,
+  .teacher-table--students .teacher-table__row > span > small {
+    grid-column: 2;
+  }
+
+  .teacher-table--students .teacher-table__row > span > .state-badge {
+    grid-column: 2;
+    justify-self: start;
+    width: fit-content;
   }
 
   .teacher-course-cockpit {
