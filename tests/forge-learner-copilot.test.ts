@@ -18,6 +18,10 @@ const migration = readFileSync(
   new URL("../supabase/migrations/20260902090000_learner_forge_copilot.sql", import.meta.url),
   "utf8"
 );
+const hardeningMigration = readFileSync(
+  new URL("../supabase/migrations/20260903092000_harden_learner_course_source_access.sql", import.meta.url),
+  "utf8"
+);
 
 test("Learner Forge uses short, action-specific budgets and low reasoning on GPT-5", () => {
   assert.equal(getMaxOutputTokens("learner_question", 4000), 600);
@@ -63,4 +67,12 @@ test("RLS only exposes ready sources for courses enrolled by the current Learner
   assert.match(migration, /enrollments\.user_id = \(select auth\.uid\(\)\)/);
   assert.match(migration, /public\.current_profile_role\(\) = 'learner'/);
   assert.match(migration, /Learners can insert own ai generation metadata/);
+});
+
+test("Learner course sources and Forge source references require published enrollment access", () => {
+  assert.match(hardeningMigration, /private\.can_read_enrolled_published_course\(course_id\)/);
+  assert.match(hardeningMigration, /private\.can_read_enrolled_published_course\(course_sources\.course_id\)/);
+  assert.match(hardeningMigration, /Learners can read enrolled course source files/);
+  assert.match(hardeningMigration, /Learners can create enrolled ai generation source refs/);
+  assert.match(hardeningMigration, /Learners can read enrolled ai generation source refs/);
 });
