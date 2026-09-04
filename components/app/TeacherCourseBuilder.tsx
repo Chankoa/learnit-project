@@ -15,7 +15,7 @@ import {
   X
 } from "lucide-react";
 import Link from "next/link";
-
+  returnHref={returnToPublication ? `/app/teacher/courses/${course.id}/edit?tab=publication` : canonicalCourseSlug ? `/app/courses/${canonicalCourseSlug}?mode=view` : `/app/teacher/courses/${course.id}/edit`}
 import {
   createTeacherLessonResourceAction,
   createTeacherLessonAction,

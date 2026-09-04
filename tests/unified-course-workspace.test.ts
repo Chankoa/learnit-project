@@ -9,6 +9,7 @@ const lessonRoute = readFileSync(new URL("../app/app/courses/[courseSlug]/lesson
 const exploreRoute = readFileSync(new URL("../app/app/explore/page.tsx", import.meta.url), "utf8");
 const formationRoute = readFileSync(new URL("../app/formations/[slug]/page.tsx", import.meta.url), "utf8");
 const authoringWorkspace = readFileSync(new URL("../components/app/TeacherAuthoringWorkspace.tsx", import.meta.url), "utf8");
+const courseBuilder = readFileSync(new URL("../components/app/TeacherCourseBuilder.tsx", import.meta.url), "utf8");
 
 test("canonical workspace resolves mode from enrollment and contextual capabilities", () => {
   assert.match(resolver, /const hasEditorialRole = profile\.role === "teacher" \|\| profile\.role === "admin"/);
@@ -45,6 +46,11 @@ test("edit mutations preserve the canonical route without weakening server autho
   assert.match(actions, /withParams\(`\/app\/courses\/\$\{canonicalCourseSlug\}`/);
   assert.match(service, /requireRole\("teacher"/);
   assert.match(resolver, /hasEditorialRole/);
+});
+
+test("canonical authoring return opens the course overview in view mode", () => {
+  assert.match(courseBuilder, /canonicalCourseSlug \? `\/app\/courses\/\$\{canonicalCourseSlug\}\?mode=view`/);
+  assert.match(resolver, /if \(requestedMode === "view"\) return "view"/);
 });
 
 test("authoring drawers keep modal keyboard and scroll behavior", () => {
