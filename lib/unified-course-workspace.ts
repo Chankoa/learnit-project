@@ -45,10 +45,11 @@ export async function getUnifiedCourseContext(
 
   const relation = await getCourseCapabilities(profile.id, learning.course.id);
   const capabilities = relation.capabilities;
+  const hasEditorialRole = profile.role === "teacher" || profile.role === "admin";
   const isPublished = learning.course.status === "published";
   const isPublic = isPublished && learning.course.visibility === "public";
   const canLearn = isPublished && relation.isEnrolled;
-  const canEdit = capabilities.includes("edit");
+  const canEdit = hasEditorialRole && capabilities.includes("edit");
   const canView = isPublic || canLearn || capabilities.includes("view") || canEdit;
 
   if (!canView) return undefined;
@@ -66,8 +67,8 @@ export async function getUnifiedCourseContext(
     canEdit,
     canEnroll: isPublic && !relation.isEnrolled,
     canLearn,
-    canManageMembers: capabilities.includes("manage_members"),
-    canPublish: capabilities.includes("publish"),
+    canManageMembers: hasEditorialRole && capabilities.includes("manage_members"),
+    canPublish: hasEditorialRole && capabilities.includes("publish"),
     canView,
     defaultMode,
     isAdmin: relation.isAdmin,

@@ -33,12 +33,13 @@ function single(value: string | string[] | undefined) {
 
 export default async function UnifiedLessonPage({ params, searchParams }: UnifiedLessonPageProps) {
   const [{ courseSlug, lessonSlug }, query] = await Promise.all([params, searchParams]);
-  const nextPath = `/app/courses/${courseSlug}/lessons/${lessonSlug}`;
+  const requestedMode = single(query.mode);
+  const nextPath = `/app/courses/${courseSlug}/lessons/${lessonSlug}${requestedMode ? `?mode=${encodeURIComponent(requestedMode)}` : ""}`;
   await requireAuth(nextPath);
   const profile = await getCurrentProfile();
   if (!profile) redirect(`/login?next=${encodeURIComponent(nextPath)}`);
 
-  const context = await getUnifiedCourseContext(courseSlug, single(query.mode));
+  const context = await getUnifiedCourseContext(courseSlug, requestedMode);
   if (!context) notFound();
   const lesson = context.learning.lessons.find((item) => item.slug === lessonSlug);
   if (!lesson) notFound();

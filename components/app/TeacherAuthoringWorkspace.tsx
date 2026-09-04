@@ -148,6 +148,9 @@ export function TeacherAuthoringWorkspace({
       panel?.querySelector<HTMLButtonElement>("button")?.focus();
     });
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -187,7 +190,10 @@ export function TeacherAuthoringWorkspace({
     };
 
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [activeOverlay]);
 
   const structureHidden =
@@ -422,11 +428,13 @@ export function TeacherAuthoringWorkspace({
           </aside>
         ) : null}
         <aside
+          aria-modal={isStructureOverlay || undefined}
           aria-label="Structure modules et leçons"
           className="teacher-authoring__structure"
           hidden={structureHidden}
           id="teacher-authoring-structure"
           ref={structurePanelRef}
+          role={isStructureOverlay ? "dialog" : undefined}
         >
           <div className="teacher-authoring__panel-header">
             <strong>Structure</strong>
@@ -454,11 +462,13 @@ export function TeacherAuthoringWorkspace({
         </section>
 
         <aside
+          aria-modal={isForgeOverlay || undefined}
           aria-label="Forge AI contextuel"
           className="teacher-authoring__forge"
           hidden={forgeHidden}
           id="teacher-authoring-forge"
           ref={forgePanelRef}
+          role={isForgeOverlay ? "dialog" : undefined}
         >
           {!isForgeOverlay ? (
             <div

@@ -27,7 +27,7 @@ Main `/app`, Mes parcours, Explorer and post-creation entry points now target th
 - global administration;
 - the resolved course capabilities.
 
-It returns course state, relation labels and explicit `canView`, `canEnroll`, `canLearn`, `canEdit`, `canPublish` and `canManageMembers` decisions. Components do not infer these from the global profile role.
+It returns course state, relation labels and explicit `canView`, `canEnroll`, `canLearn`, `canEdit`, `canPublish` and `canManageMembers` decisions. Components consume these server decisions rather than inferring permissions locally. Until editorial RLS is expanded, the resolver intersects edit, publication and participant-management membership capabilities with the existing Teacher/Admin server guard; learning remains role-neutral.
 
 ## Modes
 

@@ -203,7 +203,7 @@ The immediate recommended sequence is U2 membership/capabilities, U3 navigation 
 
 The canonical authenticated workspace is now implemented at `/app/courses/[courseSlug]` and `/app/courses/[courseSlug]/lessons/[lessonSlug]`. This advances the earlier roadmap label “U4” into Sprint 10.U3 because navigation, contextual memberships and role-neutral learning were validated before implementation.
 
-The workspace resolves enrollment, memberships, legacy ownership and capabilities on the server. It defaults to Learn for an enrolled person, Edit for a non-enrolled owner/editor and View for an authenticated public visitor. `?mode=learn|edit|view` makes the choice reproducible but cannot grant authorization.
+The workspace resolves enrollment, memberships, legacy ownership and capabilities on the server. It defaults to Learn for an enrolled person, Edit for a non-enrolled owner/editor with the current editorial authorization, and View for an authenticated public visitor. `?mode=learn|edit|view` makes the choice reproducible but cannot grant authorization.
 
 The learning route composes the current progression, notes, resources and source-aware Forge services. Edit mode composes the existing Teacher builder and Server Actions while preserving canonical returns after mutations. Public `/formations`, `/learn` and `/app/teacher` remain compatibility surfaces. See `docs/architecture/unified-course-workspace.md` for the route and security contract.
 

@@ -23,11 +23,13 @@ function single(value: string | string[] | undefined) {
 
 export default async function UnifiedCoursePage({ params, searchParams }: UnifiedCoursePageProps) {
   const [{ courseSlug }, query] = await Promise.all([params, searchParams]);
-  await requireAuth(`/app/courses/${courseSlug}`);
+  const requestedMode = single(query.mode);
+  const nextPath = `/app/courses/${courseSlug}${requestedMode ? `?mode=${encodeURIComponent(requestedMode)}` : ""}`;
+  await requireAuth(nextPath);
   const profile = await getCurrentProfile();
-  if (!profile) redirect(`/login?next=${encodeURIComponent(`/app/courses/${courseSlug}`)}`);
+  if (!profile) redirect(`/login?next=${encodeURIComponent(nextPath)}`);
 
-  const context = await getUnifiedCourseContext(courseSlug, single(query.mode));
+  const context = await getUnifiedCourseContext(courseSlug, requestedMode);
   if (!context) notFound();
 
   if (context.mode === "edit") {
