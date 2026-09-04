@@ -52,9 +52,8 @@ export async function recordLearningTimeAction(
   revalidateLearning(courseSlug);
 }
 
-export async function saveLessonNoteAction(lessonId: string, content: string, courseSlug: string) {
+export async function saveLessonNoteAction(lessonId: string, content: string) {
   await saveLessonNote(lessonId, content);
-  revalidateLearning(courseSlug);
 }
 
 export async function setResourceFavoriteAction(resourceId: string, favorite: boolean) {
