@@ -378,10 +378,18 @@ export function TeacherAuthoringWorkspace({
             <PanelLeft size={17} aria-hidden="true" />
             Structure
           </button>
+          <Link className="btn btn-secondary teacher-authoring__utility" href={previewHref} target="_blank" rel="noreferrer">
+            <Eye size={17} aria-hidden="true" />
+            Aperçu
+          </Link>
+          <Link className="btn btn-secondary teacher-authoring__utility" href={publicationHref}>
+            <ClipboardCheck size={17} aria-hidden="true" />
+            Publication
+          </Link>
           <button
             aria-controls="teacher-authoring-forge"
             aria-expanded={!forgeHidden}
-            className="btn btn-secondary"
+            className="btn btn-secondary teacher-authoring__forge-toggle"
             disabled={!forgePanel}
             onClick={toggleForge}
             ref={forgeButtonRef}
@@ -390,14 +398,6 @@ export function TeacherAuthoringWorkspace({
             <Sparkles size={17} aria-hidden="true" />
             Forge
           </button>
-          <Link className="btn btn-secondary teacher-authoring__preview" href={previewHref} target="_blank" rel="noreferrer">
-            <Eye size={17} aria-hidden="true" />
-            Aperçu
-          </Link>
-          <Link className="btn btn-secondary teacher-authoring__publication" href={publicationHref}>
-            <ClipboardCheck size={17} aria-hidden="true" />
-            Publication
-          </Link>
         </div>
       </header>
 

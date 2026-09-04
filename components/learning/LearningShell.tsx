@@ -102,7 +102,7 @@ export function LearningShell({
   }, [isMobileMenuOpen]);
 
   return (
-    <div className="learning-shell" data-variant={variant}>
+    <div className={`learning-shell${workspaceContext ? " learning-shell--unified" : ""}`} data-variant={variant}>
       <aside className="learning-sidebar" aria-label="Navigation LearnIt">
         <Link className="learning-sidebar__brand" href="/" aria-label="Retour à LearnIt">
           <LogoMark tone="inverse" />

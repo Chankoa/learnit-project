@@ -6,6 +6,7 @@ const tokens = readFileSync(new URL("../styles/tokens.scss", import.meta.url), "
 const themes = readFileSync(new URL("../styles/themes.scss", import.meta.url), "utf8");
 const globals = readFileSync(new URL("../styles/globals.scss", import.meta.url), "utf8");
 const appStyles = readFileSync(new URL("../styles/app.scss", import.meta.url), "utf8");
+const learningShell = readFileSync(new URL("../components/learning/LearningShell.tsx", import.meta.url), "utf8");
 
 test("DS 1.1 exposes the shared semantic surface and typography tokens", () => {
   for (const token of [
@@ -84,7 +85,7 @@ test("Teacher closure polish keeps resource panels and button icon alignment on 
 });
 
 test("Teacher Focus Mode overrides every desktop grid state on mobile", () => {
-  const mobileQueryStart = appStyles.lastIndexOf("@media (max-width: 899px)");
+  const mobileQueryStart = appStyles.indexOf("@media (max-width: 899px)");
   const mobileQueryEnd = appStyles.indexOf(
     "@keyframes teacher-authoring-drawer-enter",
     mobileQueryStart
@@ -108,4 +109,12 @@ test("Teacher Focus Mode overrides every desktop grid state on mobile", () => {
     /\.teacher-authoring__back\s*\{[\s\S]*?min-height:\s*var\(--target-touch\)/
   );
   assert.match(mobileRules, /height:\s*100dvh/);
+});
+
+test("canonical Learn and Edit share the U4 workspace frame and Forge surface", () => {
+  assert.match(learningShell, /learning-shell--unified/);
+  assert.match(appStyles, /\.learning-shell--unified > \.learning-sidebar \{\s+display: none;/);
+  assert.match(appStyles, /\.learning-shell--unified \.lesson-sidebar \{[\s\S]*?background: var\(--surface-panel\)/);
+  assert.match(appStyles, /\.teacher-authoring__forge,[\s\S]*?background: var\(--surface-ai\)/);
+  assert.match(appStyles, /\.teacher-authoring__actions \.teacher-authoring__forge-toggle/);
 });

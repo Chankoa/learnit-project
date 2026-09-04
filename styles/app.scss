@@ -7900,3 +7900,118 @@ a.creator-start__option:hover {
     transition: none;
   }
 }
+
+/* Sprint 10.U4 - canonical Learn and Edit workspace convergence. */
+.learning-shell--unified {
+  grid-template-columns: minmax(0, 1fr);
+  background: var(--surface-body);
+}
+
+.learning-shell--unified > .learning-sidebar {
+  display: none;
+}
+
+.learning-shell--unified .learning-workspace {
+  background: var(--surface-body);
+}
+
+.learning-shell--unified .learning-header {
+  min-height: 68px;
+  padding: var(--space-2) var(--space-4);
+  background: color-mix(in srgb, var(--surface-panel) 97%, transparent);
+}
+
+.learning-shell--unified .learning-header__page-title {
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-object-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.learning-shell--unified .learning-header__home-link,
+.learning-shell--unified .learning-profile small {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+}
+
+.learning-shell--unified .learner-lesson-workspace {
+  min-height: calc(100dvh - 68px);
+}
+
+.learning-shell--unified .lesson-sidebar {
+  top: 68px;
+  height: calc(100dvh - 68px);
+  background: var(--surface-panel);
+}
+
+.learning-shell--unified .lesson-sidebar__summary,
+.learning-shell--unified .lesson-sidebar__modules details {
+  border-color: var(--border-soft);
+}
+
+.learning-shell--unified .lesson-sidebar__summary h2,
+.learning-shell--unified .lesson-sidebar__modules summary strong,
+.learning-shell--unified .lesson-sidebar__lesson[aria-current="page"] {
+  color: var(--text-primary);
+}
+
+.learning-shell--unified .lesson-sidebar__lesson[aria-current="page"] {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent-primary);
+}
+
+.learning-shell--unified .learner-forge-panel {
+  top: 68px;
+  height: calc(100dvh - 68px);
+  background: var(--surface-ai);
+}
+
+.learning-shell--unified .learner-forge-overlay {
+  inset: 68px 0 0;
+}
+
+.teacher-authoring__actions .teacher-authoring__utility {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.teacher-authoring__actions .teacher-authoring__utility:hover,
+.teacher-authoring__actions .teacher-authoring__utility:focus-visible {
+  border-color: var(--border-soft);
+  background: var(--surface-soft);
+  color: var(--text-primary);
+}
+
+.teacher-authoring__actions .teacher-authoring__forge-toggle {
+  border-color: color-mix(in srgb, var(--accent-primary) 22%, var(--border-soft));
+  background: var(--surface-ai);
+  color: var(--accent-primary);
+}
+
+.teacher-authoring__forge,
+.teacher-authoring__rail--forge {
+  background: var(--surface-ai);
+}
+
+.unified-course-mode-switch {
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 899px) {
+  .learning-shell--unified .learning-header {
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+@media (max-width: 680px) {
+  .learning-shell--unified .learner-forge-panel {
+    top: 0;
+    height: 100dvh;
+  }
+
+  .learning-shell--unified .learner-forge-overlay {
+    inset: 0;
+  }
+}
