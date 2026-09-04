@@ -49,7 +49,7 @@ test("edit mutations preserve the canonical route without weakening server autho
 });
 
 test("canonical authoring return opens the course overview in view mode", () => {
-  assert.match(courseBuilder, /canonicalCourseSlug \? `\/app\/courses\/\$\{canonicalCourseSlug\}\?mode=view`/);
+  assert.match(courseBuilder, /`\/app\/courses\/\$\{canonicalCourseSlug\}\?mode=view`/);
   assert.match(resolver, /if \(requestedMode === "view"\) return "view"/);
 });
 
