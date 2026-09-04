@@ -128,11 +128,12 @@ export async function getUnifiedCourseRelations(profile: CurrentProfile): Promis
       : capabilities.includes("edit")
         ? "Gérer"
         : "Consulter";
-    const primaryHref = primaryLabel === "Continuer" && enrollment?.currentLessonId
-      ? `/learn/${course.slug}`
+    const currentLesson = course.modules.flatMap((module) => module.lessons).find((lesson) => lesson.id === enrollment?.currentLessonId);
+    const primaryHref = primaryLabel === "Continuer" && currentLesson
+      ? `/app/courses/${course.slug}/lessons/${currentLesson.slug}?mode=learn`
       : primaryLabel === "Gérer"
-        ? `/app/teacher/courses/${course.id}/edit`
-        : `/learn/${course.slug}`;
+        ? `/app/courses/${course.slug}?mode=edit`
+        : `/app/courses/${course.slug}`;
 
     return [{
       course,

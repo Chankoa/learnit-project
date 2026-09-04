@@ -4,6 +4,8 @@ import Link from "next/link";
 import type { Lesson } from "@/types/learning";
 
 type LessonNavigationProps = {
+  basePath?: string;
+  overviewHref?: string;
   courseSlug: string;
   previousLesson?: Lesson;
   nextLesson?: Lesson;
@@ -14,14 +16,19 @@ function getLessonStateLabel(lesson: Lesson) {
 }
 
 export function LessonNavigation({
+  basePath,
+  overviewHref,
   courseSlug,
   previousLesson,
   nextLesson
 }: LessonNavigationProps) {
+  const courseBasePath = basePath ?? `/learn/${courseSlug}`;
+  const courseOverviewHref = overviewHref ?? `/learn/${courseSlug}`;
+
   return (
     <nav className="lesson-navigation" aria-label="Navigation entre les leçons">
       {previousLesson ? (
-        <Link href={`/learn/${courseSlug}/${previousLesson.slug}`}>
+        <Link href={`${courseBasePath}/${previousLesson.slug}`}>
           <ArrowLeft size={18} aria-hidden="true" />
           <span>
             <small>Leçon précédente · {getLessonStateLabel(previousLesson)}</small>
@@ -33,7 +40,7 @@ export function LessonNavigation({
       )}
 
       {nextLesson ? (
-        <Link href={`/learn/${courseSlug}/${nextLesson.slug}`}>
+        <Link href={`${courseBasePath}/${nextLesson.slug}`}>
           <span>
             <small>Leçon suivante · {getLessonStateLabel(nextLesson)}</small>
             <strong>{nextLesson.title}</strong>
@@ -41,7 +48,7 @@ export function LessonNavigation({
           <ArrowRight size={18} aria-hidden="true" />
         </Link>
       ) : (
-        <Link href={`/learn/${courseSlug}`}>
+        <Link href={courseOverviewHref}>
           <span>
             <small>Parcours terminé</small>
             <strong>Retour à la formation</strong>

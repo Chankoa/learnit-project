@@ -53,9 +53,12 @@ function withParams(path: string, params: Record<string, string | undefined>) {
 
 function getBuilderPath(
   courseId: string,
-  params: Record<string, string | undefined> = {}
+  params: Record<string, string | undefined> = {},
+  canonicalCourseSlug?: string
 ) {
-  return withParams(`/app/teacher/courses/${courseId}/builder`, params);
+  return canonicalCourseSlug
+    ? withParams(`/app/courses/${canonicalCourseSlug}`, { mode: "edit", ...params })
+    : withParams(`/app/teacher/courses/${courseId}/builder`, params);
 }
 
 function getEditPath(courseId: string, params: Record<string, string | undefined> = {}) {
@@ -68,12 +71,14 @@ function revalidateTeacherCourse(courseId: string, courseSlug?: string) {
   revalidatePath("/app/teacher/resources");
   revalidatePath(`/app/teacher/courses/${courseId}/edit`);
   revalidatePath(`/app/teacher/courses/${courseId}/builder`);
+  revalidatePath("/app/courses");
   revalidatePath("/formations");
 
   if (courseSlug) {
     revalidatePath(`/formations/${courseSlug}`);
     revalidatePath(`/formations/${courseSlug}/curriculum`);
     revalidatePath(`/learn/${courseSlug}`);
+    revalidatePath(`/app/courses/${courseSlug}`);
   }
 }
 
@@ -102,7 +107,7 @@ export async function createTeacherCourseAction(formData: FormData) {
   try {
     const course = await createTeacherCourse(formData);
     revalidateTeacherCourse(course.id, course.slug);
-    destination = getEditPath(course.id, { message: "Formation créée en brouillon." });
+    destination = withParams(`/app/courses/${course.slug}`, { mode: "edit", message: "Parcours créé en brouillon." });
   } catch (error) {
     destination = withParams("/app/teacher/courses/new", { error: getErrorMessage(error) });
   }
@@ -124,8 +129,8 @@ export async function updateTeacherCourseAction(courseId: string, formData: Form
   redirect(destination);
 }
 
-export async function createTeacherModuleAction(courseId: string) {
-  let destination = getBuilderPath(courseId);
+export async function createTeacherModuleAction(courseId: string, canonicalCourseSlug?: string) {
+  let destination = getBuilderPath(courseId, {}, canonicalCourseSlug);
 
   try {
     const module = await createTeacherModule(courseId);
@@ -133,9 +138,9 @@ export async function createTeacherModuleAction(courseId: string) {
     destination = getBuilderPath(courseId, {
       message: "Module ajouté.",
       module: module.id
-    });
+    }, canonicalCourseSlug);
   } catch (error) {
-    destination = getBuilderPath(courseId, { error: getErrorMessage(error) });
+    destination = getBuilderPath(courseId, { error: getErrorMessage(error) }, canonicalCourseSlug);
   }
 
   redirect(destination);
@@ -144,10 +149,11 @@ export async function createTeacherModuleAction(courseId: string) {
 export async function updateTeacherModuleAction(
   courseId: string,
   moduleId: string,
+  canonicalCourseSlug: string | undefined,
   formData: FormData
 ) {
   const from = formData.get("returnTo") === "publication" ? "publication" : undefined;
-  let destination = getBuilderPath(courseId, { from, module: moduleId });
+  let destination = getBuilderPath(courseId, { from, module: moduleId }, canonicalCourseSlug);
 
   try {
     const module = await updateTeacherModule(courseId, moduleId, formData);
@@ -156,13 +162,13 @@ export async function updateTeacherModuleAction(
       message: "Module enregistré.",
       from,
       module: module.id
-    });
+    }, canonicalCourseSlug);
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
       from,
       module: moduleId
-    });
+    }, canonicalCourseSlug);
   }
 
   redirect(destination);
@@ -171,9 +177,10 @@ export async function updateTeacherModuleAction(
 export async function moveTeacherModuleAction(
   courseId: string,
   moduleId: string,
-  direction: -1 | 1
+  direction: -1 | 1,
+  canonicalCourseSlug?: string
 ) {
-  let destination = getBuilderPath(courseId, { module: moduleId });
+  let destination = getBuilderPath(courseId, { module: moduleId }, canonicalCourseSlug);
 
   try {
     await moveTeacherModule(courseId, moduleId, direction);
@@ -181,36 +188,36 @@ export async function moveTeacherModuleAction(
     destination = getBuilderPath(courseId, {
       message: "Ordre des modules mis à jour.",
       module: moduleId
-    });
+    }, canonicalCourseSlug);
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
       module: moduleId
-    });
+    }, canonicalCourseSlug);
   }
 
   redirect(destination);
 }
 
-export async function deleteTeacherModuleAction(courseId: string, moduleId: string) {
-  let destination = getBuilderPath(courseId);
+export async function deleteTeacherModuleAction(courseId: string, moduleId: string, canonicalCourseSlug?: string) {
+  let destination = getBuilderPath(courseId, {}, canonicalCourseSlug);
 
   try {
     await deleteTeacherModule(courseId, moduleId);
     revalidateTeacherCourse(courseId);
-    destination = getBuilderPath(courseId, { message: "Module supprimé." });
+    destination = getBuilderPath(courseId, { message: "Module supprimé." }, canonicalCourseSlug);
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
       module: moduleId
-    });
+    }, canonicalCourseSlug);
   }
 
   redirect(destination);
 }
 
-export async function createTeacherLessonAction(courseId: string, moduleId: string) {
-  let destination = getBuilderPath(courseId, { module: moduleId });
+export async function createTeacherLessonAction(courseId: string, moduleId: string, canonicalCourseSlug?: string) {
+  let destination = getBuilderPath(courseId, { module: moduleId }, canonicalCourseSlug);
 
   try {
     const lesson = await createTeacherLesson(courseId, moduleId);
@@ -218,12 +225,12 @@ export async function createTeacherLessonAction(courseId: string, moduleId: stri
     destination = getBuilderPath(courseId, {
       lesson: lesson.id,
       message: "Leçon ajoutée."
-    });
+    }, canonicalCourseSlug);
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
       module: moduleId
-    });
+    }, canonicalCourseSlug);
   }
 
   redirect(destination);
@@ -232,10 +239,11 @@ export async function createTeacherLessonAction(courseId: string, moduleId: stri
 export async function updateTeacherLessonAction(
   courseId: string,
   lessonId: string,
+  canonicalCourseSlug: string | undefined,
   formData: FormData
 ) {
   const from = formData.get("returnTo") === "publication" ? "publication" : undefined;
-  let destination = getBuilderPath(courseId, { from, lesson: lessonId });
+  let destination = getBuilderPath(courseId, { from, lesson: lessonId }, canonicalCourseSlug);
 
   try {
     const lesson = await updateTeacherLesson(courseId, lessonId, formData);
@@ -244,13 +252,13 @@ export async function updateTeacherLessonAction(
       lesson: lesson.id,
       from,
       message: "Leçon enregistrée."
-    });
+    }, canonicalCourseSlug);
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
       from,
       lesson: lessonId
-    });
+    }, canonicalCourseSlug);
   }
 
   redirect(destination);
@@ -260,9 +268,10 @@ export async function moveTeacherLessonAction(
   courseId: string,
   moduleId: string,
   lessonId: string,
-  direction: -1 | 1
+  direction: -1 | 1,
+  canonicalCourseSlug?: string
 ) {
-  let destination = getBuilderPath(courseId, { lesson: lessonId });
+  let destination = getBuilderPath(courseId, { lesson: lessonId }, canonicalCourseSlug);
 
   try {
     await moveTeacherLesson(courseId, moduleId, lessonId, direction);
@@ -270,19 +279,19 @@ export async function moveTeacherLessonAction(
     destination = getBuilderPath(courseId, {
       lesson: lessonId,
       message: "Ordre des leçons mis à jour."
-    });
+    }, canonicalCourseSlug);
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
       lesson: lessonId
-    });
+    }, canonicalCourseSlug);
   }
 
   redirect(destination);
 }
 
-export async function deleteTeacherLessonAction(courseId: string, lessonId: string, moduleId: string) {
-  let destination = getBuilderPath(courseId, { module: moduleId });
+export async function deleteTeacherLessonAction(courseId: string, lessonId: string, moduleId: string, canonicalCourseSlug?: string) {
+  let destination = getBuilderPath(courseId, { module: moduleId }, canonicalCourseSlug);
 
   try {
     await deleteTeacherLesson(courseId, lessonId);
@@ -290,12 +299,12 @@ export async function deleteTeacherLessonAction(courseId: string, lessonId: stri
     destination = getBuilderPath(courseId, {
       message: "Leçon supprimée.",
       module: moduleId
-    });
+    }, canonicalCourseSlug);
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
       lesson: lessonId
-    });
+    }, canonicalCourseSlug);
   }
 
   redirect(destination);
@@ -304,9 +313,10 @@ export async function deleteTeacherLessonAction(courseId: string, lessonId: stri
 export async function createTeacherLessonResourceAction(
   courseId: string,
   lessonId: string,
+  canonicalCourseSlug: string | undefined,
   formData: FormData
 ) {
-  let destination = getBuilderPath(courseId, { lesson: lessonId });
+  let destination = getBuilderPath(courseId, { lesson: lessonId }, canonicalCourseSlug);
 
   try {
     await createTeacherLessonResource(courseId, lessonId, formData);
@@ -314,12 +324,12 @@ export async function createTeacherLessonResourceAction(
     destination = getBuilderPath(courseId, {
       lesson: lessonId,
       message: "Ressource ajoutée."
-    });
+    }, canonicalCourseSlug);
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
       lesson: lessonId
-    });
+    }, canonicalCourseSlug);
   }
 
   redirect(destination);
@@ -328,9 +338,10 @@ export async function createTeacherLessonResourceAction(
 export async function uploadTeacherLessonResourceAction(
   courseId: string,
   lessonId: string,
+  canonicalCourseSlug: string | undefined,
   formData: FormData
 ) {
-  let destination = getBuilderPath(courseId, { lesson: lessonId });
+  let destination = getBuilderPath(courseId, { lesson: lessonId }, canonicalCourseSlug);
 
   try {
     await uploadTeacherLessonResource(courseId, lessonId, formData);
@@ -338,12 +349,12 @@ export async function uploadTeacherLessonResourceAction(
     destination = getBuilderPath(courseId, {
       lesson: lessonId,
       message: "Fichier téléversé."
-    });
+    }, canonicalCourseSlug);
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
       lesson: lessonId
-    });
+    }, canonicalCourseSlug);
   }
 
   redirect(destination);
@@ -352,22 +363,23 @@ export async function uploadTeacherLessonResourceAction(
 export async function deleteTeacherLessonResourceAction(
   courseId: string,
   lessonId: string,
-  resourceId: string
+  resourceId: string,
+  canonicalCourseSlug?: string
 ) {
-  let destination = getBuilderPath(courseId, { lesson: lessonId });
+  let destination = getBuilderPath(courseId, { lesson: lessonId }, canonicalCourseSlug);
 
   try {
-    await deleteTeacherResource(resourceId, getBuilderPath(courseId, { lesson: lessonId }));
+    await deleteTeacherResource(resourceId, getBuilderPath(courseId, { lesson: lessonId }, canonicalCourseSlug));
     revalidateTeacherCourse(courseId);
     destination = getBuilderPath(courseId, {
       lesson: lessonId,
       message: "Ressource supprimée."
-    });
+    }, canonicalCourseSlug);
   } catch (error) {
     destination = getBuilderPath(courseId, {
       error: getErrorMessage(error),
       lesson: lessonId
-    });
+    }, canonicalCourseSlug);
   }
 
   redirect(destination);

@@ -7,10 +7,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { CourseOutlineRail } from "@/components/app/CourseOutlineRail";
 import type { Course, CourseModule } from "@/types/course";
 import type { Lesson, LessonStatus } from "@/types/learning";
 
 type LessonSidebarProps = {
+  basePath?: string;
+  courseHref?: string;
   course: Course;
   modules: CourseModule[];
   currentLessonId?: string;
@@ -31,11 +34,11 @@ function LessonStateIcon({ status }: { status: LessonStatus }) {
 }
 
 function LessonItem({
-  courseSlug,
+  basePath,
   lesson,
   isCurrent
 }: {
-  courseSlug: string;
+  basePath: string;
   lesson: Lesson;
   isCurrent: boolean;
 }) {
@@ -60,7 +63,7 @@ function LessonItem({
       aria-current={isCurrent ? "page" : undefined}
       className="lesson-sidebar__lesson"
       data-status={status}
-      href={`/learn/${courseSlug}/${lesson.slug}`}
+      href={`${basePath}/${lesson.slug}`}
     >
       {content}
     </Link>
@@ -68,15 +71,20 @@ function LessonItem({
 }
 
 export function LessonSidebar({
+  basePath,
+  courseHref,
   course,
   modules,
   currentLessonId,
   percentage
 }: LessonSidebarProps) {
+  const courseBasePath = basePath ?? `/learn/${course.slug}`;
+  const overviewHref = courseHref ?? `/learn/${course.slug}`;
+
   return (
-    <aside className="lesson-sidebar" aria-label={`Parcours ${course.title}`}>
+    <CourseOutlineRail className="lesson-sidebar" label={`Parcours ${course.title}`}>
       <div className="lesson-sidebar__summary">
-        <Link href={`/learn/${course.slug}`}>Retour au parcours</Link>
+        <Link href={overviewHref}>Retour au parcours</Link>
         <h2>{course.title}</h2>
         <div className="learning-progress" aria-label={`${percentage}% de progression`}>
           <span style={{ width: `${percentage}%` }} />
@@ -98,7 +106,7 @@ export function LessonSidebar({
             <div>
               {module.lessons.map((lesson) => (
                 <LessonItem
-                  courseSlug={course.slug}
+                  basePath={courseBasePath}
                   isCurrent={lesson.id === currentLessonId}
                   key={lesson.id}
                   lesson={lesson}
@@ -108,6 +116,6 @@ export function LessonSidebar({
           </details>
         ))}
       </div>
-    </aside>
+    </CourseOutlineRail>
   );
 }

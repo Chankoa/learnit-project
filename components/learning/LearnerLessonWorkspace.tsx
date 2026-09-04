@@ -29,6 +29,12 @@ type LearnerLessonWorkspaceProps = {
   mobileDrawerContent: ReactNode;
   sidebar: ReactNode;
   sourceSummary: { count: number; titles: string[] };
+  workspaceContext?: {
+    headerActions?: ReactNode;
+    homeHref: string;
+    homeLabel: string;
+    relationLabel?: string;
+  };
 };
 
 const actions: Array<{
@@ -61,7 +67,8 @@ export function LearnerLessonWorkspace({
   lessonTitle,
   mobileDrawerContent,
   sidebar,
-  sourceSummary
+  sourceSummary,
+  workspaceContext
 }: LearnerLessonWorkspaceProps) {
   const [isForgeOpen, setIsForgeOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -267,12 +274,13 @@ export function LearnerLessonWorkspace({
 
   return (
     <LearningShell
-      headerActions={forgeTrigger}
+      headerActions={<>{workspaceContext?.headerActions}{forgeTrigger}</>}
       identity={identity}
       learner={learner}
       mobileDrawerContent={mobileDrawerContent}
       pageTitle={courseTitle}
       variant="lesson"
+      workspaceContext={workspaceContext}
     >
       <div className="learner-lesson-workspace" data-forge-open={isForgeOpen}>
         {sidebar}

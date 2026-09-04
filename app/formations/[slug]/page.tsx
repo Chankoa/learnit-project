@@ -65,7 +65,7 @@ export default async function FormationPage({ params }: FormationPageProps) {
     : [undefined, undefined];
   const primaryCta = !profile
     ? {
-        href: `/login?next=${encodeURIComponent(`/learn/${course.slug}`)}`,
+        href: `/login?next=${encodeURIComponent(`/app/courses/${course.slug}`)}`,
         label: "Se connecter pour s'inscrire"
       }
     : learningState?.enrollment
@@ -75,11 +75,11 @@ export default async function FormationPage({ params }: FormationPageProps) {
         }
       : capabilities?.capabilities.includes("edit")
         ? {
-            href: `/app/teacher/courses/${course.id}/edit`,
+            href: `/app/courses/${course.slug}?mode=edit`,
             label: "Gérer le parcours"
           }
       : {
-          href: `/learn/${course.slug}`,
+          href: `/app/courses/${course.slug}`,
           label: "S'inscrire à la formation"
         };
   const modules = course.modules;

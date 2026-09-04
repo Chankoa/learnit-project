@@ -16,6 +16,8 @@ function revalidateLearning(courseSlug: string) {
   revalidatePath("/app/learner/courses");
   revalidatePath("/app/learner/progress");
   revalidatePath(`/learn/${courseSlug}`);
+  revalidatePath(`/app/courses/${courseSlug}`);
+  revalidatePath(`/app/courses/${courseSlug}/lessons`);
   revalidatePath("/dashboard");
 }
 

@@ -30,7 +30,9 @@ import {
   updateTeacherModuleAction
 } from "@/app/app/teacher/courses/actions";
 import { TeacherConfirmForm } from "@/components/app/TeacherConfirmForm";
+import { CourseOutlineRail } from "@/components/app/CourseOutlineRail";
 import { TeacherAuthoringWorkspace } from "@/components/app/TeacherAuthoringWorkspace";
+import { UnifiedCourseModeSwitch } from "@/components/app/UnifiedCourseModeSwitch";
 import { TeacherLessonTabs } from "@/components/app/TeacherLessonTabs";
 import { TeacherModuleDisclosure } from "@/components/app/TeacherModuleDisclosure";
 import { ForgeLessonAssistant } from "@/components/app/ForgeLessonAssistant";
@@ -57,6 +59,8 @@ import type { ResourceAccess, ResourceType } from "@/types/resource";
 import type { TeacherCourse } from "@/types/teaching";
 
 type TeacherCourseBuilderProps = {
+  canonicalCourseSlug?: string;
+  canonicalLearnHref?: string;
   course: TeacherCourse;
   error?: string;
   message?: string;
@@ -65,6 +69,8 @@ type TeacherCourseBuilderProps = {
   selectedLessonId?: string;
   selectedModuleId?: string;
   sourceCount: number;
+  relationLabel?: string;
+  showLearnMode?: boolean;
 };
 
 const lessonTypeOptions = Object.entries(lessonTypeLabels) as Array<[LessonType, string]>;
@@ -80,7 +86,8 @@ const statusOptions = [
 
 function getBuilderHref(
   courseId: string,
-  params: Record<string, string | undefined>
+  params: Record<string, string | undefined>,
+  canonicalCourseSlug?: string
 ) {
   const searchParams = new URLSearchParams();
 
@@ -91,7 +98,12 @@ function getBuilderHref(
   });
 
   const query = searchParams.toString();
-  return query ? `/app/teacher/courses/${courseId}/builder?${query}` : `/app/teacher/courses/${courseId}/builder`;
+  const path = canonicalCourseSlug
+    ? `/app/courses/${canonicalCourseSlug}`
+    : `/app/teacher/courses/${courseId}/builder`;
+  if (canonicalCourseSlug) searchParams.set("mode", "edit");
+  const canonicalQuery = searchParams.toString();
+  return canonicalQuery ? `${path}?${canonicalQuery}` : path;
 }
 
 function toLines(values?: string[]) {
@@ -99,6 +111,8 @@ function toLines(values?: string[]) {
 }
 
 export function TeacherCourseBuilder({
+  canonicalCourseSlug,
+  canonicalLearnHref,
   course,
   error,
   message,
@@ -106,7 +120,9 @@ export function TeacherCourseBuilder({
   returnToPublication = false,
   selectedLessonId,
   selectedModuleId,
-  sourceCount
+  sourceCount,
+  relationLabel,
+  showLearnMode = false
 }: TeacherCourseBuilderProps) {
   const selectedLesson = getLessonById(course, selectedLessonId);
   const selectedModule =
@@ -117,7 +133,7 @@ export function TeacherCourseBuilder({
   const lessonContentTextareaId = selectedLesson ? `lesson-content-${selectedLesson.id}` : undefined;
   const previewLesson = getLessonById(course, previewLessonId);
   const previewModule = previewLesson ? getModuleForLesson(course, previewLesson) : undefined;
-  const addModuleAction = createTeacherModuleAction.bind(null, course.id);
+  const addModuleAction = createTeacherModuleAction.bind(null, course.id, canonicalCourseSlug);
   const navigationOrigin = returnToPublication ? "publication" : undefined;
 
   return (
@@ -166,7 +182,7 @@ export function TeacherCourseBuilder({
                   </div>
                 </div>
                 <form
-                  action={updateTeacherModuleAction.bind(null, course.id, selectedModule.id)}
+                  action={updateTeacherModuleAction.bind(null, course.id, selectedModule.id, canonicalCourseSlug)}
                   className="teacher-form-grid"
                 >
                   {returnToPublication ? <input name="returnTo" type="hidden" value="publication" /> : null}
@@ -221,7 +237,7 @@ export function TeacherCourseBuilder({
                         from: navigationOrigin,
                         lesson: selectedLesson.id,
                         preview: selectedLesson.id
-                      })}
+                      }, canonicalCourseSlug)}
                     >
                       <Eye size={16} aria-hidden="true" />
                       Prévisualiser le rendu
@@ -230,7 +246,7 @@ export function TeacherCourseBuilder({
                 </div>
                 <TeacherLessonTabs lessonId={selectedLesson.id}>
                 <form
-                  action={updateTeacherLessonAction.bind(null, course.id, selectedLesson.id)}
+                  action={updateTeacherLessonAction.bind(null, course.id, selectedLesson.id, canonicalCourseSlug)}
                   className="teacher-builder-editor__stack"
                 >
                   {returnToPublication ? <input name="returnTo" type="hidden" value="publication" /> : null}
@@ -353,7 +369,8 @@ export function TeacherCourseBuilder({
                               null,
                               course.id,
                               selectedLesson.id,
-                              resource.id
+                              resource.id,
+                              canonicalCourseSlug
                             )}
                             message="Supprimer cette ressource ? Le fichier associé sera aussi supprimé si nécessaire."
                           >
@@ -376,7 +393,7 @@ export function TeacherCourseBuilder({
 
                   <div className="teacher-resource-forms">
                     <form
-                      action={createTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id)}
+                      action={createTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id, canonicalCourseSlug)}
                       className="teacher-resource-form"
                     >
                       <header className="teacher-resource-form__header">
@@ -431,7 +448,7 @@ export function TeacherCourseBuilder({
                     </form>
 
                     <form
-                      action={uploadTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id)}
+                      action={uploadTeacherLessonResourceAction.bind(null, course.id, selectedLesson.id, canonicalCourseSlug)}
                       className="teacher-resource-form"
                     >
                       <header className="teacher-resource-form__header">
@@ -527,15 +544,25 @@ export function TeacherCourseBuilder({
           ) : undefined
         }
         meta={<>{formatModuleCount(course.modules.length)} · {formatLessonCount(course.modules.reduce((total, module) => total + module.lessons.length, 0))} · {getTeacherCourseDuration(course)} min</>}
+        modeActions={canonicalCourseSlug && showLearnMode ? (
+          <UnifiedCourseModeSwitch
+            canEdit
+            canLearn
+            editHref={`/app/courses/${canonicalCourseSlug}?mode=edit${selectedLesson ? `&lesson=${selectedLesson.id}` : ""}`}
+            learnHref={canonicalLearnHref ?? `/app/courses/${canonicalCourseSlug}?mode=learn`}
+            mode="edit"
+          />
+        ) : null}
         previewHref={`/app/teacher/courses/${course.id}/preview`}
         publicationHref={`/app/teacher/courses/${course.id}/edit?tab=publication`}
-        returnHref={returnToPublication ? `/app/teacher/courses/${course.id}/edit?tab=publication` : `/app/teacher/courses/${course.id}/edit`}
+        returnHref={returnToPublication ? `/app/teacher/courses/${course.id}/edit?tab=publication` : canonicalCourseSlug ? `/app/courses/${canonicalCourseSlug}` : `/app/teacher/courses/${course.id}/edit`}
         returnLabel={returnToPublication ? "Retour à la publication" : "Retour à la formation"}
+        relationLabel={relationLabel}
         selectedId={selectedLesson?.id ?? selectedModule?.id}
         selectedKind={selectedLesson ? `Leçon ${selectedLesson.order}` : selectedModule ? `Module ${selectedModule.order}` : undefined}
         selectedTitle={selectedLesson?.title ?? selectedModule?.title}
         structure={
-        <div className="teacher-builder__outline">
+        <CourseOutlineRail as="div" className="teacher-builder__outline" label="Structure éditoriale du parcours">
           <div className="teacher-builder__outline-heading">
             <div>
               <span>Structure</span>
@@ -561,7 +588,7 @@ export function TeacherCourseBuilder({
             ) : null}
 
             {course.modules.map((module, moduleIndex) => {
-              const addLessonAction = createTeacherLessonAction.bind(null, course.id, module.id);
+              const addLessonAction = createTeacherLessonAction.bind(null, course.id, module.id, canonicalCourseSlug);
 
               const lessonListId = `teacher-module-lessons-${module.id}`;
               const containsSelectedLesson = module.lessons.some((lesson) => lesson.id === selectedLesson?.id);
@@ -570,7 +597,7 @@ export function TeacherCourseBuilder({
                 <TeacherModuleDisclosure
                   actions={
                     <div className="teacher-icon-actions">
-                      <form action={moveTeacherModuleAction.bind(null, course.id, module.id, -1)}>
+                      <form action={moveTeacherModuleAction.bind(null, course.id, module.id, -1, canonicalCourseSlug)}>
                         <button
                           aria-label="Déplacer le module vers le haut"
                           disabled={moduleIndex === 0}
@@ -580,7 +607,7 @@ export function TeacherCourseBuilder({
                           <ArrowUp size={16} aria-hidden="true" />
                         </button>
                       </form>
-                      <form action={moveTeacherModuleAction.bind(null, course.id, module.id, 1)}>
+                      <form action={moveTeacherModuleAction.bind(null, course.id, module.id, 1, canonicalCourseSlug)}>
                         <button
                           aria-label="Déplacer le module vers le bas"
                           disabled={moduleIndex === course.modules.length - 1}
@@ -591,7 +618,7 @@ export function TeacherCourseBuilder({
                         </button>
                       </form>
                       <TeacherConfirmForm
-                        action={deleteTeacherModuleAction.bind(null, course.id, module.id)}
+                        action={deleteTeacherModuleAction.bind(null, course.id, module.id, canonicalCourseSlug)}
                         message="Supprimer ce module ? Cette action est autorisée seulement si le module est vide."
                       >
                         <button aria-label="Supprimer le module" title="Supprimer le module" type="submit">
@@ -607,7 +634,7 @@ export function TeacherCourseBuilder({
                     <Link
                       aria-current={selectedModule?.id === module.id && !selectedLesson ? "page" : undefined}
                       className="teacher-builder-module__select"
-                      href={getBuilderHref(course.id, { from: navigationOrigin, module: module.id })}
+                      href={getBuilderHref(course.id, { from: navigationOrigin, module: module.id }, canonicalCourseSlug)}
                     >
                       <span>Module {module.order}</span>
                       <strong>{module.title}</strong>
@@ -638,7 +665,7 @@ export function TeacherCourseBuilder({
                         <Link
                           aria-current={selectedLesson?.id === lesson.id ? "page" : undefined}
                           className="teacher-builder-lesson__select"
-                          href={getBuilderHref(course.id, { from: navigationOrigin, lesson: lesson.id })}
+                          href={getBuilderHref(course.id, { from: navigationOrigin, lesson: lesson.id }, canonicalCourseSlug)}
                         >
                           <span>{lesson.order}</span>
                           <div>
@@ -658,8 +685,9 @@ export function TeacherCourseBuilder({
                                 null,
                                 course.id,
                                 module.id,
-                                lesson.id,
-                                -1
+                                 lesson.id,
+                                 -1,
+                                 canonicalCourseSlug
                               )}
                             >
                               <button
@@ -676,8 +704,9 @@ export function TeacherCourseBuilder({
                                 null,
                                 course.id,
                                 module.id,
-                                lesson.id,
-                                1
+                                 lesson.id,
+                                 1,
+                                 canonicalCourseSlug
                               )}
                             >
                               <button
@@ -690,7 +719,7 @@ export function TeacherCourseBuilder({
                               </button>
                             </form>
                             <TeacherConfirmForm
-                              action={deleteTeacherLessonAction.bind(null, course.id, lesson.id, module.id)}
+                              action={deleteTeacherLessonAction.bind(null, course.id, lesson.id, module.id, canonicalCourseSlug)}
                               message="Supprimer cette leçon ? Seules les leçons en brouillon sont supprimables."
                             >
                               <button aria-label="Supprimer la leçon" title="Supprimer la leçon" type="submit">
@@ -713,7 +742,7 @@ export function TeacherCourseBuilder({
               );
             })}
           </div>
-        </div>
+        </CourseOutlineRail>
         }
       />
 
@@ -730,7 +759,7 @@ export function TeacherCourseBuilder({
               </div>
               <Link
                 aria-label="Fermer la prévisualisation"
-                href={getBuilderHref(course.id, { from: navigationOrigin, lesson: previewLesson.id })}
+                href={getBuilderHref(course.id, { from: navigationOrigin, lesson: previewLesson.id }, canonicalCourseSlug)}
               >
                 <X size={18} aria-hidden="true" />
               </Link>

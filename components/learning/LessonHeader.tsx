@@ -6,6 +6,8 @@ import type { Course, CourseModule } from "@/types/course";
 import type { Lesson, LessonType } from "@/types/learning";
 
 type LessonHeaderProps = {
+  courseBasePath?: string;
+  coursesHref?: string;
   course: Course;
   lesson: Lesson;
   module?: CourseModule;
@@ -19,7 +21,13 @@ const lessonTypeLabels: Record<LessonType, string> = {
   project: "Projet"
 };
 
-export function LessonHeader({ course, lesson, module }: LessonHeaderProps) {
+export function LessonHeader({
+  course,
+  courseBasePath = `/learn/${course.slug}`,
+  coursesHref = "/app/learner/courses",
+  lesson,
+  module
+}: LessonHeaderProps) {
   return (
     <header className="lesson-header">
       <div className="lesson-header__context">
@@ -27,9 +35,9 @@ export function LessonHeader({ course, lesson, module }: LessonHeaderProps) {
         <p>{module ? `${course.title} · ${module.title}` : course.title}</p>
       </div>
       <nav className="lesson-breadcrumb" aria-label="Fil d'Ariane">
-        <Link href="/app/learner/courses">Mes apprentissages</Link>
+        <Link href={coursesHref}>Mes parcours</Link>
         <ChevronRight size={14} aria-hidden="true" />
-        <Link href={`/learn/${course.slug}`}>{course.title}</Link>
+        <Link href={courseBasePath}>{course.title}</Link>
         {module ? (
           <>
             <ChevronRight size={14} aria-hidden="true" />

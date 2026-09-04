@@ -36,10 +36,12 @@ type TeacherAuthoringWorkspaceProps = {
   editor: ReactNode;
   forgePanel?: ReactNode;
   meta: ReactNode;
+  modeActions?: ReactNode;
   previewHref: string;
   publicationHref: string;
   returnHref: string;
   returnLabel: string;
+  relationLabel?: string;
   selectedId?: string;
   selectedKind?: string;
   selectedTitle?: string;
@@ -74,10 +76,12 @@ export function TeacherAuthoringWorkspace({
   editor,
   forgePanel,
   meta,
+  modeActions,
   previewHref,
   publicationHref,
   returnHref,
   returnLabel,
+  relationLabel,
   selectedId,
   selectedKind,
   selectedTitle,
@@ -350,12 +354,13 @@ export function TeacherAuthoringWorkspace({
         </Link>
 
         <div className="teacher-authoring__identity">
-          <span>{courseTitle}</span>
+          <span>{relationLabel ?? courseTitle}</span>
           <strong>{selectedTitle ?? "Parcours"}</strong>
-          <small>{selectedKind ? `${selectedKind} sélectionné · ` : ""}{meta}</small>
+          <small>{relationLabel ? `${courseTitle} · ` : ""}{selectedKind ? `${selectedKind} sélectionné · ` : ""}{meta}</small>
         </div>
 
         <div className="teacher-authoring__actions">
+          {modeActions}
           <button
             aria-controls="teacher-authoring-structure"
             aria-expanded={!structureHidden}
