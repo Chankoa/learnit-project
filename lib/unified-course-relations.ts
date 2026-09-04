@@ -114,9 +114,12 @@ export async function getUnifiedCourseRelations(profile: CurrentProfile): Promis
     const roles = isLegacyOwner && !membershipsForCourse.includes("owner")
       ? [...membershipsForCourse, "owner" as const]
       : membershipsForCourse;
-    const capabilities = profile.role === "admin"
+    const roleCapabilities = profile.role === "admin"
       ? capabilityByRole.owner
       : [...new Set(roles.flatMap((role) => capabilityByRole[role]))];
+    const capabilities = profile.role === "teacher" || profile.role === "admin"
+      ? roleCapabilities
+      : roleCapabilities.filter((capability) => !["edit", "publish", "manage_members"].includes(capability));
     const accessibleLessonIds = course.modules.flatMap((module) => module.lessons).filter((lesson) => lesson.status !== "locked").map((lesson) => lesson.id);
     const courseProgress = progressRows.filter((progress) => progress.course_id === course.id);
     const progress = calculateCourseProgress(courseProgress.filter((item) => item.completed).map((item) => item.lesson_id), accessibleLessonIds);
@@ -128,11 +131,12 @@ export async function getUnifiedCourseRelations(profile: CurrentProfile): Promis
       : capabilities.includes("edit")
         ? "Gérer"
         : "Consulter";
-    const primaryHref = primaryLabel === "Continuer" && enrollment?.currentLessonId
-      ? `/learn/${course.slug}`
+    const currentLesson = course.modules.flatMap((module) => module.lessons).find((lesson) => lesson.id === enrollment?.currentLessonId);
+    const primaryHref = primaryLabel === "Continuer" && currentLesson
+      ? `/app/courses/${course.slug}/lessons/${currentLesson.slug}?mode=learn`
       : primaryLabel === "Gérer"
-        ? `/app/teacher/courses/${course.id}/edit`
-        : `/learn/${course.slug}`;
+        ? `/app/courses/${course.slug}?mode=edit`
+        : `/app/courses/${course.slug}`;
 
     return [{
       course,

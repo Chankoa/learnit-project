@@ -28,6 +28,11 @@ type LearningShellProps = {
   mobileDrawerContent?: ReactNode;
   pageTitle: string;
   variant?: "default" | "lesson";
+  workspaceContext?: {
+    homeHref: string;
+    homeLabel: string;
+    relationLabel?: string;
+  };
 };
 
 export function LearningShell({
@@ -37,7 +42,8 @@ export function LearningShell({
   headerActions,
   mobileDrawerContent,
   pageTitle,
-  variant = "default"
+  variant = "default",
+  workspaceContext
 }: LearningShellProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -60,7 +66,30 @@ export function LearningShell({
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        event.preventDefault();
         closeMobileMenu();
+        return;
+      }
+
+      if (event.key !== "Tab" || !drawerRef.current) {
+        return;
+      }
+
+      const focusable = Array.from(
+        drawerRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((element) => element.getClientRects().length > 0);
+      const first = focusable[0];
+      const last = focusable.at(-1);
+
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     }
 
@@ -74,7 +103,7 @@ export function LearningShell({
 
   return (
     <div className="learning-shell" data-variant={variant}>
-      <aside className="learning-sidebar" aria-label="Navigation de l'espace apprenant">
+      <aside className="learning-sidebar" aria-label="Navigation LearnIt">
         <Link className="learning-sidebar__brand" href="/" aria-label="Retour à LearnIt">
           <LogoMark tone="inverse" />
         </Link>
@@ -114,9 +143,9 @@ export function LearningShell({
           <div className="learning-header__title">
             {variant === "lesson" ? (
               <>
-                <Link className="learning-context-return" href="/app/learner">
+                <Link className="learning-context-return" href={workspaceContext?.homeHref ?? "/app/learner"}>
                   <ChevronLeft size={18} aria-hidden="true" />
-                  Retour au tableau de bord
+                  {workspaceContext ? `Retour à ${workspaceContext.homeLabel}` : "Retour au tableau de bord"}
                 </Link>
                 <button
                   aria-expanded={isMobileMenuOpen}
@@ -151,8 +180,8 @@ export function LearningShell({
               </button>
             )}
             <div>
-              <Link className="learning-header__home-link" href="/app/learner">
-                Espace apprenant
+              <Link className="learning-header__home-link" href={workspaceContext?.homeHref ?? "/app/learner"}>
+                {workspaceContext?.homeLabel ?? "Espace apprenant"}
               </Link>
               {variant === "lesson" ? (
                 <p className="learning-header__page-title">{pageTitle}</p>
@@ -169,7 +198,7 @@ export function LearningShell({
               <span>{identity?.avatarUrl ? <img alt="" src={identity.avatarUrl} /> : identity?.initials ?? learner.initials}</span>
               <div>
                 <strong>{identity?.name ?? learner.firstName}</strong>
-                <small>Apprenant</small>
+                <small>{workspaceContext?.relationLabel ?? "Apprenant"}</small>
               </div>
             </div>
           </div>
@@ -191,7 +220,7 @@ export function LearningShell({
                   <X size={20} aria-hidden="true" />
                 </button>
               </div>
-              {learnerNavigation.map((item) => {
+              {workspaceContext ? null : learnerNavigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = isNavigationItemActive(item, pathname);
 
@@ -209,9 +238,9 @@ export function LearningShell({
                 );
               })}
               {mobileDrawerContent ? <div className="learning-mobile-drawer__context">{mobileDrawerContent}</div> : null}
-              <Link href="/" onClick={closeMobileMenu}>
+              <Link href={workspaceContext?.homeHref ?? "/"} onClick={closeMobileMenu}>
                 <ChevronLeft size={18} aria-hidden="true" />
-                Retour au site
+                {workspaceContext ? workspaceContext.homeLabel : "Retour au site"}
               </Link>
             </nav>
           </div>
@@ -220,7 +249,7 @@ export function LearningShell({
         <main className="learning-main" id="main-content">{children}</main>
       </div>
 
-      <nav className="learning-mobile-nav" aria-label="Navigation apprenant principale">
+      {!workspaceContext ? <nav className="learning-mobile-nav" aria-label="Navigation apprenant principale">
         {learnerNavigation.slice(0, 4).map((item) => {
           const Icon = item.icon;
           const isActive = isNavigationItemActive(item, pathname);
@@ -237,7 +266,7 @@ export function LearningShell({
             </Link>
           );
         })}
-      </nav>
+      </nav> : null}
     </div>
   );
 }

@@ -16,6 +16,8 @@ function revalidateLearning(courseSlug: string) {
   revalidatePath("/app/learner/courses");
   revalidatePath("/app/learner/progress");
   revalidatePath(`/learn/${courseSlug}`);
+  revalidatePath(`/app/courses/${courseSlug}`);
+  revalidatePath(`/app/courses/${courseSlug}/lessons`);
   revalidatePath("/dashboard");
 }
 
@@ -50,9 +52,8 @@ export async function recordLearningTimeAction(
   revalidateLearning(courseSlug);
 }
 
-export async function saveLessonNoteAction(lessonId: string, content: string, courseSlug: string) {
+export async function saveLessonNoteAction(lessonId: string, content: string) {
   await saveLessonNote(lessonId, content);
-  revalidateLearning(courseSlug);
 }
 
 export async function setResourceFavoriteAction(resourceId: string, favorite: boolean) {

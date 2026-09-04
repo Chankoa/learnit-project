@@ -199,6 +199,14 @@ Meaningful reuse and every remix need a lightweight provenance relation: origina
 
 The immediate recommended sequence is U2 membership/capabilities, U3 navigation and Mes parcours, then U4 workspace convergence. U5 must not begin until authorization, source scope and provenance policy are implemented and tested.
 
+## U3 canonical workspace implementation
+
+The canonical authenticated workspace is now implemented at `/app/courses/[courseSlug]` and `/app/courses/[courseSlug]/lessons/[lessonSlug]`. This advances the earlier roadmap label “U4” into Sprint 10.U3 because navigation, contextual memberships and role-neutral learning were validated before implementation.
+
+The workspace resolves enrollment, memberships, legacy ownership and capabilities on the server. It defaults to Learn for an enrolled person, Edit for a non-enrolled owner/editor with the current editorial authorization, and View for an authenticated public visitor. `?mode=learn|edit|view` makes the choice reproducible but cannot grant authorization.
+
+The learning route composes the current progression, notes, resources and source-aware Forge services. Edit mode composes the existing Teacher builder and Server Actions while preserving canonical returns after mutations. Public `/formations`, `/learn` and `/app/teacher` remain compatibility surfaces. See `docs/architecture/unified-course-workspace.md` for the route and security contract.
+
 ## U2 implementation note
 
 U2 adopts `participant` rather than `learner` for the contextual membership role. This keeps enrollment as the sole pedagogical relationship while leaving membership focused on access and collaboration. The first visible convergence is the unified `/app` shell and `Mes parcours`; legacy Learner and Teacher deep links remain supported.

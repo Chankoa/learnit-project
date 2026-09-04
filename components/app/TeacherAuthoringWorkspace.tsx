@@ -36,10 +36,12 @@ type TeacherAuthoringWorkspaceProps = {
   editor: ReactNode;
   forgePanel?: ReactNode;
   meta: ReactNode;
+  modeActions?: ReactNode;
   previewHref: string;
   publicationHref: string;
   returnHref: string;
   returnLabel: string;
+  relationLabel?: string;
   selectedId?: string;
   selectedKind?: string;
   selectedTitle?: string;
@@ -74,10 +76,12 @@ export function TeacherAuthoringWorkspace({
   editor,
   forgePanel,
   meta,
+  modeActions,
   previewHref,
   publicationHref,
   returnHref,
   returnLabel,
+  relationLabel,
   selectedId,
   selectedKind,
   selectedTitle,
@@ -144,6 +148,9 @@ export function TeacherAuthoringWorkspace({
       panel?.querySelector<HTMLButtonElement>("button")?.focus();
     });
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -183,7 +190,10 @@ export function TeacherAuthoringWorkspace({
     };
 
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [activeOverlay]);
 
   const structureHidden =
@@ -350,12 +360,13 @@ export function TeacherAuthoringWorkspace({
         </Link>
 
         <div className="teacher-authoring__identity">
-          <span>{courseTitle}</span>
+          <span>{relationLabel ?? courseTitle}</span>
           <strong>{selectedTitle ?? "Parcours"}</strong>
-          <small>{selectedKind ? `${selectedKind} sélectionné · ` : ""}{meta}</small>
+          <small>{relationLabel ? `${courseTitle} · ` : ""}{selectedKind ? `${selectedKind} sélectionné · ` : ""}{meta}</small>
         </div>
 
         <div className="teacher-authoring__actions">
+          {modeActions}
           <button
             aria-controls="teacher-authoring-structure"
             aria-expanded={!structureHidden}
@@ -417,11 +428,13 @@ export function TeacherAuthoringWorkspace({
           </aside>
         ) : null}
         <aside
+          aria-modal={isStructureOverlay || undefined}
           aria-label="Structure modules et leçons"
           className="teacher-authoring__structure"
           hidden={structureHidden}
           id="teacher-authoring-structure"
           ref={structurePanelRef}
+          role={isStructureOverlay ? "dialog" : undefined}
         >
           <div className="teacher-authoring__panel-header">
             <strong>Structure</strong>
@@ -449,11 +462,13 @@ export function TeacherAuthoringWorkspace({
         </section>
 
         <aside
+          aria-modal={isForgeOverlay || undefined}
           aria-label="Forge AI contextuel"
           className="teacher-authoring__forge"
           hidden={forgeHidden}
           id="teacher-authoring-forge"
           ref={forgePanelRef}
+          role={isForgeOverlay ? "dialog" : undefined}
         >
           {!isForgeOverlay ? (
             <div

@@ -4420,6 +4420,285 @@ a.creator-start__option:hover {
   }
 }
 
+/* Unified Parcours workspace ------------------------------------------------ */
+
+.unified-course-overview {
+  max-width: 76rem;
+}
+
+.unified-course-header {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding-block: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.unified-course-header > div:first-child {
+  display: grid;
+  min-width: 0;
+  max-width: 48rem;
+  gap: var(--space-2);
+}
+
+.unified-course-header > div:first-child > span,
+.unified-course-program__heading > div > span {
+  color: var(--accent-primary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+}
+
+.unified-course-header h1 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-page-title);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+}
+
+.unified-course-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.unified-course-header__relations,
+.unified-course-header__actions,
+.unified-course-mode-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.unified-course-header__relations > span {
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 24%, var(--border-soft));
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  padding: var(--space-1) var(--space-2);
+  color: var(--accent-primary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+}
+
+.unified-course-header__actions {
+  justify-content: flex-end;
+}
+
+.unified-course-mode-switch {
+  flex-wrap: nowrap;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface-soft);
+  padding: var(--space-1);
+}
+
+.unified-course-mode-switch a {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
+  padding-inline: var(--space-3);
+  color: var(--text-secondary);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+}
+
+.unified-course-mode-switch a:hover,
+.unified-course-mode-switch a:focus-visible {
+  color: var(--text-primary);
+}
+
+.unified-course-mode-switch a[data-active="true"] {
+  background: var(--surface-panel);
+  color: var(--accent-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.unified-course-mode-switch a:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.teacher-authoring__actions > .unified-course-mode-switch {
+  margin-right: var(--space-1);
+}
+
+.unified-course-overview__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.unified-course-overview__metrics article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface-panel);
+}
+
+.unified-course-overview__metrics svg {
+  grid-row: 1 / 3;
+  color: var(--accent-primary);
+}
+
+.unified-course-overview__metrics span {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.unified-course-overview__metrics strong {
+  color: var(--text-primary);
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.unified-course-program {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  background: var(--surface-panel);
+}
+
+.unified-course-program__heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.unified-course-program__heading h2 {
+  margin: var(--space-1) 0 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-object-title);
+}
+
+.unified-course-program details {
+  border-top: 1px solid var(--border-soft);
+}
+
+.unified-course-program summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 64px;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.unified-course-program summary > span,
+.unified-course-program summary > small {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.unified-course-program details > div {
+  display: grid;
+  padding: 0 0 var(--space-3) var(--space-4);
+}
+
+.unified-course-program details > div > a,
+.unified-course-program details > div > div {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  border-left: 1px solid var(--border-soft);
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-secondary);
+}
+
+.unified-course-program details > div > a:hover,
+.unified-course-program details > div > a:focus-visible {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+
+.unified-course-program details > div strong {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+}
+
+.unified-course-program details > div small,
+.unified-course-program details > div span {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+}
+
+@media (max-width: 900px) {
+  .unified-course-header {
+    display: grid;
+  }
+
+  .unified-course-header__actions {
+    justify-content: flex-start;
+  }
+
+  .unified-course-overview__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .teacher-authoring__actions > .unified-course-mode-switch {
+    order: 5;
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .teacher-authoring__actions > .unified-course-mode-switch a {
+    flex: 1;
+  }
+}
+
+@media (max-width: 560px) {
+  .unified-course-header h1 {
+    font-size: var(--font-size-object-title);
+  }
+
+  .unified-course-header__actions,
+  .unified-course-mode-switch {
+    width: 100%;
+  }
+
+  .unified-course-header__actions > .btn,
+  .unified-course-mode-switch a {
+    flex: 1;
+  }
+
+  .unified-course-overview__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .unified-course-program {
+    padding: var(--space-4);
+  }
+
+  .unified-course-program details > div {
+    padding-left: 0;
+  }
+
+  .unified-course-program details > div > a,
+  .unified-course-program details > div > div {
+    grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+  }
+
+  .unified-course-program details > div svg {
+    display: none;
+  }
+}
+
 /* Sprint 10.U2 - unified application surfaces. */
 .unified-home,
 .unified-courses,

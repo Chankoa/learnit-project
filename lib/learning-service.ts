@@ -192,7 +192,9 @@ export async function getLearningCourseState(courseSlug: string): Promise<Learni
           : resumeLesson
             ? "Continuer"
             : "Voir le parcours",
-    ctaHref: resumeLesson ? `/learn/${course.slug}/${resumeLesson.slug}` : `/learn/${course.slug}`
+    ctaHref: resumeLesson
+      ? `/app/courses/${course.slug}/lessons/${resumeLesson.slug}?mode=learn`
+      : `/app/courses/${course.slug}`
   };
 }
 

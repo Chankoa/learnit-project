@@ -44,8 +44,8 @@ test("Explorer stays public-only while relation-aware CTAs and formation CTA use
   assert.match(explorePage, /getLmsCatalog\(\)/);
   assert.match(explorePage, /getUnifiedCourseRelations\(profile\)/);
   assert.match(explorePage, /relation\?\.primaryLabel \?\? "Consulter"/);
-  assert.match(formationPage, /getCourseCapabilities\(profile\.id, course\.id\)/);
-  assert.match(formationPage, /learningState\?\.enrollment/);
+  assert.match(formationPage, /getUnifiedCourseContext\(course\.slug\)/);
+  assert.match(formationPage, /context\?\.canLearn/);
   assert.doesNotMatch(formationPage, /profile\.role === "learner"/);
 });
 
