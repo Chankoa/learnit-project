@@ -6,6 +6,12 @@ This document defines the target authorization model for Forge. It is a design c
 
 The immediate compatibility constraint is Sprint 10.L3.RLS. Its current helpers protect enrolled-course reads and teacher access to enrolled learner data via `profiles.role`, `enrollments` and `courses.teacher_id`. U2 must introduce new helpers alongside these policies, validate parity, then migrate one table/policy family at a time.
 
+## U4.2 implementation note
+
+`profiles.role` is now a compatibility property for `learner` and `teacher`, not a decision point for learning or owner authoring. Public registration stores the stable internal compatibility value `learner` without presenting a role choice. Every active account can create a Parcours. Creation persists the account in `courses.teacher_id`, and a database trigger ensures one active `owner` membership for that same account in the transaction.
+
+Authoring mutations currently remain owner-scoped: `teacher_id = auth.uid()` plus an active profile is required for courses, modules, lessons, resources, course sources, authoring Forge metadata, participant follow-up and relevant Storage paths. Active `editor` memberships are intentionally not mutation-capable yet; this avoids claiming partial collaboration before repositories and RLS are ready. Enrollment remains learning-only and cannot grant edit access. `profiles.role = admin` remains the separate global privileged role.
+
 ## Recommendation: contextual roles backed by capability sets
 
 Use a hybrid model:

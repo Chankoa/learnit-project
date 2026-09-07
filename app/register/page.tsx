@@ -1,9 +1,10 @@
+import { getSafeNextPath } from "@/lib/auth/redirects";
+
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { registerAction } from "@/app/auth/actions";
 import { AuthSubmitButton } from "@/components/auth/AuthSubmitButton";
-import { publicRegistrationRoles } from "@/lib/auth/role-governance";
 
 type RegisterPageProps = {
   searchParams?: Promise<{
@@ -16,13 +17,6 @@ export const metadata: Metadata = {
   title: "Créer un compte"
 };
 
-function getSafeNextPath(value?: string) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/app";
-  }
-
-  return value;
-}
 
 export default async function RegisterPage({ searchParams }: RegisterPageProps) {
   const params = await searchParams;
@@ -34,7 +28,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
         <div className="auth-card__heading">
           <span className="eyebrow w-fit">Compte LearnIt</span>
           <h1 id="register-title">Créer un compte</h1>
-          <p>Un profil sera créé dans Supabase et rattaché à votre compte d'authentification.</p>
+          <p>Votre compte LearnIt pour apprendre et créer des parcours.</p>
         </div>
 
         {params?.error ? <p className="auth-alert" role="alert">{params.error}</p> : null}
@@ -52,16 +46,6 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
           <label>
             <span>Mot de passe</span>
             <input name="password" type="password" autoComplete="new-password" minLength={8} required />
-          </label>
-          <label>
-            <span>Type de compte</span>
-            <select name="role" defaultValue="learner">
-              {publicRegistrationRoles.map((role) => (
-                <option key={role.value} value={role.value}>
-                  {role.label}
-                </option>
-              ))}
-            </select>
           </label>
           <AuthSubmitButton label="Créer le compte" pendingLabel="Création..." />
         </form>

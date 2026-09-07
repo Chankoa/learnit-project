@@ -46,11 +46,11 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link className="btn btn-secondary hidden lg:inline-flex" href="/app">Accéder à LearnIt</Link>
+          <Link className="btn btn-secondary hidden lg:inline-flex" href="/login">Se connecter</Link>
 
           <ThemeToggle />
-          <Link className="btn btn-primary hidden sm:inline-flex" href="/login">
-            Se connecter
+          <Link className="btn btn-primary hidden sm:inline-flex" href="/register">
+            Créer un compte
           </Link>
           <button
             aria-expanded={isMenuOpen}
@@ -87,14 +87,14 @@ export function Header() {
               );
             })}
 
-            <Link className="mobile-platform-menu__link" href="/app" onClick={closeMenu}>Accéder à LearnIt</Link>
+            <Link className="mobile-platform-menu__link" href="/login" onClick={closeMenu}>Se connecter</Link>
 
             <Link
               className="btn btn-primary mt-3 w-full"
-              href="/login"
+              href="/register"
               onClick={closeMenu}
             >
-              Se connecter
+              Créer un compte
             </Link>
           </nav>
         </div>

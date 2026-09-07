@@ -318,6 +318,8 @@ async function deleteSource(teacherId: string, sourceId: string) {
     throw new Error("Source introuvable ou non modifiable.");
   }
 
+  await assertOwnedCourse(supabase, teacherId, source.courseId);
+
   const { error } = await supabase
     .from("course_sources")
     .delete()

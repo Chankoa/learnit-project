@@ -1,14 +1,9 @@
+import { getSafeNextPath } from "@/lib/auth/redirects";
+
 import { NextResponse } from "next/server";
 
 import { createOptionalClient } from "@/lib/supabase/server";
 
-function getSafeNextPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/app";
-  }
-
-  return value;
-}
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requireRole } from "@/lib/auth/server";
+import { requireCourseCapability, requireCourseCreationAccess } from "@/lib/auth/course-authoring";
 import * as teacherCourseRepository from "@/lib/repositories/teacherCourseRepository";
 import * as teacherResourceRepository from "@/lib/repositories/teacherResourceRepository";
 import * as teacherStudentRepository from "@/lib/repositories/teacherStudentRepository";
@@ -280,7 +280,7 @@ export function getDefaultLessonInput(): teacherCourseRepository.TeacherLessonIn
 }
 
 export async function getTeacherStudioDashboard(nextPath = "/app/teacher"): Promise<TeacherDashboardData> {
-  const profile = await requireRole("teacher", nextPath);
+  const profile = await requireCourseCreationAccess(nextPath);
   const courses = await teacherCourseRepository.getTeacherCourses(profile.id);
   const sortedCourses = [...courses].sort(
     (first, second) => new Date(second.updatedAt).getTime() - new Date(first.updatedAt).getTime()
@@ -303,7 +303,7 @@ export async function getTeacherStudioDashboard(nextPath = "/app/teacher"): Prom
 }
 
 export async function getTeacherStudioCourses(nextPath = "/app/teacher/courses") {
-  const profile = await requireRole("teacher", nextPath);
+  const profile = await requireCourseCreationAccess(nextPath);
   return teacherCourseRepository.getTeacherCourses(profile.id);
 }
 
@@ -312,7 +312,7 @@ export async function getTeacherStudioDomains() {
 }
 
 export async function createTeacherDomain(name: string) {
-  const profile = await requireRole("teacher", "/app/teacher/courses/new");
+  const profile = await requireCourseCreationAccess("/app/create");
   const normalizedName = name.replace(/\s+/g, " ").trim();
 
   if (!normalizedName) {
@@ -323,12 +323,12 @@ export async function createTeacherDomain(name: string) {
 }
 
 export async function getTeacherResources(nextPath = "/app/teacher/resources") {
-  const profile = await requireRole("teacher", nextPath);
+  const profile = await requireCourseCreationAccess(nextPath);
   return teacherResourceRepository.getTeacherResources(profile.id);
 }
 
 export async function getTeacherStudentTracking(nextPath = "/app/teacher/students") {
-  const profile = await requireRole("teacher", nextPath);
+  const profile = await requireCourseCreationAccess(nextPath);
   const rows = await teacherStudentRepository.getTeacherEnrollmentRows(profile.id);
 
   return {
@@ -343,12 +343,12 @@ export async function getTeacherStudentTracking(nextPath = "/app/teacher/student
 }
 
 export async function getTeacherStudioCourse(courseId: string, nextPath: string) {
-  const profile = await requireRole("teacher", nextPath);
+  const profile = await requireCourseCapability(courseId, "edit", nextPath);
   return teacherCourseRepository.getTeacherCourse(profile.id, courseId);
 }
 
 export async function createTeacherCourse(formData: FormData) {
-  const profile = await requireRole("teacher", "/app/teacher/courses/new");
+  const profile = await requireCourseCreationAccess("/app/create");
   const course = await teacherCourseRepository.createCourse(profile.id, parseTeacherCourseForm(formData));
   const coverFile = getFile(formData, "coverFile");
 
@@ -365,7 +365,7 @@ export async function createTeacherCourse(formData: FormData) {
 }
 
 export async function updateTeacherCourse(courseId: string, formData: FormData) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/edit`);
+  const profile = await requireCourseCapability(courseId);
   const course = await teacherCourseRepository.updateCourse(profile.id, courseId, parseTeacherCourseForm(formData));
   const coverFile = getFile(formData, "coverFile");
 
@@ -382,12 +382,12 @@ export async function updateTeacherCourse(courseId: string, formData: FormData) 
 }
 
 export async function createTeacherModule(courseId: string) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  const profile = await requireCourseCapability(courseId);
   return teacherCourseRepository.createModule(profile.id, courseId, getDefaultModuleInput());
 }
 
 export async function updateTeacherModule(courseId: string, moduleId: string, formData: FormData) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  const profile = await requireCourseCapability(courseId);
   return teacherCourseRepository.updateModule(
     profile.id,
     courseId,
@@ -397,22 +397,22 @@ export async function updateTeacherModule(courseId: string, moduleId: string, fo
 }
 
 export async function moveTeacherModule(courseId: string, moduleId: string, direction: -1 | 1) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  const profile = await requireCourseCapability(courseId);
   return teacherCourseRepository.moveModule(profile.id, courseId, moduleId, direction);
 }
 
 export async function deleteTeacherModule(courseId: string, moduleId: string) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  const profile = await requireCourseCapability(courseId);
   return teacherCourseRepository.deleteModule(profile.id, courseId, moduleId);
 }
 
 export async function createTeacherLesson(courseId: string, moduleId: string) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  const profile = await requireCourseCapability(courseId);
   return teacherCourseRepository.createLesson(profile.id, courseId, moduleId, getDefaultLessonInput());
 }
 
 export async function updateTeacherLesson(courseId: string, lessonId: string, formData: FormData) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  const profile = await requireCourseCapability(courseId);
   return teacherCourseRepository.updateLesson(
     profile.id,
     courseId,
@@ -426,7 +426,7 @@ export async function createTeacherLessonResource(
   lessonId: string | undefined,
   formData: FormData
 ) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  const profile = await requireCourseCapability(courseId);
   return teacherResourceRepository.createResource(
     profile.id,
     parseTeacherResourceForm(courseId, lessonId, formData)
@@ -438,7 +438,7 @@ export async function uploadTeacherLessonResource(
   lessonId: string | undefined,
   formData: FormData
 ) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  const profile = await requireCourseCapability(courseId);
   return teacherResourceRepository.createFileResource(
     profile.id,
     parseTeacherFileResourceForm(courseId, lessonId, formData)
@@ -449,7 +449,7 @@ export async function deleteTeacherResource(
   resourceId: string,
   nextPath = "/app/teacher/resources"
 ) {
-  const profile = await requireRole("teacher", nextPath);
+  const profile = await requireCourseCreationAccess(nextPath);
   return teacherResourceRepository.deleteResource(profile.id, resourceId);
 }
 
@@ -459,17 +459,17 @@ export async function moveTeacherLesson(
   lessonId: string,
   direction: -1 | 1
 ) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  const profile = await requireCourseCapability(courseId);
   return teacherCourseRepository.moveLesson(profile.id, courseId, moduleId, lessonId, direction);
 }
 
 export async function deleteTeacherLesson(courseId: string, lessonId: string) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/builder`);
+  const profile = await requireCourseCapability(courseId);
   return teacherCourseRepository.deleteLesson(profile.id, courseId, lessonId);
 }
 
 export async function publishTeacherCourse(courseId: string) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/edit`);
+  const profile = await requireCourseCapability(courseId, "publish");
   const course = await teacherCourseRepository.getTeacherCourse(profile.id, courseId);
 
   if (!course) {
@@ -488,7 +488,7 @@ export async function publishTeacherCourse(courseId: string) {
 }
 
 export async function unpublishTeacherCourse(courseId: string) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/edit`);
+  const profile = await requireCourseCapability(courseId, "publish");
   const course = await teacherCourseRepository.getTeacherCourse(profile.id, courseId);
 
   if (!course || course.status !== "published") {

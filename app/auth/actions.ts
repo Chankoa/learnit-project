@@ -1,5 +1,7 @@
 "use server";
 
+import { getSafeNextPath } from "@/lib/auth/redirects";
+
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { AuthError } from "@supabase/supabase-js";
@@ -7,8 +9,8 @@ import type { AuthError } from "@supabase/supabase-js";
 import { getPublicAppUrl } from "@/lib/config/runtime";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createOptionalClient, isSupabaseConfigured } from "@/lib/supabase/server";
-import { normalizePublicRegistrationRole } from "@/lib/auth/role-governance";
-import { getCurrentProfile, getProfileHomePath, type ProfileRole } from "@/lib/auth/server";
+import { publicRegistrationCompatibilityRole } from "@/lib/auth/role-governance";
+import { getCurrentProfile } from "@/lib/auth/server";
 
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -16,13 +18,6 @@ function getString(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function getSafeNextPath(value?: string) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/app";
-  }
-
-  return value;
-}
 
 function getAuthRedirectUrl(nextPath: string) {
   const baseUrl = getPublicAppUrl();
@@ -49,14 +44,6 @@ function redirectWithParams(path: string, params: Record<string, string | undefi
 
 function redirectWithMessage(path: string, key: "error" | "message", message: string): never {
   redirectWithParams(path, { [key]: message });
-}
-
-function getRequestedRole(formData: FormData): ProfileRole {
-  return normalizePublicRegistrationRole(getString(formData, "role"));
-}
-
-function getRegistrationNextPath(role: ProfileRole) {
-  return getProfileHomePath(role);
 }
 
 function getAuthErrorDetails(error: AuthError) {
@@ -175,7 +162,7 @@ export async function loginAction(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect(getProfileHomePath(profile.role));
+  redirect(nextPath);
 }
 
 export async function registerAction(formData: FormData) {
@@ -186,8 +173,8 @@ export async function registerAction(formData: FormData) {
   const name = getString(formData, "name");
   const email = getString(formData, "email").toLowerCase();
   const password = getString(formData, "password");
-  const role = getRequestedRole(formData);
-  const nextPath = getRegistrationNextPath(role);
+  const role = publicRegistrationCompatibilityRole;
+  const nextPath = getSafeNextPath(getString(formData, "next"));
 
   if (!name || !email || !password) {
     redirectWithMessage("/register", "error", "Nom, email et mot de passe requis.");

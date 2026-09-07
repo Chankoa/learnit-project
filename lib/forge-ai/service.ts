@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requireRole } from "@/lib/auth/server";
+import { requireCourseCapability, requireCourseCreationAccess } from "@/lib/auth/course-authoring";
 import { getForgeAIConfig } from "@/lib/forge-ai/config";
 import { logForgeGeneration } from "@/lib/forge-ai/generation-log";
 import { ForgeAIProviderError, getForgeAIProvider } from "@/lib/forge-ai/provider";
@@ -308,16 +308,13 @@ export async function getForgeCourseSources(
   courseId?: string,
   nextPath = "/app/teacher/courses/forge"
 ): Promise<CourseSource[]> {
-  const profile = await requireRole("teacher", nextPath);
+  const profile = await (courseId ? requireCourseCapability(courseId, "edit", nextPath) : requireCourseCreationAccess(nextPath));
   return forgeSourceRepository.getSources(profile.id, courseId);
 }
 
 export async function uploadForgeCourseSource(formData: FormData): Promise<CourseSource> {
   const courseId = getString(formData, "courseId") || undefined;
-  const profile = await requireRole(
-    "teacher",
-    courseId ? `/app/teacher/courses/${courseId}/edit` : "/app/teacher/courses/forge"
-  );
+  const profile = await (courseId ? requireCourseCapability(courseId) : requireCourseCreationAccess("/app/create"));
   const file = getFile(formData, "sourceFile");
 
   if (!file) {
@@ -335,10 +332,7 @@ export async function uploadForgeCourseSource(formData: FormData): Promise<Cours
 export async function addForgeCourseUrlSource(formData: FormData): Promise<CourseSource> {
   const courseId = getString(formData, "courseId") || undefined;
   const originalUrl = getString(formData, "sourceUrl");
-  const profile = await requireRole(
-    "teacher",
-    courseId ? `/app/teacher/courses/${courseId}/edit` : "/app/teacher/courses/forge"
-  );
+  const profile = await (courseId ? requireCourseCapability(courseId) : requireCourseCreationAccess("/app/create"));
   const retrieved = await retrieveUrlSource(originalUrl);
   const requestedTitle = getString(formData, "sourceTitle");
 
@@ -354,17 +348,14 @@ export async function addForgeCourseUrlSource(formData: FormData): Promise<Cours
 }
 
 export async function deleteForgeCourseSource(sourceId: string, courseId?: string) {
-  const profile = await requireRole(
-    "teacher",
-    courseId ? `/app/teacher/courses/${courseId}/edit` : "/app/teacher/courses/forge"
-  );
+  const profile = await (courseId ? requireCourseCapability(courseId) : requireCourseCreationAccess("/app/create"));
   return forgeSourceRepository.deleteSource(profile.id, sourceId);
 }
 
 export async function generateForgeCourseProposal(
   input: CourseBrief
 ): Promise<ForgeCourseProposal> {
-  const profile = await requireRole("teacher", "/app/teacher/courses/forge");
+  const profile = await requireCourseCreationAccess("/app/create");
   const startedAt = Date.now();
   const sanitized = sanitizeBrief(input);
   assertCourseBrief(sanitized);
@@ -416,7 +407,7 @@ export async function generateForgeCourseProposal(
 }
 
 export async function importForgeCourseProposal(input: ForgeCourseImportInput) {
-  const profile = await requireRole("teacher", "/app/teacher/courses/forge");
+  const profile = await requireCourseCreationAccess("/app/create");
   const proposal = validateForgeCourseProposal(input.proposal);
   const modules = getSelectedModules({
     ...input,
@@ -484,7 +475,7 @@ export async function importForgeCourseProposal(input: ForgeCourseImportInput) {
 export async function generateForgeCourseImprovement(
   input: ForgeCourseImprovementInput
 ): Promise<ForgeCourseImprovement> {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${input.courseId}/edit`);
+  const profile = await requireCourseCapability(input.courseId);
   const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
 
   if (!course) {
@@ -595,7 +586,7 @@ async function generateForgeCourseRevision(
 export async function reviewForgeCourseStructure(
   courseId: string
 ): Promise<ForgeCourseRevisionProposal> {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${courseId}/edit`);
+  const profile = await requireCourseCapability(courseId);
   const course = await teacherCourseRepository.getTeacherCourse(profile.id, courseId);
 
   if (!course) {
@@ -613,10 +604,7 @@ export async function reviewForgeModule(input: {
   courseId: string;
   moduleId: string;
 }): Promise<ForgeCourseRevisionProposal> {
-  const profile = await requireRole(
-    "teacher",
-    `/app/teacher/courses/${input.courseId}/builder`
-  );
+  const profile = await requireCourseCapability(input.courseId);
   const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
 
   if (!course) {
@@ -632,10 +620,7 @@ export async function reviewForgeModule(input: {
 }
 
 export async function applyForgeModuleRevision(input: ForgeModuleRevisionApplyInput) {
-  const profile = await requireRole(
-    "teacher",
-    `/app/teacher/courses/${input.courseId}/builder`
-  );
+  const profile = await requireCourseCapability(input.courseId);
   const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
 
   if (!course) {
@@ -665,7 +650,7 @@ export async function applyForgeModuleRevision(input: ForgeModuleRevisionApplyIn
 }
 
 export async function applyForgeCourseImprovement(input: ForgeCourseImprovementApplyInput) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${input.courseId}/edit`);
+  const profile = await requireCourseCapability(input.courseId);
   const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
 
   if (!course) {
@@ -705,7 +690,7 @@ export async function applyForgeCourseImprovement(input: ForgeCourseImprovementA
 export async function generateForgeLessonContent(
   input: ForgeLessonContentInput
 ): Promise<ForgeLessonContentProposal> {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${input.courseId}/builder`);
+  const profile = await requireCourseCapability(input.courseId);
   const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
 
   if (!course) {
@@ -810,7 +795,7 @@ export async function generateForgeLessonContent(
 }
 
 export async function applyForgeLessonProposal(input: ForgeLessonProposalApplyInput) {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${input.courseId}/builder`);
+  const profile = await requireCourseCapability(input.courseId);
   const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
 
   if (!course) {
@@ -839,7 +824,7 @@ export async function applyForgeLessonProposal(input: ForgeLessonProposalApplyIn
 export async function generateForgeLessonSuggestion(
   input: ForgeLessonSuggestionInput
 ): Promise<ForgeLessonSuggestion> {
-  const profile = await requireRole("teacher", `/app/teacher/courses/${input.courseId}/builder`);
+  const profile = await requireCourseCapability(input.courseId);
   const course = await teacherCourseRepository.getTeacherCourse(profile.id, input.courseId);
 
   if (!course) {

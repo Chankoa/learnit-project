@@ -76,8 +76,7 @@ async function readTeacherRows(supabase: SupabaseClient, teacherId: string) {
   const { data: profileData, error: profileError } = await supabase
     .from("profiles")
     .select("id,name,email,avatar_url")
-    .in("id", learnerIds)
-    .eq("role", "learner");
+    .in("id", learnerIds);
   if (profileError) throw new Error(`Lecture des profils apprenants impossible : ${profileError.message}`);
 
   return {

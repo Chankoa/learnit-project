@@ -9,11 +9,10 @@ import { ForgeCourseCreator } from "@/components/app/ForgeCourseCreator";
 import { ForgeHomeIntent } from "@/components/app/ForgeHomeIntent";
 import { TeacherCourseForm } from "@/components/app/TeacherCourseForm";
 import { UnifiedAppShell } from "@/components/app/UnifiedAppShell";
-import { getCurrentProfile, requireAuth } from "@/lib/auth/server";
+import { requireActiveProfile } from "@/lib/auth/server";
 import { validateForgeCreationIntent } from "@/lib/forge-ai/creation-intent";
 import { createPageMetadata } from "@/lib/seo";
 import { getTeacherCourseFormDefaults, getTeacherStudioDomains } from "@/lib/teacher-service";
-import { redirect } from "next/navigation";
 
 type CreatePageProps = {
   searchParams: Promise<{ error?: string | string[]; format?: string | string[]; intent?: string | string[] }>;
@@ -27,9 +26,7 @@ function single(value?: string | string[]) {
 }
 
 export default async function CreatePage({ searchParams }: CreatePageProps) {
-  await requireAuth("/app/create");
-  const profile = await getCurrentProfile();
-  if (!profile) redirect("/login?next=%2Fapp%2Fcreate");
+  const profile = await requireActiveProfile("/app/create");
 
   const params = await searchParams;
   const intentResult = validateForgeCreationIntent({ formatHint: single(params.format), text: single(params.intent) ?? "" });

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { effectiveCourseCapabilities } from "@/lib/auth/authoring-capabilities";
 import { calculateCourseProgress } from "@/lib/course-progress";
 import type { CurrentProfile } from "@/lib/auth/server";
 import { getLmsDataSource } from "@/lib/lms";
@@ -41,13 +42,14 @@ function latest(...values: Array<string | undefined>) {
     .sort((first, second) => new Date(second).getTime() - new Date(first).getTime())[0];
 }
 
-async function getMemberships(): Promise<MembershipRow[]> {
+async function getMemberships(userId: string): Promise<MembershipRow[]> {
   const supabase = await createOptionalClient();
   if (!supabase) return [];
 
   const { data, error } = await supabase
     .from("course_memberships")
     .select("course_id,role,status")
+    .eq("user_id", userId)
     .eq("status", "active");
   if (error) return [];
   return data as MembershipRow[];
@@ -74,7 +76,7 @@ export async function getCourseCapabilities(userId: string, courseId: string) {
     supabase.from("courses").select("teacher_id").eq("id", courseId).maybeSingle(),
     supabase.from("course_memberships").select("role,status").eq("course_id", courseId).eq("user_id", userId).eq("status", "active"),
     supabase.from("enrollments").select("id").eq("course_id", courseId).eq("user_id", userId).maybeSingle(),
-    supabase.from("profiles").select("role").eq("id", userId).maybeSingle()
+    supabase.from("profiles").select("role,status").eq("id", userId).maybeSingle()
   ]);
 
   if (authData.user?.id !== userId) throw new Error("Course capabilities require the current user.");
@@ -87,14 +89,14 @@ export async function getCourseCapabilities(userId: string, courseId: string) {
     ? Object.values(capabilityByRole.owner).flat()
     : [...new Set(relation.flatMap((role) => capabilityByRole[role]))];
 
-  return { relation, capabilities, isEnrolled: Boolean(enrollmentData), isOwnerLegacy, isAdmin };
+  return { relation, capabilities: effectiveCourseCapabilities(capabilities, isOwnerLegacy, profileData?.status === "active", isAdmin), isEnrolled: Boolean(enrollmentData), isOwnerLegacy, isAdmin };
 }
 
 export async function getUnifiedCourseRelations(profile: CurrentProfile): Promise<UnifiedCourseRelation[]> {
   const [courses, enrollments, memberships] = await Promise.all([
     getLmsDataSource().getCourses(),
     getEnrollments(),
-    getMemberships()
+    getMemberships(profile.id)
   ]);
   const progressRows = await getProgress(courses.map((course) => course.id));
   const membershipByCourse = new Map<string, CourseMembershipRole[]>();
@@ -117,9 +119,7 @@ export async function getUnifiedCourseRelations(profile: CurrentProfile): Promis
     const roleCapabilities = profile.role === "admin"
       ? capabilityByRole.owner
       : [...new Set(roles.flatMap((role) => capabilityByRole[role]))];
-    const capabilities = profile.role === "teacher" || profile.role === "admin"
-      ? roleCapabilities
-      : roleCapabilities.filter((capability) => !["edit", "publish", "manage_members"].includes(capability));
+    const capabilities = effectiveCourseCapabilities(roleCapabilities, isLegacyOwner, profile.status === "active", profile.role === "admin");
     const accessibleLessonIds = course.modules.flatMap((module) => module.lessons).filter((lesson) => lesson.status !== "locked").map((lesson) => lesson.id);
     const courseProgress = progressRows.filter((progress) => progress.course_id === course.id);
     const progress = calculateCourseProgress(courseProgress.filter((item) => item.completed).map((item) => item.lesson_id), accessibleLessonIds);

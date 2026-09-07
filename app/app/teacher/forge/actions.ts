@@ -234,12 +234,12 @@ export async function importForgeCourseProposalAction(
 ): Promise<ForgeImportResult> {
   try {
     const course = await importForgeCourseProposal(input);
-    revalidatePath("/app/teacher");
-    revalidatePath("/app/teacher/courses");
-    revalidatePath(`/app/teacher/courses/${course.id}/builder`);
+    revalidatePath("/app");
+    revalidatePath("/app/courses");
+    revalidatePath(`/app/courses/${course.slug}`);
 
     return {
-      destination: `/app/teacher/courses/${course.id}/builder?message=${encodeURIComponent(
+      destination: `/app/courses/${course.slug}?mode=edit&message=${encodeURIComponent(
         "Brouillon créé depuis une proposition Forge AI."
       )}`,
       ok: true

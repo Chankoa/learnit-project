@@ -27,12 +27,6 @@ type ProfilePageProps = {
   searchParams?: Promise<{ error?: string; message?: string }>;
 };
 
-const roleLabels = {
-  learner: "Apprenant",
-  teacher: "Enseignant",
-  admin: "Administrateur"
-};
-
 const statusLabels = {
   active: "Actif",
   pending: "En attente",
@@ -94,10 +88,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 <span>Email</span>
                 <input readOnly value={profile.email} />
               </label>
-              <label>
-                <span>Rôle</span>
-                <input readOnly value={roleLabels[profile.role]} />
-              </label>
+              {profile.role === "admin" ? <p>Administration disponible sur ce compte.</p> : null}
               <label>
                 <span>Statut</span>
                 <input readOnly value={statusLabels[profile.status]} />

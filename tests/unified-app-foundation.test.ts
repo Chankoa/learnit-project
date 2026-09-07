@@ -22,8 +22,10 @@ test("unified navigation is intent-first and keeps global administration conditi
 });
 
 test("public header provides a single platform entry without role chooser destinations", () => {
-  assert.match(publicHeader, /Accéder à LearnIt/);
-  assert.match(publicHeader, /href="\/app"/);
+  assert.match(publicHeader, /href="\/login"/);
+  assert.match(publicHeader, /href="\/register"/);
+  assert.match(publicHeader, /Se connecter/);
+  assert.match(publicHeader, /Créer un compte/);
   assert.doesNotMatch(publicHeader, /platformAccessNavigation|Choisir un espace|\/app\/learner|\/app\/teacher|\/app\/admin/);
   assert.doesNotMatch(navigation.match(/export const platformAccessNavigation[\s\S]*?satisfies NavigationItem\[\];/)?.[0] ?? "", /\/app\/(learner|teacher|admin)/);
 });

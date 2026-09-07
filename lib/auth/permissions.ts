@@ -44,23 +44,9 @@ export function canManageCourse(user: PermissionUser, course: PermissionCourse |
     return true;
   }
 
-  if (user.role !== "teacher") {
-    return false;
-  }
-
-  return (
-    course.createdBy === user.id ||
-    course.teacherId === user.id ||
-    Boolean(course.teacherIds?.includes(user.id)) ||
-    Boolean(course.instructorIds?.includes(user.id)) ||
-    Boolean(
-      course.instructors?.some(
-        (instructor) => instructor.id === user.id || instructor.email === user.email
-      )
-    )
-  );
+  return course.createdBy === user.id || course.teacherId === user.id;
 }
 
-export function canPublishCourse(user: PermissionUser) {
-  return isActiveUser(user) && (user.role === "teacher" || isAdminRole(user.role));
+export function canPublishCourse(user: PermissionUser, course: PermissionCourse | null | undefined) {
+  return canManageCourse(user, course);
 }

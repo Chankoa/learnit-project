@@ -27,7 +27,7 @@ Main `/app`, Mes parcours, Explorer and post-creation entry points now target th
 - global administration;
 - the resolved course capabilities.
 
-It returns course state, relation labels and explicit `canView`, `canEnroll`, `canLearn`, `canEdit`, `canPublish` and `canManageMembers` decisions. Components consume these server decisions rather than inferring permissions locally. Until editorial RLS is expanded, the resolver intersects edit, publication and participant-management membership capabilities with the existing Teacher/Admin server guard; learning remains role-neutral.
+It returns course state, relation labels and explicit `canView`, `canEnroll`, `canLearn`, `canEdit`, `canPublish` and `canManageMembers` decisions. Components consume these server decisions rather than inferring permissions locally. U4.2 makes authoring owner-scoped and role-neutral: an active account may create a Parcours, and its persisted `courses.teacher_id` owner may edit, publish and manage participants regardless of the legacy `profiles.role`. Editor memberships remain read-only for mutations until repository and RLS support is deliberately added; global admin remains privileged.
 
 ## Modes
 
@@ -75,8 +75,8 @@ Publication, preview and participant management continue to use their existing c
 - The visual mode is client-visible but never an authorization grant.
 - Course visibility, enrollment and membership reads remain enforced by RLS.
 - Learning mutations keep their current-user enrollment checks.
-- Authoring mutations retain `requireRole("teacher")`, owner-scoped repository queries and RLS.
-- U3 adds no migration and changes no provider, storage or AI persistence contract.
+- Authoring mutations require an active profile plus the resolved owner capability; repositories and RLS retain the `courses.teacher_id` ownership boundary.
+- The U4.2 owner-membership trigger creates or repairs the active `owner` membership atomically whenever a course has a `teacher_id`.
 
 ## Responsive and accessibility
 

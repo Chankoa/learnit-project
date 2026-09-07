@@ -14,8 +14,8 @@ const authoringWorkspace = readFileSync(new URL("../components/app/TeacherAuthor
 const courseBuilder = readFileSync(new URL("../components/app/TeacherCourseBuilder.tsx", import.meta.url), "utf8");
 
 test("canonical workspace resolves mode from enrollment and contextual capabilities", () => {
-  assert.match(resolver, /const hasEditorialRole = profile\.role === "teacher" \|\| profile\.role === "admin"/);
-  assert.match(resolver, /const canEdit = hasEditorialRole && capabilities\.includes\("edit"\)/);
+  assert.match(resolver, /if \(!profile \|\| profile\.status !== "active"\) return undefined/);
+  assert.match(resolver, /const canEdit = capabilities\.includes\("edit"\)/);
   assert.match(resolver, /const defaultMode: UnifiedCourseMode = canLearn \? "learn" : canEdit \? "edit" : "view"/);
   assert.match(resolver, /requestedMode === "edit" && defaults\.canEdit/);
   assert.match(resolver, /requestedMode === "learn" && defaults\.canLearn/);
@@ -58,8 +58,8 @@ test("edit mutations preserve the canonical route without weakening server autho
   const actions = readFileSync(new URL("../app/app/teacher/courses/actions.ts", import.meta.url), "utf8");
   const service = readFileSync(new URL("../lib/teacher-service.ts", import.meta.url), "utf8");
   assert.match(actions, /withParams\(`\/app\/courses\/\$\{canonicalCourseSlug\}`/);
-  assert.match(service, /requireRole\("teacher"/);
-  assert.match(resolver, /hasEditorialRole/);
+  assert.match(service, /requireCourseCapability/);
+  assert.match(resolver, /capabilities\.includes\("edit"\)/);
 });
 
 test("canonical authoring return opens the course overview in view mode", () => {
