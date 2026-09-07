@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
+import { publishCanonicalCourseAction, unpublishCanonicalCourseAction } from "@/app/app/teacher/courses/actions";
 import { TeacherCourseBuilder } from "@/components/app/TeacherCourseBuilder";
 import { UnifiedCourseOverview } from "@/components/app/UnifiedCourseOverview";
 import { getCurrentProfile, requireAuth } from "@/lib/auth/server";
@@ -24,6 +25,7 @@ function single(value: string | string[] | undefined) {
 export default async function UnifiedCoursePage({ params, searchParams }: UnifiedCoursePageProps) {
   const [{ courseSlug }, query] = await Promise.all([params, searchParams]);
   const requestedMode = single(query.mode);
+  const isPublicationRequested = single(query.publication) === "1";
   const nextPath = `/app/courses/${courseSlug}${requestedMode ? `?mode=${encodeURIComponent(requestedMode)}` : ""}`;
   await requireAuth(nextPath);
   const profile = await getCurrentProfile();
@@ -32,7 +34,7 @@ export default async function UnifiedCoursePage({ params, searchParams }: Unifie
   const context = await getUnifiedCourseContext(courseSlug, requestedMode);
   if (!context) notFound();
 
-  if (context.mode === "edit") {
+  if (context.mode === "edit" && !isPublicationRequested) {
     const [course, sources] = await Promise.all([
       getTeacherStudioCourse(context.learning.course.id, `/app/courses/${courseSlug}?mode=edit`),
       getForgeCourseSources(context.learning.course.id, `/app/courses/${courseSlug}?mode=edit`)
@@ -63,5 +65,26 @@ export default async function UnifiedCoursePage({ params, searchParams }: Unifie
     );
   }
 
-  return <UnifiedCourseOverview context={context} profile={profile} />;
+  const publicationCourse = context.canPublish
+    ? await getTeacherStudioCourse(context.learning.course.id, `/app/courses/${courseSlug}?publication=1`)
+    : undefined;
+
+  return (
+    <UnifiedCourseOverview
+      context={context}
+      error={single(query.error)}
+      message={single(query.message)}
+      profile={profile}
+      publication={
+        isPublicationRequested && publicationCourse
+          ? {
+              isPublished: publicationCourse.status === "published",
+              issues: publicationCourse.status === "published" ? [] : (await import("@/lib/teacher-service")).getPublicationIssues(publicationCourse),
+              publishAction: publishCanonicalCourseAction.bind(null, publicationCourse.id, courseSlug),
+              unpublishAction: unpublishCanonicalCourseAction.bind(null, publicationCourse.id, courseSlug)
+            }
+          : undefined
+      }
+    />
+  );
 }

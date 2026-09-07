@@ -9,3 +9,13 @@ export function buildCourseModeHref(pathname: string, mode: CourseModeHref | str
   const normalizedQuery = searchParams.toString();
   return normalizedQuery ? `${path}?${normalizedQuery}` : path;
 }
+
+export function buildCoursePublicationHref(pathname: string) {
+  const [path, query = ""] = pathname.split("?", 2);
+  const searchParams = new URLSearchParams(query);
+
+  searchParams.delete("mode");
+  searchParams.set("publication", "1");
+
+  return `${path}?${searchParams.toString()}`;
+}

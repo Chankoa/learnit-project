@@ -427,3 +427,39 @@ export async function unpublishTeacherCourseAction(courseId: string) {
 
   redirect(destination);
 }
+
+export async function publishCanonicalCourseAction(courseId: string, courseSlug: string) {
+  let destination = withParams(`/app/courses/${courseSlug}`, { publication: "1" });
+
+  try {
+    const course = await publishTeacherCourse(courseId);
+    revalidateTeacherCourse(courseId, course.slug);
+    destination = withParams(`/app/courses/${course.slug}`, { message: "Formation publiée dans le catalogue." });
+  } catch (error) {
+    destination = withParams(`/app/courses/${courseSlug}`, {
+      error: getErrorMessage(error),
+      publication: "1"
+    });
+  }
+
+  redirect(destination);
+}
+
+export async function unpublishCanonicalCourseAction(courseId: string, courseSlug: string) {
+  let destination = withParams(`/app/courses/${courseSlug}`, { publication: "1" });
+
+  try {
+    const course = await unpublishTeacherCourse(courseId);
+    revalidateTeacherCourse(courseId, course.slug);
+    destination = withParams(`/app/courses/${course.slug}`, {
+      message: "Formation dépubliée. Les inscriptions sont conservées."
+    });
+  } catch (error) {
+    destination = withParams(`/app/courses/${courseSlug}`, {
+      error: getErrorMessage(error),
+      publication: "1"
+    });
+  }
+
+  redirect(destination);
+}

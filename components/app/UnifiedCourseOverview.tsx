@@ -1,19 +1,24 @@
-import { ArrowRight, BookOpenText, Clock3, Layers3, PenLine, Users } from "lucide-react";
+import { ArrowRight, BookOpenText, Clock3, Layers3, PenLine, Send, Users } from "lucide-react";
 import Link from "next/link";
 
+import { CanonicalPublicationPanel } from "@/components/app/CanonicalPublicationPanel";
 import { UnifiedAppShell } from "@/components/app/UnifiedAppShell";
 import { UnifiedCourseModeSwitch } from "@/components/app/UnifiedCourseModeSwitch";
 import { EnrollmentButton } from "@/components/learning/EnrollmentButton";
 import { formatCourseDuration } from "@/components/catalog/CourseCard";
 import type { CurrentProfile } from "@/lib/auth/server";
+import { buildCoursePublicationHref } from "@/lib/course-mode-href";
 import type { UnifiedCourseWorkspaceContext } from "@/lib/unified-course-workspace";
 
 type UnifiedCourseOverviewProps = {
   context: UnifiedCourseWorkspaceContext;
+  error?: string;
+  message?: string;
+  publication?: Omit<React.ComponentProps<typeof CanonicalPublicationPanel>, "courseTitle">;
   profile: CurrentProfile;
 };
 
-export function UnifiedCourseOverview({ context, profile }: UnifiedCourseOverviewProps) {
+export function UnifiedCourseOverview({ context, error, message, publication, profile }: UnifiedCourseOverviewProps) {
   const { learning } = context;
   const resumeHref = learning.resumeLesson
     ? `/app/courses/${learning.course.slug}/lessons/${learning.resumeLesson.slug}?mode=learn`
@@ -59,8 +64,17 @@ export function UnifiedCourseOverview({ context, profile }: UnifiedCourseOvervie
             {context.canEdit && !context.canLearn ? (
               <Link className="btn btn-primary" href={editHref}><PenLine size={17} aria-hidden="true" /> Modifier</Link>
             ) : null}
+            {context.canPublish ? (
+              <Link className="btn btn-secondary" href={buildCoursePublicationHref(`/app/courses/${learning.course.slug}`)}>
+                <Send size={17} aria-hidden="true" /> {publication?.isPublished ? "Gérer la publication" : "Publier"}
+              </Link>
+            ) : null}
           </div>
         </header>
+
+        {message ? <div className="teacher-toast" role="status">{message}</div> : null}
+        {error ? <div className="teacher-form-error" role="alert">{error}</div> : null}
+        {publication ? <CanonicalPublicationPanel courseTitle={learning.course.title} {...publication} /> : null}
 
         <section className="unified-course-overview__metrics" aria-label="Résumé du parcours">
           <article><Layers3 size={18} aria-hidden="true" /><span>Modules</span><strong>{learning.modules.length}</strong></article>

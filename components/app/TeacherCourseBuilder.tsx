@@ -34,7 +34,7 @@ import { CourseOutlineRail } from "@/components/app/CourseOutlineRail";
 import { TeacherAuthoringWorkspace } from "@/components/app/TeacherAuthoringWorkspace";
 import { UnifiedCourseModeSwitch } from "@/components/app/UnifiedCourseModeSwitch";
 import { TeacherLessonTabs } from "@/components/app/TeacherLessonTabs";
-import { buildCourseModeHref } from "@/lib/course-mode-href";
+import { buildCourseModeHref, buildCoursePublicationHref } from "@/lib/course-mode-href";
 import { TeacherModuleDisclosure } from "@/components/app/TeacherModuleDisclosure";
 import { ForgeLessonAssistant } from "@/components/app/ForgeLessonAssistant";
 import { ForgeModuleRevision } from "@/components/app/ForgeModuleRevision";
@@ -158,7 +158,7 @@ export function TeacherCourseBuilder({
             {returnToPublication ? (
               <Link
                 className="teacher-builder__publication-return"
-                href={`/app/teacher/courses/${course.id}/edit?tab=publication`}
+                href={canonicalCourseSlug ? buildCoursePublicationHref(`/app/courses/${canonicalCourseSlug}`) : `/app/teacher/courses/${course.id}/edit?tab=publication`}
               >
                 <ArrowLeft size={17} aria-hidden="true" />
                 Retour à la publication
@@ -555,10 +555,12 @@ export function TeacherCourseBuilder({
           />
         ) : null}
         previewHref={`/app/teacher/courses/${course.id}/preview`}
-        publicationHref={`/app/teacher/courses/${course.id}/edit?tab=publication`}
+        publicationHref={canonicalCourseSlug ? buildCoursePublicationHref(`/app/courses/${canonicalCourseSlug}`) : `/app/teacher/courses/${course.id}/edit?tab=publication`}
         returnHref={
           returnToPublication
-            ? `/app/teacher/courses/${course.id}/edit?tab=publication`
+            ? canonicalCourseSlug
+              ? buildCoursePublicationHref(`/app/courses/${canonicalCourseSlug}`)
+              : `/app/teacher/courses/${course.id}/edit?tab=publication`
             : canonicalCourseSlug
               ? `/app/courses/${canonicalCourseSlug}?mode=view`
               : `/app/teacher/courses/${course.id}/edit`
