@@ -14,6 +14,7 @@ import {
 import { getForgeAIConfig } from "@/lib/forge-ai/config";
 import { getLessonGenerationReasoningEffort } from "@/lib/forge-ai/lesson-generation-policy";
 import { lessonProposalToMarkdown } from "@/lib/forge-ai/lesson-markdown";
+import { getMockForgeRequestKind } from "@/lib/forge-ai/mock-dispatch";
 import { getMaxOutputTokens } from "@/lib/forge-ai/token-budget";
 import {
   classifyStructuredFinishReason,
@@ -129,7 +130,7 @@ function isLegacyCourseIntent(input: ForgeAIJsonRequest["input"]): input is Forg
 function isCourseImprovement(
   input: ForgeAIJsonRequest["input"]
 ): input is ForgeCourseImprovementInput {
-  return "mode" in input && "courseId" in input;
+  return "brief" in input && "courseId" in input && "mode" in input;
 }
 
 function isCourseRevision(
@@ -384,29 +385,54 @@ function getMockLessonContentProposal(input: ForgeLessonContentInput): ForgeLess
   };
 }
 
-const mockProvider: ForgeAIProvider = {
-  async generateJson(request) {
-    const startedAt = Date.now();
-    const json = isLearnerForgeInput(request.input)
-      ? getMockLearnerForgeResponse(request.input)
-      : isCourseRevision(request.input)
-      ? getMockCourseRevision(request.input)
-      : isCourseImprovement(request.input)
-      ? getMockCourseImprovement(request.input)
-      : isLessonContentInput(request.input)
-      ? getMockLessonContentProposal(request.input)
-      : isCourseBrief(request.input) || isLegacyCourseIntent(request.input)
-      ? getMockCourseProposal(request.input)
-      : getMockLessonSuggestion(request.input);
-
-    return {
-      durationMs: Date.now() - startedAt,
-      json,
-      model: "forge-mock-v1",
-      provider: "mock"
-    };
+function getMockResponse(request: ForgeAIJsonRequest) {
+  switch (getMockForgeRequestKind(request.promptType)) {
+    case "course-structure":
+      if (isCourseBrief(request.input) || isLegacyCourseIntent(request.input)) {
+        return getMockCourseProposal(request.input);
+      }
+      break;
+    case "course-improvement":
+      if (isCourseImprovement(request.input)) return getMockCourseImprovement(request.input);
+      break;
+    case "course-revision":
+      if (isCourseRevision(request.input)) return getMockCourseRevision(request.input);
+      break;
+    case "lesson-content":
+      if (isLessonContentInput(request.input)) return getMockLessonContentProposal(request.input);
+      break;
+    case "lesson-suggestion":
+      if ("action" in request.input && "lessonId" in request.input) {
+        return getMockLessonSuggestion(request.input as ForgeLessonSuggestionInput);
+      }
+      break;
+    case "learner":
+      if (isLearnerForgeInput(request.input)) return getMockLearnerForgeResponse(request.input);
+      break;
+    case "unsupported":
+      break;
   }
-};
+
+  throw new Error(`Entrée Forge incompatible avec le prompt ${request.promptType}.`);
+}
+
+function getMockForgeAIProvider(): ForgeAIProvider {
+  return {
+    async generateJson(request) {
+      const startedAt = Date.now();
+      const json = getMockResponse(request);
+
+      return {
+        durationMs: Date.now() - startedAt,
+        json,
+        model: "forge-mock-v1",
+        provider: "mock"
+      };
+    }
+  };
+}
+
+const mockProvider = getMockForgeAIProvider();
 
 function logOpenAICompatibleConfig(config: ReturnType<typeof getForgeAIConfig>) {
   console.info("[forge-ai] Forge AI config", {
