@@ -1,0 +1,637 @@
+TAP version 13
+# Subtest: course memberships are idempotent, contextual, and preserve legacy teacher ownership
+ok 1 - course memberships are idempotent, contextual, and preserve legacy teacher ownership
+  ---
+  duration_ms: 2.6781
+  type: 'test'
+  ...
+# Subtest: membership foundation exposes capabilities without client role promotion
+ok 2 - membership foundation exposes capabilities without client role promotion
+  ---
+  duration_ms: 0.7693
+  type: 'test'
+  ...
+# Subtest: DS 1.1 exposes the shared semantic surface and typography tokens
+ok 3 - DS 1.1 exposes the shared semantic surface and typography tokens
+  ---
+  duration_ms: 2.9202
+  type: 'test'
+  ...
+# Subtest: violet remains the system primary in both themes
+ok 4 - violet remains the system primary in both themes
+  ---
+  duration_ms: 3.0281
+  type: 'test'
+  ...
+# Subtest: shared styles do not consume undefined design tokens
+ok 5 - shared styles do not consume undefined design tokens
+  ---
+  duration_ms: 7.8215
+  type: 'test'
+  ...
+# Subtest: Teacher calibration stays scoped and preserves functional breakpoints
+ok 6 - Teacher calibration stays scoped and preserves functional breakpoints
+  ---
+  duration_ms: 0.6496
+  type: 'test'
+  ...
+# Subtest: Teacher polish exposes the Structure timeline and desktop Forge resizer
+ok 7 - Teacher polish exposes the Structure timeline and desktop Forge resizer
+  ---
+  duration_ms: 0.8104
+  type: 'test'
+  ...
+# Subtest: Teacher closure polish keeps resource panels and button icon alignment on shared primitives
+ok 8 - Teacher closure polish keeps resource panels and button icon alignment on shared primitives
+  ---
+  duration_ms: 0.9492
+  type: 'test'
+  ...
+# Subtest: Teacher Focus Mode overrides every desktop grid state on mobile
+ok 9 - Teacher Focus Mode overrides every desktop grid state on mobile
+  ---
+  duration_ms: 1.1883
+  type: 'test'
+  ...
+# Subtest: canonical Learn and Edit share the U4 workspace frame and Forge surface
+ok 10 - canonical Learn and Edit share the U4 workspace frame and Forge surface
+  ---
+  duration_ms: 1.1749
+  type: 'test'
+  ...
+# Subtest: Learner Forge uses short, action-specific budgets and low reasoning on GPT-5
+ok 11 - Learner Forge uses short, action-specific budgets and low reasoning on GPT-5
+  ---
+  duration_ms: 1.9959
+  type: 'test'
+  ...
+# Subtest: validates concise Learner output and rejects missing answers
+ok 12 - validates concise Learner output and rejects missing answers
+  ---
+  duration_ms: 1.4098
+  type: 'test'
+  ...
+# Subtest: the prompt contract protects exercises and treats lesson sources as data
+ok 13 - the prompt contract protects exercises and treats lesson sources as data
+  ---
+  duration_ms: 0.7344
+  type: 'test'
+  ...
+# Subtest: the service verifies enrollment and maps every Learner action
+ok 14 - the service verifies enrollment and maps every Learner action
+  ---
+  duration_ms: 0.4771
+  type: 'test'
+  ...
+# Subtest: RLS only exposes ready sources for courses enrolled by the current Learner
+ok 15 - RLS only exposes ready sources for courses enrolled by the current Learner
+  ---
+  duration_ms: 0.2778
+  type: 'test'
+  ...
+# Subtest: Learner course sources and Forge source references require published enrollment access
+ok 16 - Learner course sources and Forge source references require published enrollment access
+  ---
+  duration_ms: 0.2502
+  type: 'test'
+  ...
+# Subtest: learning Forge policies are enrollment-based and cannot be bypassed by a Teacher profile
+ok 17 - learning Forge policies are enrollment-based and cannot be bypassed by a Teacher profile
+  ---
+  duration_ms: 0.4041
+  type: 'test'
+  ...
+# Subtest: keeps action-specific lesson output budgets under the global cap
+ok 18 - keeps action-specific lesson output budgets under the global cap
+  ---
+  duration_ms: 2.1078
+  type: 'test'
+  ...
+# Subtest: uses low reasoning only for GPT-5 lesson generation and improvement
+ok 19 - uses low reasoning only for GPT-5 lesson generation and improvement
+  ---
+  duration_ms: 0.494
+  type: 'test'
+  ...
+# Subtest: bounds generation depth from lesson duration
+ok 20 - bounds generation depth from lesson duration
+  ---
+  duration_ms: 1.2543
+  type: 'test'
+  ...
+# Subtest: prevents improvement prompts from inflating existing content
+ok 21 - prevents improvement prompts from inflating existing content
+  ---
+  duration_ms: 0.3091
+  type: 'test'
+  ...
+# Subtest: does not change the prompt policy of unrelated lesson actions
+ok 22 - does not change the prompt policy of unrelated lesson actions
+  ---
+  duration_ms: 0.2544
+  type: 'test'
+  ...
+# Subtest: keeps the strict lesson proposal contract and required fields
+ok 23 - keeps the strict lesson proposal contract and required fields
+  ---
+  duration_ms: 1.9828
+  type: 'test'
+  ...
+# Subtest: mock dispatches lesson content with zero sources without selecting course improvement
+ok 24 - mock dispatches lesson content with zero sources without selecting course improvement
+  ---
+  duration_ms: 2.2769
+  type: 'test'
+  ...
+# Subtest: lesson modes map to lesson content and preserve its source-reference path
+ok 25 - lesson modes map to lesson content and preserve its source-reference path
+  ---
+  duration_ms: 1.7736
+  type: 'test'
+  ...
+# Subtest: mock retains course improvement, revision, lesson suggestion, and learner dispatches
+ok 26 - mock retains course improvement, revision, lesson suggestion, and learner dispatches
+  ---
+  duration_ms: 0.3278
+  type: 'test'
+  ...
+# Subtest: parses and validates a valid structured response
+ok 27 - parses and validates a valid structured response
+  ---
+  duration_ms: 2.557
+  type: 'test'
+  ...
+# Subtest: rejects invalid and empty JSON responses
+ok 28 - rejects invalid and empty JSON responses
+  ---
+  duration_ms: 1.6748
+  type: 'test'
+  ...
+# Subtest: rejects an incorrect structure and a missing required business field
+ok 29 - rejects an incorrect structure and a missing required business field
+  ---
+  duration_ms: 0.5785
+  type: 'test'
+  ...
+# Subtest: classifies non-stop AI SDK finishes before output access
+ok 30 - classifies non-stop AI SDK finishes before output access
+  ---
+  duration_ms: 2.091
+  type: 'test'
+  ...
+# Subtest: records only structural diagnostics, never generated values
+ok 31 - records only structural diagnostics, never generated values
+  ---
+  duration_ms: 0.8981
+  type: 'test'
+  ...
+# Subtest: selects the configured provider without changing provider semantics
+ok 32 - selects the configured provider without changing provider semantics
+  ---
+  duration_ms: 1.2715
+  type: 'test'
+  ...
+# Subtest: refuse localhost and non-http protocols
+ok 33 - refuse localhost and non-http protocols
+  ---
+  duration_ms: 3.299
+  type: 'test'
+  ...
+# Subtest: detects private IPv4 and IPv6 destinations
+ok 34 - detects private IPv4 and IPv6 destinations
+  ---
+  duration_ms: 14.5039
+  type: 'test'
+  ...
+# Subtest: refuses a redirect from a public destination to a private address
+ok 35 - refuses a redirect from a public destination to a private address
+  ---
+  duration_ms: 63.761
+  type: 'test'
+  ...
+# Subtest: extracts useful HTML and removes navigation and scripts
+ok 36 - extracts useful HTML and removes navigation and scripts
+  ---
+  duration_ms: 2.4494
+  type: 'test'
+  ...
+# Subtest: learner mobile drawers use DS1 surface and text tokens in both themes
+ok 37 - learner mobile drawers use DS1 surface and text tokens in both themes
+  ---
+  duration_ms: 2.0301
+  type: 'test'
+  ...
+# Subtest: lesson notes retain the local draft through RSC refreshes and serialize autosaves
+ok 38 - lesson notes retain the local draft through RSC refreshes and serialize autosaves
+  ---
+  duration_ms: 1.7332
+  type: 'test'
+  ...
+# Subtest: saving a note does not revalidate the full learning workspace
+ok 39 - saving a note does not revalidate the full learning workspace
+  ---
+  duration_ms: 0.49
+  type: 'test'
+  ...
+# Subtest: canonical learning access requires an active profile, published course, and own enrollment
+ok 40 - canonical learning access requires an active profile, published course, and own enrollment
+  ---
+  duration_ms: 1.793
+  type: 'test'
+  ...
+# Subtest: course enrollment remains available only from a published public landing page
+ok 41 - course enrollment remains available only from a published public landing page
+  ---
+  duration_ms: 0.4504
+  type: 'test'
+  ...
+# Subtest: read model preserves one card for owner plus enrollment and prioritizes learning CTAs
+ok 42 - read model preserves one card for owner plus enrollment and prioritizes learning CTAs
+  ---
+  duration_ms: 0.4994
+  type: 'test'
+  ...
+# Subtest: Explorer stays public-only while relation-aware CTAs and formation CTA use real relations
+ok 43 - Explorer stays public-only while relation-aware CTAs and formation CTA use real relations
+  ---
+  duration_ms: 0.3088
+  type: 'test'
+  ...
+# Subtest: RLS makes enrolled published course reads role-neutral without altering authoring policies
+ok 44 - RLS makes enrolled published course reads role-neutral without altering authoring policies
+  ---
+  duration_ms: 0.4448
+  type: 'test'
+  ...
+# Subtest: public registration creates one account without selecting a role
+ok 45 - public registration creates one account without selecting a role
+  ---
+  duration_ms: 2.3102
+  type: 'test'
+  ...
+# Subtest: auth redirects retain a safe intent and default to the unified home
+ok 46 - auth redirects retain a safe intent and default to the unified home
+  ---
+  duration_ms: 0.6889
+  type: 'test'
+  ...
+# Subtest: authoring is owner-scoped, while global admin retains its existing override
+ok 47 - authoring is owner-scoped, while global admin retains its existing override
+  ---
+  duration_ms: 1.5791
+  type: 'test'
+  ...
+# Subtest: RLS atomically creates owner membership and replaces teacher role gates
+ok 48 - RLS atomically creates owner membership and replaces teacher role gates
+  ---
+  duration_ms: 0.3918
+  type: 'test'
+  ...
+# Subtest: manual and Forge creation both enter canonical edit mode
+ok 49 - manual and Forge creation both enter canonical edit mode
+  ---
+  duration_ms: 0.289
+  type: 'test'
+  ...
+# Subtest: keeps Forge width within the desktop viewport and absolute bounds
+ok 50 - keeps Forge width within the desktop viewport and absolute bounds
+  ---
+  duration_ms: 1.9092
+  type: 'test'
+  ...
+# Subtest: uses a versioned, minimal and recoverable local preference
+ok 51 - uses a versioned, minimal and recoverable local preference
+  ---
+  duration_ms: 1.5138
+  type: 'test'
+  ...
+# Subtest: limits Focus Mode to a Teacher course builder route
+ok 52 - limits Focus Mode to a Teacher course builder route
+  ---
+  duration_ms: 1.8311
+  type: 'test'
+  ...
+# Subtest: opens the existing publish dialog only for a publishable draft
+ok 53 - opens the existing publish dialog only for a publishable draft
+  ---
+  duration_ms: 0.41
+  type: 'test'
+  ...
+# Subtest: defines the three stable Focus Mode surfaces and labels
+ok 54 - defines the three stable Focus Mode surfaces and labels
+  ---
+  duration_ms: 1.4679
+  type: 'test'
+  ...
+# Subtest: module disclosure exposes an accessible local collapse contract
+ok 55 - module disclosure exposes an accessible local collapse contract
+  ---
+  duration_ms: 1.8709
+  type: 'test'
+  ...
+# Subtest: the selected lesson keeps its module visible without changing navigation state
+ok 56 - the selected lesson keeps its module visible without changing navigation state
+  ---
+  duration_ms: 0.3902
+  type: 'test'
+  ...
+# Subtest: resource forms preserve their existing server actions inside distinct panels
+ok 57 - resource forms preserve their existing server actions inside distinct panels
+  ---
+  duration_ms: 0.3708
+  type: 'test'
+  ...
+# Subtest: course progress counts only completed accessible lessons
+ok 58 - course progress counts only completed accessible lessons
+  ---
+  duration_ms: 5.4198
+  type: 'test'
+  ...
+# Subtest: Learner policies use a published enrollment check without changing public discovery
+ok 59 - Learner policies use a published enrollment check without changing public discovery
+  ---
+  duration_ms: 0.7752
+  type: 'test'
+  ...
+# Subtest: Teacher access is read-only, owner-scoped and avoids recursive policy joins
+ok 60 - Teacher access is read-only, owner-scoped and avoids recursive policy joins
+  ---
+  duration_ms: 1.7091
+  type: 'test'
+  ...
+# Subtest: Teacher Students uses real repository fields and no demo copy
+ok 61 - Teacher Students uses real repository fields and no demo copy
+  ---
+  duration_ms: 0.4437
+  type: 'test'
+  ...
+# Subtest: unified navigation is intent-first and keeps global administration conditional
+ok 62 - unified navigation is intent-first and keeps global administration conditional
+  ---
+  duration_ms: 1.0496
+  type: 'test'
+  ...
+# Subtest: public header provides a single platform entry without role chooser destinations
+ok 63 - public header provides a single platform entry without role chooser destinations
+  ---
+  duration_ms: 0.3681
+  type: 'test'
+  ...
+# Subtest: canonical create composes the existing flow and returns to canonical edit
+not ok 64 - canonical create composes the existing flow and returns to canonical edit
+  ---
+  duration_ms: 2.4022
+  type: 'test'
+  location: 'C:\\Users\\Chand\\Desktop\\Dev-web\\Learnit-project\\tests\\unified-app-foundation.test.ts:33:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /ForgeHomeIntent/. Input:
+    
+    'import type { Metadata } from "next";\r\n' +
+      'import Link from "next/link";\r\n' +
+      'import { ArrowLeft, PencilLine, Sparkles } from "lucide-react";\r\n' +
+      '\r\n' +
+      'import { createTeacherCourseAction } from "@/app/app/teacher/courses/actions";\r\n' +
+      'import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";\r\n' +
+      'import { AppPageHeader } from "@/components/app/AppPageHeader";\r\n' +
+      'import { ForgeCourseCreator } from "@/components/app/ForgeCourseCreator";\r\n' +
+      'import { ForgeJourneyHero } from "@/components/app/ForgeJourneyHero";\r\n' +
+      'import { TeacherCourseForm } from "@/components/app/TeacherCourseForm";\r\n' +
+      'import { UnifiedAppShell } from "@/components/app/UnifiedAppShell";\r\n' +
+      'import { requireActiveProfile } from "@/lib/auth/server";\r\n' +
+      'import { validateForgeCreationIntent } from "@/lib/forge-ai/creation-intent";\r\n' +
+      'import { createPageMetadata } from "@/lib/seo";\r\n' +
+      'import { getTeacherCourseFormDefaults, getTeacherStudioDomains } from "@/lib/teacher-service";\r\n' +
+      '\r\n' +
+      'type CreatePageProps = {\r\n' +
+      '  searchParams: Promise<{ error?: string | string[]; format?: string | string[]; intent?: string | string[]; method?: string | string[] }>;\r\n' +
+      '};\r\n' +
+      '\r\n' +
+      'export const dynamic = "force-dynamic";\r\n' +
+      'export const metadata: Metadata = createPageMetadata({ title: "Créer un parcours", description: "Commencez un parcours manuellement ou avec Forge.", path: "/app/create", noIndex: true });\r\n' +
+      '\r\n' +
+      'function single(value?: string | string[]) {\r\n' +
+      '  return Array.isArray(value) ? value[0] : value;\r\n' +
+      '}\r\n' +
+      '\r\n' +
+      'export default async function CreatePage({ searchParams }: CreatePageProps) {\r\n' +
+      '  const profile = await requireActiveProfile("/app/create");\r\n' +
+      '\r\n' +
+      '  const params = await searchParams;\r\n' +
+      '  const intentResult = validateForgeCreationIntent({ formatHint: single(params.format), text: single(params.intent) ?? "" });\r\n' +
+      '  const isForgeFlow = Boolean(single(params.intent));\r\n' +
+      '  const domains = await getTeacherStudioDomains();\r\n' +
+      '\r\n' +
+      '  return (\r\n' +
+      '    <UnifiedAppShell profile={profile}>\r\n' +
+      '      <div className="app-page teacher-page journey-create">\r\n' +
+      '        <AppBreadcrumb items={[{ label: "Accueil", href: "/app" }, { label: "Créer" }]} />\r\n' +
+      '        {isForgeFlow && intentResult.ok ? (\r\n' +
+      '          <>\r\n' +
+      `            <AppPageHeader eyebrow="Forge" title="Préparer un parcours" description="Vérifiez le brief et la proposition avant l'import dans un brouillon." />\r\n` +
+      '            <Link className="btn btn-secondary" href="/app/create"><ArrowLeft size={17} aria-hidden="true" /> Changer de mode</Link>\r\n' +
+      '            <ForgeCourseCreator domains={domains} initialIntent={intentResult.data} />\r\n' +
+      '          </>\r\n' +
+      '        ) : (\r\n' +
+      '          <>\r\n' +
+      '            <ForgeJourneyHero />\r\n' +
+      '            {single(params.method) === "manual" || single(params.error) ? <>\r\n' +
+      '            <section className="creator-start" aria-labelledby="create-manual-title">\r\n' +
+      '              <div className="creator-start__heading"><PencilLine size={21} aria-hidden="true" /><div><span>Création manuelle</span><h2 id="create-manual-title">Définir les informations essentielles</h2></div></div>\r\n' +
+      '              <TeacherCourseForm action={createTeacherCourseAction} domains={domains} error={single(params.error)} initialValues={getTeacherCourseFormDefaults()} mode="create" returnPath="/app/create?method=manual" />\r\n' +
+      '            </section>\r\n' +
+      '            </> : <div className="journey-result-placeholder"><Sparkles size={28} aria-hidden="true" /><h2>Votre prochain parcours commence ici</h2><p>Décrivez votre intention. Vous pourrez vérifier le brief, puis choisir les modules à importer.</p></div>}\r\n' +
+      '          </>\r\n' +
+      '        )}\r\n' +
+      '      </div>\r\n' +
+      '    </UnifiedAppShell>\r\n' +
+      '  );\r\n' +
+      '}'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import type { Metadata } from "next";
+    import Link from "next/link";
+    import { ArrowLeft, PencilLine, Sparkles } from "lucide-react";
+    
+    import { createTeacherCourseAction } from "@/app/app/teacher/courses/actions";
+    import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
+    import { AppPageHeader } from "@/components/app/AppPageHeader";
+    import { ForgeCourseCreator } from "@/components/app/ForgeCourseCreator";
+    import { ForgeJourneyHero } from "@/components/app/ForgeJourneyHero";
+    import { TeacherCourseForm } from "@/components/app/TeacherCourseForm";
+    import { UnifiedAppShell } from "@/components/app/UnifiedAppShell";
+    import { requireActiveProfile } from "@/lib/auth/server";
+    import { validateForgeCreationIntent } from "@/lib/forge-ai/creation-intent";
+    import { createPageMetadata } from "@/lib/seo";
+    import { getTeacherCourseFormDefaults, getTeacherStudioDomains } from "@/lib/teacher-service";
+    
+    type CreatePageProps = {
+      searchParams: Promise<{ error?: string | string[]; format?: string | string[]; intent?: string | string[]; method?: string | string[] }>;
+    };
+    
+    export const dynamic = "force-dynamic";
+    export const metadata: Metadata = createPageMetadata({ title: "Créer un parcours", description: "Commencez un parcours manuellement ou avec Forge.", path: "/app/create", noIndex: true });
+    
+    function single(value?: string | string[]) {
+      return Array.isArray(value) ? value[0] : value;
+    }
+    
+    export default async function CreatePage({ searchParams }: CreatePageProps) {
+      const profile = await requireActiveProfile("/app/create");
+    
+      const params = await searchParams;
+      const intentResult = validateForgeCreationIntent({ formatHint: single(params.format), text: single(params.intent) ?? "" });
+      const isForgeFlow = Boolean(single(params.intent));
+      const domains = await getTeacherStudioDomains();
+    
+      return (
+        <UnifiedAppShell profile={profile}>
+          <div className="app-page teacher-page journey-create">
+            <AppBreadcrumb items={[{ label: "Accueil", href: "/app" }, { label: "Créer" }]} />
+            {isForgeFlow && intentResult.ok ? (
+              <>
+                <AppPageHeader eyebrow="Forge" title="Préparer un parcours" description="Vérifiez le brief et la proposition avant l'import dans un brouillon." />
+                <Link className="btn btn-secondary" href="/app/create"><ArrowLeft size={17} aria-hidden="true" /> Changer de mode</Link>
+                <ForgeCourseCreator domains={domains} initialIntent={intentResult.data} />
+              </>
+            ) : (
+              <>
+                <ForgeJourneyHero />
+                {single(params.method) === "manual" || single(params.error) ? <>
+                <section className="creator-start" aria-labelledby="create-manual-title">
+                  <div className="creator-start__heading"><PencilLine size={21} aria-hidden="true" /><div><span>Création manuelle</span><h2 id="create-manual-title">Définir les informations essentielles</h2></div></div>
+                  <TeacherCourseForm action={createTeacherCourseAction} domains={domains} error={single(params.error)} initialValues={getTeacherCourseFormDefaults()} mode="create" returnPath="/app/create?method=manual" />
+                </section>
+                </> : <div className="journey-result-placeholder"><Sparkles size={28} aria-hidden="true" /><h2>Votre prochain parcours commence ici</h2><p>Décrivez votre intention. Vous pourrez vérifier le brief, puis choisir les modules à importer.</p></div>}
+              </>
+            )}
+          </div>
+        </UnifiedAppShell>
+      );
+    }
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Chand\Desktop\Dev-web\Learnit-project\tests\unified-app-foundation.test.ts:35:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unified read model deduplicates ownership, membership, and enrollment on one course
+ok 65 - unified read model deduplicates ownership, membership, and enrollment on one course
+  ---
+  duration_ms: 0.1862
+  type: 'test'
+  ...
+# Subtest: unified surfaces use real sources and do not present unavailable collaboration as active
+not ok 66 - unified surfaces use real sources and do not present unavailable collaboration as active
+  ---
+  duration_ms: 0.4401
+  type: 'test'
+  location: 'C:\\Users\\Chand\\Desktop\\Dev-web\\Learnit-project\\tests\\unified-app-foundation.test.ts:52:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /publiés et publics/. Input:
+    
+    'import { UnifiedCourseCard } from "@/components/app/UnifiedCourseCard";\r\n' +
+      'import type { Metadata } from "next";\r\n' +
+      'import { ArrowRight, Compass } from "lucide-react";\r\n' +
+      'import Link from "next/link";\r\n' +
+      'import { redirect } from "next/navigation";\r\n' +
+      'import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";\r\n' +
+      'import { AppPageHeader } from "@/components/app/AppPageHeader";\r\n' +
+      'import { UnifiedAppShell } from "@/components/app/UnifiedAppShell";\r\n' +
+      'import { getCurrentProfile, requireAuth } from "@/lib/auth/server";\r\n' +
+      'import { getLmsCatalog } from "@/lib/lms";\r\n' +
+      'import { createPageMetadata } from "@/lib/seo";\r\n' +
+      'import { getUnifiedCourseRelations } from "@/lib/unified-course-relations";\r\n' +
+      'export const dynamic = "force-dynamic";\r\n' +
+      'export const metadata: Metadata = createPageMetadata({ title: "Explorer", description: "Explorez les formations publiées de LearnIt.", path: "/app/explore", noIndex: true });\r\n' +
+      'export default async function ExplorePage() { await requireAuth("/app/explore"); const profile = await getCurrentProfile(); if (!profile) redirect("/access-denied?reason=profile&next=%2Fapp%2Fexplore"); const [courses, relations] = await Promise.all([getLmsCatalog(), getUnifiedCourseRelations(profile)]); const relationByCourse = new Map(relations.map((relation) => [relation.course.id, relation])); return <UnifiedAppShell profile={profile}><div className="app-page unified-explore"><AppBreadcrumb items={[{ label: "Accueil", href: "/app" }, { label: "Explorer" }]} /><AppPageHeader eyebrow="Explorer" title="Parcours publiés" description="Découvrez un sujet, développez une compétence, suivez votre curiosité." /><div className="unified-course-grid">{courses.map((course) => { const relation = relationByCourse.get(course.id); const label = relation?.primaryLabel ?? "Consulter"; const href = relation?.primaryHref ?? `/app/courses/${course.slug}`; return relation ? <UnifiedCourseCard key={course.id} relation={relation} /> : <UnifiedCourseCard key={course.id} course={course} href={href} />; })}</div></div></UnifiedAppShell>; }\r\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import { UnifiedCourseCard } from "@/components/app/UnifiedCourseCard";
+    import type { Metadata } from "next";
+    import { ArrowRight, Compass } from "lucide-react";
+    import Link from "next/link";
+    import { redirect } from "next/navigation";
+    import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
+    import { AppPageHeader } from "@/components/app/AppPageHeader";
+    import { UnifiedAppShell } from "@/components/app/UnifiedAppShell";
+    import { getCurrentProfile, requireAuth } from "@/lib/auth/server";
+    import { getLmsCatalog } from "@/lib/lms";
+    import { createPageMetadata } from "@/lib/seo";
+    import { getUnifiedCourseRelations } from "@/lib/unified-course-relations";
+    export const dynamic = "force-dynamic";
+    export const metadata: Metadata = createPageMetadata({ title: "Explorer", description: "Explorez les formations publiées de LearnIt.", path: "/app/explore", noIndex: true });
+    export default async function ExplorePage() { await requireAuth("/app/explore"); const profile = await getCurrentProfile(); if (!profile) redirect("/access-denied?reason=profile&next=%2Fapp%2Fexplore"); const [courses, relations] = await Promise.all([getLmsCatalog(), getUnifiedCourseRelations(profile)]); const relationByCourse = new Map(relations.map((relation) => [relation.course.id, relation])); return <UnifiedAppShell profile={profile}><div className="app-page unified-explore"><AppBreadcrumb items={[{ label: "Accueil", href: "/app" }, { label: "Explorer" }]} /><AppPageHeader eyebrow="Explorer" title="Parcours publiés" description="Découvrez un sujet, développez une compétence, suivez votre curiosité." /><div className="unified-course-grid">{courses.map((course) => { const relation = relationByCourse.get(course.id); const label = relation?.primaryLabel ?? "Consulter"; const href = relation?.primaryHref ?? `/app/courses/${course.slug}`; return relation ? <UnifiedCourseCard key={course.id} relation={relation} /> : <UnifiedCourseCard key={course.id} course={course} href={href} />; })}</div></div></UnifiedAppShell>; }
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Chand\Desktop\Dev-web\Learnit-project\tests\unified-app-foundation.test.ts:55:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: canonical workspace resolves mode from enrollment and contextual capabilities
+ok 67 - canonical workspace resolves mode from enrollment and contextual capabilities
+  ---
+  duration_ms: 0.8361
+  type: 'test'
+  ...
+# Subtest: primary app entry points target canonical course and lesson routes
+ok 68 - primary app entry points target canonical course and lesson routes
+  ---
+  duration_ms: 0.2576
+  type: 'test'
+  ...
+# Subtest: course and lesson routes keep learn and edit capability-gated in one workspace
+ok 69 - course and lesson routes keep learn and edit capability-gated in one workspace
+  ---
+  duration_ms: 0.1507
+  type: 'test'
+  ...
+# Subtest: canonical mode href replaces mode without duplicating query parameters
+ok 70 - canonical mode href replaces mode without duplicating query parameters
+  ---
+  duration_ms: 0.9577
+  type: 'test'
+  ...
+# Subtest: edit mutations preserve the canonical route without weakening server authorization
+ok 71 - edit mutations preserve the canonical route without weakening server authorization
+  ---
+  duration_ms: 1.2489
+  type: 'test'
+  ...
+# Subtest: canonical authoring return opens the course overview in view mode
+ok 72 - canonical authoring return opens the course overview in view mode
+  ---
+  duration_ms: 0.1268
+  type: 'test'
+  ...
+# Subtest: authoring drawers keep modal keyboard and scroll behavior
+ok 73 - authoring drawers keep modal keyboard and scroll behavior
+  ---
+  duration_ms: 0.1021
+  type: 'test'
+  ...
+1..73
+# tests 73
+# suites 0
+# pass 71
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1223.7279

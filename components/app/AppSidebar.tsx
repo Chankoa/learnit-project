@@ -37,7 +37,7 @@ export function AppSidebar({
   return (
     <aside className="app-sidebar" aria-label={isUnified ? "Navigation LearnIt" : `Navigation ${roleLabels[role].toLowerCase()}`}>
       <div className="app-sidebar__topline">
-        <Link className="app-sidebar__brand" href="/" aria-label="Retour à LearnIt" title="Retour à LearnIt">
+        <Link className="app-sidebar__brand" href={isUnified ? "/app" : "/"} aria-label="Retour à LearnIt" title="Retour à LearnIt">
         <LogoMark tone="inverse" />
         </Link>
         <button

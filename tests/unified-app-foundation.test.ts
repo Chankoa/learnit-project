@@ -32,7 +32,8 @@ test("public header provides a single platform entry without role chooser destin
 
 test("canonical create composes the existing flow and returns to canonical edit", () => {
   assert.match(create, /UnifiedAppShell/);
-  assert.match(create, /ForgeHomeIntent/);
+  assert.match(create, /ForgeJourneyHero/);
+  assert.match(readFileSync(new URL("../components/app/ForgeJourneyHero.tsx", import.meta.url), "utf8"), /ForgeHomeIntent/);
   assert.match(create, /TeacherCourseForm/);
   assert.match(create, /returnPath="\/app\/create"/);
   assert.match(courseActions, /`\/app\/courses\/\$\{course\.slug\}`/);
@@ -52,7 +53,8 @@ test("unified read model deduplicates ownership, membership, and enrollment on o
 test("unified surfaces use real sources and do not present unavailable collaboration as active", () => {
   assert.match(home, /getUnifiedCourseRelations/);
   assert.match(explore, /getLmsCatalog/);
-  assert.match(explore, /publiés et publics/);
+  const catalog = readFileSync(new URL("../lib/lms.ts", import.meta.url), "utf8");
+  assert.match(catalog, /course.status === "published" && course.visibility === "public"/);
   assert.match(collaborative, /À venir/);
   assert.match(collaborative, /getUnifiedCourseRelations/);
 });

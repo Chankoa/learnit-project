@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft, LogOut, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -54,9 +54,19 @@ export function AppShell({
       return;
     }
 
-    mobileDrawerRef.current?.focus();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusable = () => Array.from(mobileDrawerRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex="0"]') ?? []);
+    focusable()[0]?.focus();
 
     function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Tab") {
+        const items = focusable();
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
       if (event.key === "Escape") {
         closeMobileMenu();
         mobileMenuButtonRef.current?.focus();
@@ -64,7 +74,11 @@ export function AppShell({
     }
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      mobileMenuButtonRef.current?.focus();
+    };
   }, [isMobileMenuOpen]);
 
   return (
@@ -72,6 +86,7 @@ export function AppShell({
       className="app-shell"
       data-focus-mode={isTeacherFocusMode}
       data-role={role}
+      data-presentation={presentation}
       data-sidebar-collapsed={isSidebarCollapsed}
     >
       {!isTeacherFocusMode ? (
@@ -105,13 +120,18 @@ export function AppShell({
         ) : null}
 
         {isMobileMenuOpen && !isTeacherFocusMode ? (
+          <>
+          <div className="journey-nav-overlay" onClick={closeMobileMenu} aria-hidden="true" />
           <aside
+            role="dialog"
+            aria-modal="true"
             className="app-mobile-drawer"
             id="app-mobile-drawer"
             aria-label="Navigation applicative mobile"
             ref={mobileDrawerRef}
             tabIndex={-1}
           >
+            <button type="button" className="btn btn-secondary" onClick={closeMobileMenu}><X size={18} aria-hidden="true" />Fermer la navigation</button>
             <nav>
               {navigationItems.map((item) => (
                 <AppNavItem
@@ -134,6 +154,7 @@ export function AppShell({
               Retour au site public
             </Link>
           </aside>
+          </>
         ) : null}
 
         <main className={isTeacherFocusMode ? "app-main app-main--focus" : "app-main"} id="main-content">

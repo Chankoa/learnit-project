@@ -1,0 +1,94 @@
+
+> learnit@0.0.1 prebuild
+> npm run config:check
+
+
+> learnit@0.0.1 config:check
+> tsx scripts/check-runtime-config.ts
+
+Runtime config check
+WARN AI_API_KEY and AI_MODEL are legacy aliases; use OPENAI_API_KEY and OPENAI_MODEL instead.
+NEXT_PUBLIC_DATA_SOURCE....... supabase
+NEXT_PUBLIC_SUPABASE_URL...... OK
+NEXT_PUBLIC_SUPABASE_KEY...... OK
+NEXT_PUBLIC_APP_URL........... OK
+AI_PROVIDER................... openai-compatible
+OPENAI_MODEL.................. OK
+OPENAI_API_KEY................ PRESENT
+
+> learnit@0.0.1 build
+> next build
+
+▲ Next.js 16.2.7 (Turbopack)
+- Environments: .env.local
+- Experiments (use with caution):
+  · mdxRs
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 12.1s
+  Running TypeScript ...
+  Finished TypeScript in 20.5s ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/12) ...
+  Generating static pages using 15 workers (3/12) 
+  Generating static pages using 15 workers (6/12) 
+  Generating static pages using 15 workers (9/12) 
+✓ Generating static pages using 15 workers (12/12) in 382ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /access-denied
+├ ƒ /app
+├ ƒ /app/admin
+├ ƒ /app/admin/courses
+├ ƒ /app/admin/domains
+├ ƒ /app/admin/settings
+├ ƒ /app/admin/users
+├ ƒ /app/collaborative
+├ ƒ /app/courses
+├ ƒ /app/courses/[courseSlug]
+├ ƒ /app/courses/[courseSlug]/lessons/[lessonSlug]
+├ ƒ /app/courses/[courseSlug]/participants
+├ ƒ /app/create
+├ ƒ /app/explore
+├ ƒ /app/learner
+├ ƒ /app/learner/certificates
+├ ƒ /app/learner/courses
+├ ƒ /app/learner/progress
+├ ƒ /app/learner/resources
+├ ƒ /app/profile
+├ ƒ /app/resources
+├ ƒ /app/teacher
+├ ƒ /app/teacher/courses
+├ ƒ /app/teacher/courses/[courseId]/builder
+├ ƒ /app/teacher/courses/[courseId]/edit
+├ ƒ /app/teacher/courses/[courseId]/enrollments
+├ ƒ /app/teacher/courses/[courseId]/preview
+├ ƒ /app/teacher/courses/forge
+├ ƒ /app/teacher/courses/new
+├ ƒ /app/teacher/resources
+├ ƒ /app/teacher/students
+├ ƒ /auth/callback
+├ ƒ /auth/reset-password
+├ ○ /case-study
+├ ○ /dashboard
+├ ○ /demo
+├ ƒ /domaines/[slug]
+├ ƒ /forgot-password
+├ ƒ /formations
+├ ƒ /formations/[slug]
+├ ƒ /formations/[slug]/curriculum
+├ ƒ /learn/[courseSlug]
+├ ƒ /learn/[courseSlug]/[lessonSlug]
+├ ƒ /login
+├ ○ /logout
+└ ƒ /register
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

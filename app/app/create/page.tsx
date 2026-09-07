@@ -6,7 +6,7 @@ import { createTeacherCourseAction } from "@/app/app/teacher/courses/actions";
 import { AppBreadcrumb } from "@/components/app/AppBreadcrumb";
 import { AppPageHeader } from "@/components/app/AppPageHeader";
 import { ForgeCourseCreator } from "@/components/app/ForgeCourseCreator";
-import { ForgeHomeIntent } from "@/components/app/ForgeHomeIntent";
+import { ForgeJourneyHero } from "@/components/app/ForgeJourneyHero";
 import { TeacherCourseForm } from "@/components/app/TeacherCourseForm";
 import { UnifiedAppShell } from "@/components/app/UnifiedAppShell";
 import { requireActiveProfile } from "@/lib/auth/server";
@@ -15,7 +15,7 @@ import { createPageMetadata } from "@/lib/seo";
 import { getTeacherCourseFormDefaults, getTeacherStudioDomains } from "@/lib/teacher-service";
 
 type CreatePageProps = {
-  searchParams: Promise<{ error?: string | string[]; format?: string | string[]; intent?: string | string[] }>;
+  searchParams: Promise<{ error?: string | string[]; format?: string | string[]; intent?: string | string[]; method?: string | string[] }>;
 };
 
 export const dynamic = "force-dynamic";
@@ -35,7 +35,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
 
   return (
     <UnifiedAppShell profile={profile}>
-      <main className="app-page teacher-page" id="main-content">
+      <div className="app-page teacher-page journey-create">
         <AppBreadcrumb items={[{ label: "Accueil", href: "/app" }, { label: "Créer" }]} />
         {isForgeFlow && intentResult.ok ? (
           <>
@@ -45,18 +45,16 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
           </>
         ) : (
           <>
-            <AppPageHeader eyebrow="Créer" title="Commencer un parcours" description="Posez une intention à Forge ou partez directement d'une structure manuelle." />
-            <section className="creator-start" aria-labelledby="create-intent-title">
-              <div className="creator-start__heading"><Sparkles size={21} aria-hidden="true" /><div><span>Avec Forge</span><h2 id="create-intent-title">Préparer un brief</h2></div></div>
-              <ForgeHomeIntent />
-            </section>
+            <ForgeJourneyHero />
+            {single(params.method) === "manual" || single(params.error) ? <>
             <section className="creator-start" aria-labelledby="create-manual-title">
               <div className="creator-start__heading"><PencilLine size={21} aria-hidden="true" /><div><span>Création manuelle</span><h2 id="create-manual-title">Définir les informations essentielles</h2></div></div>
               <TeacherCourseForm action={createTeacherCourseAction} domains={domains} error={single(params.error)} initialValues={getTeacherCourseFormDefaults()} mode="create" returnPath="/app/create" />
             </section>
+            </> : <div className="journey-result-placeholder"><Sparkles size={28} aria-hidden="true" /><h2>Votre prochain parcours commence ici</h2><p>Décrivez votre intention. Vous pourrez vérifier le brief, puis choisir les modules à importer.</p></div>}
           </>
         )}
-      </main>
+      </div>
     </UnifiedAppShell>
   );
 }

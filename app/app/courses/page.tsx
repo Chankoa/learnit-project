@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { filterCourseRelations, normalizeCourseRelationFilter } from "@/lib/course-collection";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
@@ -12,17 +14,18 @@ import { createPageMetadata } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = createPageMetadata({ title: "Mes parcours", description: "Vos parcours LearnIt, réunis par relation réelle.", path: "/app/courses", noIndex: true });
 
-export default async function UnifiedCoursesPage() {
+export default async function UnifiedCoursesPage({ searchParams }: { searchParams: Promise<{ relation?: string | string[] }> }) {
   await requireAuth("/app/courses");
   const profile = await getCurrentProfile();
   if (!profile) redirect("/access-denied?reason=profile&next=%2Fapp%2Fcourses");
   const relations = await getUnifiedCourseRelations(profile);
-  const filters = [
-    { label: "J'apprends", rows: relations.filter((relation) => Boolean(relation.enrollment)) },
-    { label: "Je crée", rows: relations.filter((relation) => relation.capabilities.includes("edit")) },
-    { label: "Partagés avec moi", rows: relations.filter((relation) => relation.memberships.some((role) => role !== "owner")) },
-    { label: "Terminés", rows: relations.filter((relation) => relation.enrollment?.status === "completed") }
-  ].filter((filter) => filter.rows.length > 0);
-
-  return <UnifiedAppShell profile={profile}><div className="app-page unified-courses"><AppBreadcrumb items={[{ label: "Accueil", href: "/app" }, { label: "Mes parcours" }]} /><AppPageHeader eyebrow="Mes parcours" title="Tout ce qui vous relie à un parcours." description="Une carte unique par parcours, même lorsque vous apprenez et créez au même endroit." />{relations.length ? <><nav className="unified-filter-list" aria-label="Filtres de parcours"><a href="#all">Tous <small>{relations.length}</small></a>{filters.map((filter) => <a href={`#${filter.label}`} key={filter.label}>{filter.label} <small>{filter.rows.length}</small></a>)}</nav><section id="all" className="unified-course-grid" aria-label="Tous mes parcours">{relations.map((relation) => <UnifiedCourseCard key={relation.course.id} relation={relation} />)}</section></> : <p className="unified-empty">Aucun parcours n'est encore associé à votre compte.</p>}</div></UnifiedAppShell>;
+  const selected = normalizeCourseRelationFilter((await searchParams).relation);
+  const visible = filterCourseRelations(relations, selected);
+  const filters = [{ value: "all", label: "Tous" }, { value: "learn", label: "J’apprends" }, { value: "create", label: "Je crée" }] as const;
+  return <UnifiedAppShell profile={profile}><div className="app-page unified-courses">
+    <AppBreadcrumb items={[{ label: "Accueil", href: "/app" }, { label: "Mes parcours" }]} />
+    <AppPageHeader eyebrow="Mes parcours" title="J’apprends autant que j’enseigne." description="Retrouvez vos apprentissages et vos créations." />
+    <div className="journey-collection-toolbar"><nav className="unified-filter-list" aria-label="Filtres de parcours">{filters.map(filter => <Link href={`/app/courses?relation=${filter.value}`} aria-current={selected === filter.value ? "page" : undefined} key={filter.value}>{filter.label}<small>{filterCourseRelations(relations, filter.value).length}</small></Link>)}</nav><Link className="btn btn-primary" href="/app/create">Créer un parcours</Link></div>
+    {visible.length ? <section className="unified-course-grid" aria-label="Mes parcours filtrés">{visible.map(relation => <UnifiedCourseCard key={relation.course.id} relation={relation} />)}</section> : <div className="unified-empty"><h2>Aucun parcours ici pour le moment</h2><p>Commencez un apprentissage ou donnez forme à votre prochaine idée.</p><Link className="btn btn-secondary" href={selected === "create" ? "/app/create" : "/app/explore"}>{selected === "create" ? "Créer un parcours" : "Explorer les parcours"}</Link></div>}
+  </div></UnifiedAppShell>;
 }

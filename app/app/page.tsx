@@ -1,3 +1,5 @@
+import { ForgeJourneyArt } from "@/components/app/ForgeJourneyHero";
+import { getLmsCatalog } from "@/lib/lms";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookOpenText, Compass, PenLine, Sparkles, Users } from "lucide-react";
@@ -24,7 +26,7 @@ export default async function AppAccessPage() {
   await requireAuth("/app");
   const profile = await getCurrentProfile();
   if (!profile) redirect("/access-denied?reason=profile&next=%2Fapp");
-  const relations = await getUnifiedCourseRelations(profile);
+  const [relations, catalog] = await Promise.all([getUnifiedCourseRelations(profile), getLmsCatalog()]);
   const toResume = relations.find((relation) => relation.enrollment?.status === "in-progress") ?? relations.find((relation) => relation.enrollment);
 
   return (
@@ -34,24 +36,24 @@ export default async function AppAccessPage() {
         <AppPageHeader
           eyebrow="LearnIt / Forge"
           title={`Bonjour ${profile.name}`}
-          description="Retrouvez ce que vous apprenez, ce que vous créez et les parcours que vous souhaitez explorer."
+          description="Heureux de vous retrouver. Qu’allez-vous faire avancer aujourd’hui ?"
         />
         <section className="unified-hero" aria-labelledby="unified-hero-title">
           <div>
-            <span>Un espace unique, propulsé par Forge</span>
-            <h2 id="unified-hero-title">Apprenez, créez et partagez avec un contexte de confiance.</h2>
-            <p>Forge vous accompagne dans les parcours et les créations déjà accessibles à votre compte.</p>
+            <span>Apprendre · Créer · Partager</span>
+            <h2 id="unified-hero-title">Une idée en tête ? Construisons la suite.</h2>
+            <p>Transformez votre curiosité en connaissances, avec Forge à vos côtés.</p>
           </div>
           <div className="unified-hero__actions">
             <Link className="btn btn-secondary" href="/app/courses"><BookOpenText size={16} aria-hidden="true" /> Mes parcours</Link>
             <Link className="btn btn-secondary" href="/app/explore"><Compass size={16} aria-hidden="true" /> Explorer</Link>
             <Link className="btn btn-primary" href="/app/create"><PenLine size={16} aria-hidden="true" /> Créer</Link>
           </div>
-          <Sparkles aria-hidden="true" className="unified-hero__mark" size={54} />
+          <ForgeJourneyArt />
         </section>
-        {toResume ? <section className="unified-section" aria-labelledby="resume-title"><div className="unified-section__heading"><div><span>À reprendre</span><h2 id="resume-title">Votre dernier parcours actif</h2></div></div><UnifiedCourseCard relation={toResume} /></section> : null}
-        <section className="unified-section" aria-labelledby="my-courses-title"><div className="unified-section__heading"><div><span>Mes parcours</span><h2 id="my-courses-title">Vos relations actives</h2></div><Link href="/app/courses">Tout voir <ArrowRight size={16} aria-hidden="true" /></Link></div>{relations.length ? <div className="unified-course-grid">{relations.slice(0, 3).map((relation) => <UnifiedCourseCard key={relation.course.id} relation={relation} />)}</div> : <p className="unified-empty">Vous n'avez pas encore de parcours personnel. Explorez le catalogue pour commencer.</p>}</section>
-        <section className="unified-collaborative-preview" aria-labelledby="collaborative-title"><div><span>Collaboratif</span><h2 id="collaborative-title">Les relations réelles, sans faux réseau.</h2><p>Le suivi des inscrits et la publication restent disponibles dans les parcours que vous gérez. Contributions, discussions et remix arriveront avec leurs modèles de données.</p></div><Link className="btn btn-secondary" href="/app/collaborative"><Users size={16} aria-hidden="true" /> Voir le collaboratif</Link></section>
+        {toResume ? <section className="unified-section" aria-labelledby="resume-title"><div className="unified-section__heading"><div><span>À reprendre</span><h2 id="resume-title">Votre dernier parcours actif</h2></div></div><div className="unified-course-grid"><UnifiedCourseCard relation={toResume} /></div></section> : null}
+        <section className="unified-section" aria-labelledby="my-courses-title"><div className="unified-section__heading"><div><span>Mes parcours</span><h2 id="my-courses-title">Apprentissages et créations</h2></div><Link href="/app/courses">Tout voir <ArrowRight size={16} aria-hidden="true" /></Link></div>{relations.length ? <div className="unified-course-grid">{relations.slice(0, 3).map((relation) => <UnifiedCourseCard key={relation.course.id} relation={relation} />)}</div> : <p className="unified-empty">Vous n'avez pas encore de parcours personnel. Explorez le catalogue pour commencer.</p>}</section>
+        <section className="unified-section" aria-labelledby="explore-title"><div className="unified-section__heading"><h2 id="explore-title">À explorer</h2><Link href="/app/explore">Tout explorer <ArrowRight size={16} aria-hidden="true" /></Link></div><div className="unified-course-grid">{catalog.slice(0, 3).map(course => { const relation = relations.find(item => item.course.id === course.id); return relation ? <UnifiedCourseCard key={course.id} relation={relation} /> : <UnifiedCourseCard key={course.id} course={course} href={`/app/courses/${course.slug}`} />; })}</div></section>
       </div>
     </UnifiedAppShell>
   );

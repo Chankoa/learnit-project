@@ -126,7 +126,7 @@ export function ForgeHomeIntent() {
 
       <div className="forge-home-intent__footer">
         <p>Aucune génération ne démarre avant votre validation du brief.</p>
-        <Link className="text-link" href="/app/create">
+        <Link className="text-link" href="/app/create?method=manual">
           <PencilLine size={16} aria-hidden="true" />
           Créer manuellement
         </Link>

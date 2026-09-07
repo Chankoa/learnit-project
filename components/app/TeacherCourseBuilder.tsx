@@ -648,6 +648,7 @@ export function TeacherCourseBuilder({
                       <span>Module {module.order}</span>
                       <strong>{module.title}</strong>
                       <small>{module.description}</small>
+                      <span className="journey-module-edit">Modifier le module</span>
                     </Link>
                   }
                   key={module.id}

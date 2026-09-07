@@ -7,6 +7,7 @@ import { createPageMetadata, getSiteUrl } from "@/lib/seo";
 import { getSiteConfig } from "@/lib/site";
 import "@/styles/globals.scss";
 import "@/styles/app.scss";
+import "@/styles/journey.scss";
 
 const themeInitializer = `
 (function() {

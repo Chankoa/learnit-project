@@ -216,7 +216,7 @@ export function ForgeCourseCreator({ domains, initialIntent }: ForgeCourseCreato
   }
 
   return (
-    <div className="forge-course-creator">
+    <div className="forge-course-creator" data-has-proposal={Boolean(proposal)}>
       {initialIntent ? (
         <section className="forge-brief-intent" aria-labelledby="forge-brief-intent-title">
           <span>Votre intention</span>
@@ -447,7 +447,7 @@ export function ForgeCourseCreator({ domains, initialIntent }: ForgeCourseCreato
               </button>
             </div>
 
-            {proposal.modules.map((module, moduleIndex) => {
+            <div className="journey-proposal-modules">{proposal.modules.map((module, moduleIndex) => {
               const lessonIds = module.lessons.map((lesson) => lesson.clientId);
 
               return (
@@ -487,7 +487,7 @@ export function ForgeCourseCreator({ domains, initialIntent }: ForgeCourseCreato
                   </details>
                 </article>
               );
-            })}
+            })}</div>
 
             <div className="teacher-form-actions">
               <button

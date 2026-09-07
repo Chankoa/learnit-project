@@ -28,7 +28,7 @@ export function UnifiedCourseOverview({ context, error, message, publication, pr
 
   return (
     <UnifiedAppShell profile={profile}>
-      <main className="app-page unified-course-overview" id="main-content">
+      <div className="app-page unified-course-overview">
         <nav aria-label="Fil d’Ariane" className="app-breadcrumb">
           <Link href="/app/courses">Mes parcours</Link>
           <span aria-hidden="true">/</span>
@@ -39,6 +39,7 @@ export function UnifiedCourseOverview({ context, error, message, publication, pr
           <div>
             <span>{learning.course.domain.name}</span>
             <h1>{learning.course.title}</h1>
+            <span className="state-badge" data-state={learning.course.status}>{learning.course.status === "published" ? "Publié" : learning.course.status === "archived" ? "Archivé" : "Brouillon"}</span>
             <p>{learning.course.subtitle ?? learning.course.description}</p>
             {context.relationLabels.length ? (
               <div aria-label="Vos relations à ce parcours" className="unified-course-header__relations">
@@ -66,7 +67,7 @@ export function UnifiedCourseOverview({ context, error, message, publication, pr
             ) : null}
             {context.canPublish ? (
               <Link className="btn btn-secondary" href={buildCoursePublicationHref(`/app/courses/${learning.course.slug}`)}>
-                <Send size={17} aria-hidden="true" /> {publication?.isPublished ? "Gérer la publication" : "Publier"}
+                <Send size={17} aria-hidden="true" /> {learning.course.status === "published" ? "Gérer la publication" : "Publier"}
               </Link>
             ) : null}
           </div>
@@ -74,7 +75,7 @@ export function UnifiedCourseOverview({ context, error, message, publication, pr
 
         {message ? <div className="teacher-toast" role="status">{message}</div> : null}
         {error ? <div className="teacher-form-error" role="alert">{error}</div> : null}
-        {publication ? <CanonicalPublicationPanel courseTitle={learning.course.title} {...publication} /> : null}
+        {publication ? <CanonicalPublicationPanel courseTitle={learning.course.title} publicHref={`/formations/${learning.course.slug}`} {...publication} /> : null}
 
         <section className="unified-course-overview__metrics" aria-label="Résumé du parcours">
           <article><Layers3 size={18} aria-hidden="true" /><span>Modules</span><strong>{learning.modules.length}</strong></article>
@@ -87,7 +88,7 @@ export function UnifiedCourseOverview({ context, error, message, publication, pr
           <div className="unified-course-program__heading">
             <div><span>Parcours</span><h2 id="unified-course-program-title">Programme</h2></div>
             {context.canManageMembers ? (
-              <Link className="btn btn-secondary" href={`/app/teacher/courses/${learning.course.id}/enrollments`}>
+              <Link className="btn btn-secondary" href={`/app/courses/${learning.course.slug}/participants`}>
                 <Users size={16} aria-hidden="true" /> Participants
               </Link>
             ) : null}
@@ -107,7 +108,7 @@ export function UnifiedCourseOverview({ context, error, message, publication, pr
             </details>
           )) : <p className="unified-empty">Le contenu de ce parcours n’est pas encore disponible.</p>}
         </section>
-      </main>
+      </div>
     </UnifiedAppShell>
   );
 }
