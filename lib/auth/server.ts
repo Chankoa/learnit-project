@@ -71,15 +71,8 @@ function isMissingSessionError(error: unknown) {
 }
 
 export function getProfileHomePath(role: ProfileRole) {
-  switch (role) {
-    case "teacher":
-      return "/app/teacher";
-    case "admin":
-      return "/app/admin";
-    case "learner":
-    default:
-      return "/app/learner";
-  }
+  void role;
+  return "/app";
 }
 
 function mapProfile(rawProfile: RawProfile, user: SupabaseUser): CurrentProfile | null {
@@ -163,7 +156,7 @@ export async function getCurrentProfile() {
   return profile;
 }
 
-export async function requireAuth(nextPath = "/app/learner") {
+export async function requireAuth(nextPath = "/app") {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -189,7 +182,7 @@ export async function requireActiveProfile(nextPath = "/app") {
   return profile;
 }
 
-export async function requireRole(requiredRole: UserRole, nextPath = "/app/learner") {
+export async function requireRole(requiredRole: UserRole, nextPath = "/app") {
   const profile = await requireActiveProfile(nextPath);
 
   if (!canAccessRole(profile.role, requiredRole)) {

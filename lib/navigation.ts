@@ -251,7 +251,7 @@ export function getUnifiedNavigation(isAdmin: boolean): NavigationItem[] {
     { label: "Explorer", href: "/app/explore", icon: Compass, role: "learner", isActive: (pathname) => pathname.startsWith("/app/explore") },
     { label: "Collaboratif", href: "/app/collaborative", icon: Users, role: "learner", isActive: (pathname) => pathname.startsWith("/app/collaborative") },
     { label: "Ressources", href: "/app/resources", icon: Library, role: "learner", isActive: (pathname) => pathname.startsWith("/app/resources") },
-    { label: "Créer", href: "/app/teacher/courses/new", icon: BookPlus, role: "learner", isActive: (pathname) => pathname === "/app/teacher/courses/new" },
+    { label: "Créer", href: "/app/create", icon: BookPlus, role: "learner", isActive: (pathname) => pathname.startsWith("/app/create") },
     { label: "Profil", href: "/app/profile", icon: UserCircle, role: "learner", isActive: (pathname) => pathname === "/app/profile" }
   ];
 
@@ -270,28 +270,11 @@ export function getUnifiedNavigation(isAdmin: boolean): NavigationItem[] {
 
 export const platformAccessNavigation = [
   {
-    label: "Espace apprenant",
-    href: "/app/learner",
-    icon: GraduationCap,
+    label: "Accéder à LearnIt",
+    href: "/app",
+    icon: Home,
     role: "learner",
-    badge: "Démo",
-    isActive: (pathname) => pathname.startsWith("/app/learner") || pathname.startsWith("/dashboard") || pathname.startsWith("/learn")
-  },
-  {
-    label: "Espace Créer",
-    href: "/app/teacher",
-    icon: SquarePen,
-    role: "teacher",
-    badge: "Démo",
-    isActive: (pathname) => pathname.startsWith("/app/teacher")
-  },
-  {
-    label: "Administration",
-    href: "/app/admin",
-    icon: ShieldCheck,
-    role: "admin",
-    badge: "Démo",
-    isActive: (pathname) => pathname.startsWith("/app/admin")
+    isActive: (pathname) => pathname === "/app"
   }
 ] satisfies NavigationItem[];
 

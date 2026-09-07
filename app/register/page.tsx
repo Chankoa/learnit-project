@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 function getSafeNextPath(value?: string) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/app/learner";
+    return "/app";
   }
 
   return value;

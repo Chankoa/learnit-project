@@ -17,6 +17,7 @@ import { getLearnerForgeSourceSummary, getForgeCourseSources } from "@/lib/forge
 import { getLessonNote } from "@/lib/learning-service";
 import { createPageMetadata } from "@/lib/seo";
 import { getTeacherStudioCourse } from "@/lib/teacher-service";
+import { buildCourseModeHref } from "@/lib/course-mode-href";
 import { getUnifiedCourseContext } from "@/lib/unified-course-workspace";
 
 type UnifiedLessonPageProps = {
@@ -34,7 +35,8 @@ function single(value: string | string[] | undefined) {
 export default async function UnifiedLessonPage({ params, searchParams }: UnifiedLessonPageProps) {
   const [{ courseSlug, lessonSlug }, query] = await Promise.all([params, searchParams]);
   const requestedMode = single(query.mode);
-  const nextPath = `/app/courses/${courseSlug}/lessons/${lessonSlug}${requestedMode ? `?mode=${encodeURIComponent(requestedMode)}` : ""}`;
+  const pathname = `/app/courses/${courseSlug}/lessons/${lessonSlug}`;
+  const nextPath = requestedMode ? buildCourseModeHref(pathname, requestedMode) : pathname;
   await requireAuth(nextPath);
   const profile = await getCurrentProfile();
   if (!profile) redirect(`/login?next=${encodeURIComponent(nextPath)}`);
@@ -46,15 +48,15 @@ export default async function UnifiedLessonPage({ params, searchParams }: Unifie
 
   if (context.mode === "edit") {
     const [course, sources] = await Promise.all([
-      getTeacherStudioCourse(context.learning.course.id, `${nextPath}?mode=edit`),
-      getForgeCourseSources(context.learning.course.id, `${nextPath}?mode=edit`)
+      getTeacherStudioCourse(context.learning.course.id, buildCourseModeHref(nextPath, "edit")),
+      getForgeCourseSources(context.learning.course.id, buildCourseModeHref(nextPath, "edit"))
     ]);
     if (!course) notFound();
     return (
       <div className="teacher-focus-page unified-authoring-workspace">
         <TeacherCourseBuilder
           canonicalCourseSlug={courseSlug}
-          canonicalLearnHref={`${nextPath}?mode=learn`}
+          canonicalLearnHref={buildCourseModeHref(nextPath, "learn")}
           course={course}
           relationLabel={context.relationLabels.join(" · ")}
           selectedLessonId={lesson.id}
@@ -99,8 +101,8 @@ export default async function UnifiedLessonPage({ params, searchParams }: Unifie
           <UnifiedCourseModeSwitch
             canEdit
             canLearn
-            editHref={`${nextPath}?mode=edit`}
-            learnHref={`${nextPath}?mode=learn`}
+            editHref={buildCourseModeHref(nextPath, "edit")}
+            learnHref={buildCourseModeHref(nextPath, "learn")}
             mode="learn"
           />
         ) : undefined,

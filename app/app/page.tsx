@@ -45,7 +45,7 @@ export default async function AppAccessPage() {
           <div className="unified-hero__actions">
             <Link className="btn btn-secondary" href="/app/courses"><BookOpenText size={16} aria-hidden="true" /> Mes parcours</Link>
             <Link className="btn btn-secondary" href="/app/explore"><Compass size={16} aria-hidden="true" /> Explorer</Link>
-            <Link className="btn btn-primary" href="/app/teacher/courses/new"><PenLine size={16} aria-hidden="true" /> Créer</Link>
+            <Link className="btn btn-primary" href="/app/create"><PenLine size={16} aria-hidden="true" /> Créer</Link>
           </div>
           <Sparkles aria-hidden="true" className="unified-hero__mark" size={54} />
         </section>

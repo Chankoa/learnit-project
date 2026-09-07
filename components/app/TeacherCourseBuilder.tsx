@@ -34,6 +34,7 @@ import { CourseOutlineRail } from "@/components/app/CourseOutlineRail";
 import { TeacherAuthoringWorkspace } from "@/components/app/TeacherAuthoringWorkspace";
 import { UnifiedCourseModeSwitch } from "@/components/app/UnifiedCourseModeSwitch";
 import { TeacherLessonTabs } from "@/components/app/TeacherLessonTabs";
+import { buildCourseModeHref } from "@/lib/course-mode-href";
 import { TeacherModuleDisclosure } from "@/components/app/TeacherModuleDisclosure";
 import { ForgeLessonAssistant } from "@/components/app/ForgeLessonAssistant";
 import { ForgeModuleRevision } from "@/components/app/ForgeModuleRevision";
@@ -548,7 +549,7 @@ export function TeacherCourseBuilder({
           <UnifiedCourseModeSwitch
             canEdit
             canLearn
-            editHref={`/app/courses/${canonicalCourseSlug}?mode=edit${selectedLesson ? `&lesson=${selectedLesson.id}` : ""}`}
+            editHref={buildCourseModeHref(selectedLesson ? `/app/courses/${canonicalCourseSlug}?lesson=${selectedLesson.id}` : `/app/courses/${canonicalCourseSlug}`, "edit")}
             learnHref={canonicalLearnHref ?? `/app/courses/${canonicalCourseSlug}?mode=learn`}
             mode="edit"
           />

@@ -35,7 +35,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div className="auth-card__heading">
           <span className="eyebrow w-fit">Compte LearnIt</span>
           <h1 id="login-title">Connexion</h1>
-          <p>Connectez-vous pour accéder à votre espace apprenant, enseignant ou admin.</p>
+          <p>Connectez-vous pour retrouver vos parcours et vos capacités LearnIt.</p>
         </div>
 
         {params?.error ? <p className="auth-alert" role="alert">{params.error}</p> : null}

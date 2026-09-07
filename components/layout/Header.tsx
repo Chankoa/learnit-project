@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -9,19 +9,15 @@ import { LogoMark } from "@/components/ui/LogoMark";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   isNavigationItemActive,
-  platformAccessNavigation,
   publicNavigation
 } from "@/lib/navigation";
-import { isDemoMode } from "@/lib/config/features";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isPlatformMenuOpen, setIsPlatformMenuOpen] = useState(false);
   const pathname = usePathname();
 
   function closeMenu() {
     setIsMenuOpen(false);
-    setIsPlatformMenuOpen(false);
   }
 
   return (
@@ -50,47 +46,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <div className="platform-menu hidden lg:block">
-            <button
-              aria-expanded={isPlatformMenuOpen}
-              aria-controls="platform-access-menu"
-              className="platform-menu__button"
-              type="button"
-              onClick={() => setIsPlatformMenuOpen((current) => !current)}
-            >
-              Accès plateforme
-              {isDemoMode ? <span>Démo</span> : null}
-              <ChevronDown size={15} aria-hidden="true" />
-            </button>
-
-            {isPlatformMenuOpen ? (
-              <nav
-                aria-label="Accès plateforme"
-                className="platform-menu__panel"
-                id="platform-access-menu"
-              >
-                <p>Choisir un espace</p>
-                {platformAccessNavigation.map((item) => {
-                  const Icon = item.icon;
-                  const active = isNavigationItemActive(item, pathname);
-
-                  return (
-                    <Link
-                      aria-current={active ? "page" : undefined}
-                      data-active={active}
-                      href={item.href}
-                      key={item.href}
-                      onClick={closeMenu}
-                    >
-                      <Icon size={18} aria-hidden="true" />
-                      <span>{item.label}</span>
-                      {isDemoMode && item.badge ? <small>{item.badge}</small> : null}
-                    </Link>
-                  );
-                })}
-              </nav>
-            ) : null}
-          </div>
+          <Link className="btn btn-secondary hidden lg:inline-flex" href="/app">Accéder à LearnIt</Link>
 
           <ThemeToggle />
           <Link className="btn btn-primary hidden sm:inline-flex" href="/login">
@@ -131,31 +87,7 @@ export function Header() {
               );
             })}
 
-            <div className="mobile-platform-menu">
-              <p>
-                Accès plateforme
-                {isDemoMode ? <span>Démo</span> : null}
-              </p>
-              {platformAccessNavigation.map((item) => {
-                const Icon = item.icon;
-                const active = isNavigationItemActive(item, pathname);
-
-                return (
-                  <Link
-                    aria-current={active ? "page" : undefined}
-                    className="mobile-platform-menu__link"
-                    data-active={active}
-                    href={item.href}
-                    key={item.href}
-                    onClick={closeMenu}
-                  >
-                    <Icon size={17} aria-hidden="true" />
-                    <span>{item.label}</span>
-                    {isDemoMode && item.badge ? <small>{item.badge}</small> : null}
-                  </Link>
-                );
-              })}
-            </div>
+            <Link className="mobile-platform-menu__link" href="/app" onClick={closeMenu}>Accéder à LearnIt</Link>
 
             <Link
               className="btn btn-primary mt-3 w-full"

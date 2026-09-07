@@ -102,14 +102,15 @@ export async function createTeacherDomainAction(name: string): Promise<CreateTea
 }
 
 export async function createTeacherCourseAction(formData: FormData) {
-  let destination = "/app/teacher/courses/new";
+  const returnPath = formData.get("returnPath") === "/app/create" ? "/app/create" : "/app/teacher/courses/new";
+  let destination = returnPath;
 
   try {
     const course = await createTeacherCourse(formData);
     revalidateTeacherCourse(course.id, course.slug);
     destination = withParams(`/app/courses/${course.slug}`, { mode: "edit", message: "Parcours créé en brouillon." });
   } catch (error) {
-    destination = withParams("/app/teacher/courses/new", { error: getErrorMessage(error) });
+    destination = withParams(returnPath, { error: getErrorMessage(error) });
   }
 
   redirect(destination);

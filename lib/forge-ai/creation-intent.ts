@@ -95,5 +95,5 @@ export function getForgeCourseCreatorHref(intent: ForgeCreationIntent) {
     params.set("format", intent.formatHint);
   }
 
-  return `/app/teacher/courses/forge?${params.toString()}`;
+  return `/app/create?${params.toString()}`;
 }

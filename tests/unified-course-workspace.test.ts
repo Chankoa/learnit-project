@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
+import { buildCourseModeHref } from "../lib/course-mode-href";
+
 const resolver = readFileSync(new URL("../lib/unified-course-workspace.ts", import.meta.url), "utf8");
 const relations = readFileSync(new URL("../lib/unified-course-relations.ts", import.meta.url), "utf8");
 const courseRoute = readFileSync(new URL("../app/app/courses/[courseSlug]/page.tsx", import.meta.url), "utf8");
@@ -30,7 +32,7 @@ test("primary app entry points target canonical course and lesson routes", () =>
 
 test("course and lesson routes keep learn and edit capability-gated in one workspace", () => {
   assert.match(courseRoute, /const nextPath = `\/app\/courses\/\$\{courseSlug\}\$\{requestedMode \? `\?mode=\$\{encodeURIComponent\(requestedMode\)\}` : ""\}`/);
-  assert.match(lessonRoute, /const nextPath = `\/app\/courses\/\$\{courseSlug\}\/lessons\/\$\{lessonSlug\}\$\{requestedMode \? `\?mode=\$\{encodeURIComponent\(requestedMode\)\}` : ""\}`/);
+  assert.match(lessonRoute, /buildCourseModeHref\(pathname, requestedMode\)/);
   assert.match(courseRoute, /context\.mode === "edit"/);
   assert.match(courseRoute, /TeacherCourseBuilder/);
   assert.match(courseRoute, /UnifiedCourseOverview/);
@@ -38,6 +40,18 @@ test("course and lesson routes keep learn and edit capability-gated in one works
   assert.match(lessonRoute, /UnifiedCourseModeSwitch/);
   assert.match(lessonRoute, /LearnerLessonWorkspace/);
   assert.match(lessonRoute, /TeacherCourseBuilder/);
+});
+
+test("canonical mode href replaces mode without duplicating query parameters", () => {
+  assert.equal(buildCourseModeHref("/app/courses/design/lessons/introduction?mode=learn", "edit"), "/app/courses/design/lessons/introduction?mode=edit");
+  assert.equal(buildCourseModeHref("/app/courses/design/lessons/introduction?mode=edit", "learn"), "/app/courses/design/lessons/introduction?mode=learn");
+  assert.equal(buildCourseModeHref("/app/courses/design/lessons/introduction?mode=view", "edit"), "/app/courses/design/lessons/introduction?mode=edit");
+  assert.equal(buildCourseModeHref("/app/courses/design/lessons/introduction?lesson=42&mode=learn&tab=content", "edit"), "/app/courses/design/lessons/introduction?lesson=42&mode=edit&tab=content");
+
+  const href = buildCourseModeHref("/app/courses/design/lessons/introduction?mode=learn?mode=edit", "learn");
+  assert.equal(href, "/app/courses/design/lessons/introduction?mode=learn");
+  assert.deepEqual(new URL(`https://learnit.test${href}`).searchParams.getAll("mode"), ["learn"]);
+  assert.doesNotMatch(href, /\?mode=learn\?mode=edit/);
 });
 
 test("edit mutations preserve the canonical route without weakening server authorization", () => {

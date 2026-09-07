@@ -13,6 +13,7 @@ type TeacherCourseFormProps = {
   initialValues: TeacherCourseFormValues;
   message?: string;
   mode: "create" | "edit";
+  returnPath?: string;
 };
 
 const levelOptions = Object.entries(courseLevelLabels) as Array<
@@ -25,10 +26,12 @@ export function TeacherCourseForm({
   error,
   initialValues,
   message,
-  mode
+  mode,
+  returnPath
 }: TeacherCourseFormProps) {
   return (
     <form action={action} className="teacher-form">
+      {returnPath ? <input name="returnPath" type="hidden" value={returnPath} /> : null}
       {error ? (
         <div className="teacher-form-error" role="alert">
           {error}
