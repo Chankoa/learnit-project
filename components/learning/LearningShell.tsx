@@ -11,6 +11,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { LogoMark } from "@/components/ui/LogoMark";
+import { CanonicalCourseTopbar } from "@/components/app/CanonicalCourseTopbar";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { isNavigationItemActive, learnerNavigation } from "@/lib/navigation";
 import type { LearnerProfile } from "@/types/learning";
@@ -139,7 +140,7 @@ export function LearningShell({
       </aside>
 
       <div className="learning-workspace">
-        <header className="learning-header">
+        <CanonicalCourseTopbar className="learning-header">
           <div className="learning-header__title">
             {variant === "lesson" ? (
               <>
@@ -202,7 +203,7 @@ export function LearningShell({
               </div>
             </div>
           </div>
-        </header>
+        </CanonicalCourseTopbar>
 
         {isMobileMenuOpen ? (
           <div className="learning-mobile-drawer-overlay" onClick={closeMobileMenu}>

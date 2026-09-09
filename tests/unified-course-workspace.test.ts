@@ -68,8 +68,11 @@ test("canonical authoring return opens the course overview in view mode", () => 
 });
 
 test("authoring drawers keep modal keyboard and scroll behavior", () => {
-  assert.match(authoringWorkspace, /document\.body\.style\.overflow = "hidden"/);
-  assert.match(authoringWorkspace, /event\.key === "Escape"/);
+  assert.match(authoringWorkspace, /useContextualPanel/);
+  const panel = readFileSync(new URL("../components/app/ContextualForgeRail.tsx", import.meta.url), "utf8");
+  assert.match(panel, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(panel, /event\.key === "Escape"/);
+  assert.match(panel, /event\.key !== "Tab"/);
   assert.match(authoringWorkspace, /role=\{isStructureOverlay \? "dialog" : undefined\}/);
   assert.match(authoringWorkspace, /role=\{isForgeOverlay \? "dialog" : undefined\}/);
 });

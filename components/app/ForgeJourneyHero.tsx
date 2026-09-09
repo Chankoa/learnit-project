@@ -11,7 +11,7 @@ export function ForgeJourneyArt() {
   </div>;
 }
 
-export function ForgeJourneyHero() {
+export function ForgeJourneyHero({ publicPreview = false }: { publicPreview?: boolean }) {
   return <section className="journey-hero" aria-labelledby="journey-title">
     <div className="journey-hero__copy">
       <span className="journey-eyebrow">Apprendre <Sparkles size={16} aria-hidden="true" /> Créer · Partager</span>
@@ -19,6 +19,6 @@ export function ForgeJourneyHero() {
       <p>Transformez une idée, un besoin ou une question en un parcours de connaissance avec Forge.</p>
     </div>
     <ForgeJourneyArt />
-    <div className="journey-hero__intent"><ForgeHomeIntent /></div>
+    <div className="journey-hero__intent"><ForgeHomeIntent previewBeforeContinue={publicPreview} /></div>
   </section>;
 }

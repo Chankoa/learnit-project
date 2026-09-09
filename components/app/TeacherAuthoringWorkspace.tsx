@@ -19,6 +19,8 @@ import type {
 } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import { CollapsedForgeRail, ContextualForgeHeader, FORGE_DRAWER_QUERY, useContextualPanel, usePanelMediaQuery } from "@/components/app/ContextualForgeRail";
+import { CanonicalCourseTopbar } from "@/components/app/CanonicalCourseTopbar";
 import { TeacherAuthoringSurfaceProvider } from "@/components/app/TeacherAuthoringSurface";
 import {
   clampForgePanelWidth,
@@ -56,21 +58,6 @@ type ForgeResizeSession = {
   startX: number;
 };
 
-function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    const update = () => setMatches(media.matches);
-
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, [query]);
-
-  return matches;
-}
-
 export function TeacherAuthoringWorkspace({
   courseTitle,
   editor,
@@ -88,8 +75,8 @@ export function TeacherAuthoringWorkspace({
   structure
 }: TeacherAuthoringWorkspaceProps) {
   const hasForgePanel = Boolean(forgePanel);
-  const isForgeOverlay = useMediaQuery("(max-width: 1279px)");
-  const isStructureOverlay = useMediaQuery("(max-width: 899px)");
+  const isForgeOverlay = usePanelMediaQuery(FORGE_DRAWER_QUERY);
+  const isStructureOverlay = usePanelMediaQuery("(max-width: 899px)");
   const [activeOverlay, setActiveOverlay] = useState<OverlayPanel>(null);
   const [isForgeOpen, setIsForgeOpen] = useState(hasForgePanel);
   const [isStructureOpen, setIsStructureOpen] = useState(true);
@@ -138,63 +125,8 @@ export function TeacherAuthoringWorkspace({
     setIsStructureOpen(true);
   }, [hasForgePanel, selectedId]);
 
-  useEffect(() => {
-    if (!activeOverlay) {
-      return;
-    }
-
-    requestAnimationFrame(() => {
-      const panel = activeOverlay === "forge" ? forgePanelRef.current : structurePanelRef.current;
-      panel?.querySelector<HTMLButtonElement>("button")?.focus();
-    });
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        const panel = activeOverlay;
-        setActiveOverlay(null);
-        requestAnimationFrame(() => {
-          (panel === "forge" ? forgeButtonRef.current : structureButtonRef.current)?.focus();
-        });
-        return;
-      }
-
-      if (event.key !== "Tab") {
-        return;
-      }
-
-      const panel = activeOverlay === "forge" ? forgePanelRef.current : structurePanelRef.current;
-      const focusable = Array.from(
-        panel?.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        ) ?? []
-      ).filter((element) => element.getClientRects().length > 0);
-
-      if (!focusable.length) {
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [activeOverlay]);
+  useContextualPanel({ open: Boolean(activeOverlay), modal: true,
+    panelRef: activeOverlay === "forge" ? forgePanelRef : structurePanelRef, onClose: closeOverlay });
 
   const structureHidden =
     isStructureOverlay ? activeOverlay !== "structure" : !isStructureOpen;
@@ -353,7 +285,7 @@ export function TeacherAuthoringWorkspace({
       ref={authoringRef}
       style={{ "--teacher-forge-width": `${forgeWidth}px` } as CSSProperties}
     >
-      <header className="teacher-authoring__header">
+      <CanonicalCourseTopbar className="teacher-authoring__header">
         <Link className="teacher-authoring__back" href={returnHref}>
           <ArrowLeft size={17} aria-hidden="true" />
           {returnLabel}
@@ -399,7 +331,7 @@ export function TeacherAuthoringWorkspace({
             Forge
           </button>
         </div>
-      </header>
+      </CanonicalCourseTopbar>
 
       {activeOverlay ? (
         <button
@@ -490,60 +422,14 @@ export function TeacherAuthoringWorkspace({
             />
           ) : null}
           <div className="teacher-authoring__forge-scroll">
-            <div className="teacher-authoring__forge-header">
-              <div>
-                <span>Forge AI</span>
-                <strong>Contexte de travail</strong>
-              </div>
-              <div className="teacher-authoring__forge-tools">
-                {!isForgeOverlay ? (
-                  <button
-                    aria-label={isForgeExpanded ? "Restaurer la largeur de Forge" : "Élargir Forge"}
-                    className="teacher-authoring__forge-expand"
-                    onClick={toggleForgeExpanded}
-                    title={isForgeExpanded ? "Restaurer la largeur" : "Élargir Forge"}
-                    type="button"
-                  >
-                    {isForgeExpanded ? (
-                      <Minimize2 size={17} aria-hidden="true" />
-                    ) : (
-                      <Maximize2 size={17} aria-hidden="true" />
-                    )}
-                  </button>
-                ) : null}
-                <button
-                  aria-label="Fermer Forge"
-                  onClick={() => {
-                    if (isForgeOverlay) {
-                      closeOverlay();
-                    } else {
-                      setIsForgeOpen(false);
-                      requestAnimationFrame(() => forgeButtonRef.current?.focus());
-                    }
-                  }}
-                  title="Fermer Forge"
-                  type="button"
-                >
-                  <X size={18} aria-hidden="true" />
-                </button>
-              </div>
-            </div>
+            <ContextualForgeHeader context="Créer et améliorer" expanded={isForgeExpanded}
+              onExpand={!isForgeOverlay ? toggleForgeExpanded : undefined}
+              onClose={() => { if (isForgeOverlay) closeOverlay(); else { setIsForgeOpen(false); requestAnimationFrame(() => forgeButtonRef.current?.focus()); } }} />
             {forgePanel}
           </div>
         </aside>
         {forgeHidden && !isForgeOverlay && hasForgePanel ? (
-          <aside className="teacher-authoring__rail teacher-authoring__rail--forge" aria-label="Forge réduite">
-            <button
-              aria-controls="teacher-authoring-forge"
-              aria-expanded="false"
-              aria-label="Ouvrir Forge"
-              onClick={toggleForge}
-              title="Ouvrir Forge"
-              type="button"
-            >
-              <Sparkles size={18} aria-hidden="true" />
-            </button>
-          </aside>
+          <CollapsedForgeRail controls="teacher-authoring-forge" onOpen={toggleForge} />
         ) : null}
         </div>
       </TeacherAuthoringSurfaceProvider>

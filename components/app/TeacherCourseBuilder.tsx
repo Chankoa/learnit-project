@@ -60,6 +60,7 @@ import type { ResourceAccess, ResourceType } from "@/types/resource";
 import type { TeacherCourse } from "@/types/teaching";
 
 type TeacherCourseBuilderProps = {
+  contextNavigation?: React.ReactNode;
   canonicalCourseSlug?: string;
   canonicalLearnHref?: string;
   course: TeacherCourse;
@@ -112,6 +113,7 @@ function toLines(values?: string[]) {
 }
 
 export function TeacherCourseBuilder({
+  contextNavigation,
   canonicalCourseSlug,
   canonicalLearnHref,
   course,
@@ -155,6 +157,7 @@ export function TeacherCourseBuilder({
         courseTitle={course.title}
         editor={
           <section className="teacher-builder__panel" aria-label="Panneau d'édition">
+            {contextNavigation}
             {returnToPublication ? (
               <Link
                 className="teacher-builder__publication-return"
@@ -554,7 +557,7 @@ export function TeacherCourseBuilder({
             mode="edit"
           />
         ) : null}
-        previewHref={`/app/teacher/courses/${course.id}/preview`}
+        previewHref={canonicalCourseSlug ? `/app/courses/${canonicalCourseSlug}?mode=view` : `/app/teacher/courses/${course.id}/preview`}
         publicationHref={canonicalCourseSlug ? buildCoursePublicationHref(`/app/courses/${canonicalCourseSlug}`) : `/app/teacher/courses/${course.id}/edit?tab=publication`}
         returnHref={
           returnToPublication
@@ -565,7 +568,7 @@ export function TeacherCourseBuilder({
               ? `/app/courses/${canonicalCourseSlug}?mode=view`
               : `/app/teacher/courses/${course.id}/edit`
         }
-        returnLabel={returnToPublication ? "Retour à la publication" : "Retour à la formation"}
+        returnLabel={returnToPublication ? "Retour à la publication" : "Retour au parcours"}
         relationLabel={relationLabel}
         selectedId={selectedLesson?.id ?? selectedModule?.id}
         selectedKind={selectedLesson ? `Leçon ${selectedLesson.order}` : selectedModule ? `Module ${selectedModule.order}` : undefined}
@@ -648,7 +651,6 @@ export function TeacherCourseBuilder({
                       <span>Module {module.order}</span>
                       <strong>{module.title}</strong>
                       <small>{module.description}</small>
-                      <span className="journey-module-edit">Modifier le module</span>
                     </Link>
                   }
                   key={module.id}

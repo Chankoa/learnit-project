@@ -1,8 +1,9 @@
 "use client";
 
+import { buildPublicForgePreview } from "@/lib/forge-ai/public-preview";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { ArrowRight, PencilLine, Sparkles } from "lucide-react";
 
 import {
@@ -17,7 +18,10 @@ import {
 } from "@/lib/forge-ai/creation-intent";
 import type { ForgeCreationFormatHint } from "@/types/forge-ai";
 
-export function ForgeHomeIntent() {
+export function ForgeHomeIntent({ previewBeforeContinue = false }: { previewBeforeContinue?: boolean }) {
+  const [preview, setPreview] = useState<ReturnType<typeof buildPublicForgePreview>>();
+  const previewHeadingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { if (preview) previewHeadingRef.current?.focus(); }, [preview]);
   const router = useRouter();
   const [formatHint, setFormatHint] = useState<ForgeCreationFormatHint>();
   const [intent, setIntent] = useState("");
@@ -34,6 +38,11 @@ export function ForgeHomeIntent() {
 
     if (!result.ok) {
       setFieldError(result.error);
+      return;
+    }
+
+    if (previewBeforeContinue) {
+      setPreview(buildPublicForgePreview(result.data));
       return;
     }
 
@@ -67,6 +76,7 @@ export function ForgeHomeIntent() {
           maxLength={forgeCreationIntentLimits.maxLength}
           onChange={(event) => {
             setIntent(event.target.value);
+            setPreview(undefined);
             setFieldError(undefined);
             setSubmissionError(undefined);
           }}
@@ -101,7 +111,7 @@ export function ForgeHomeIntent() {
               <button
                 aria-pressed={selected}
                 key={format.value}
-                onClick={() => setFormatHint(selected ? undefined : format.value)}
+                onClick={() => { setFormatHint(selected ? undefined : format.value); setPreview(undefined); }}
                 title={format.description}
                 type="button"
               >
@@ -125,12 +135,21 @@ export function ForgeHomeIntent() {
       ) : null}
 
       <div className="forge-home-intent__footer">
-        <p>Aucune génération ne démarre avant votre validation du brief.</p>
+        <p>{previewBeforeContinue ? "Aperçu local gratuit, sans compte ni enregistrement de parcours." : "Aucune génération ne démarre avant votre validation du brief."}</p>
         <Link className="text-link" href="/app/create?method=manual">
           <PencilLine size={16} aria-hidden="true" />
           Créer manuellement
         </Link>
       </div>
+      {preview ? <section className="forge-public-preview" aria-labelledby="public-preview-title">
+        <span className="journey-eyebrow"><Sparkles size={16} aria-hidden="true" />Aperçu de structure · sans génération IA</span>
+        <h2 id="public-preview-title" tabIndex={-1} ref={previewHeadingRef}>{preview.title}</h2>
+        <p>{preview.format} · {preview.estimatedMinutes} min indicatives · {preview.modules.length} module(s)</p>
+        <ol className="course-timeline">{preview.modules.map(module => <li key={module.title}><h3>{module.title}</h3><ul>{module.objectives.map(objective => <li key={objective}>{objective}</li>)}</ul></li>)}</ol>
+        <p>{preview.explanation}</p>
+        <p className="forge-public-preview__disclosure">Exemple déterministe de progression, à adapter à votre idée. Dans le Workspace, précisez le public, le niveau et vos sources avant de demander une proposition personnalisée à Forge.</p>
+        <Link className="btn btn-primary" href={getForgeCourseCreatorHref(preview.intent)}>Continuer dans le Workspace<ArrowRight size={18} aria-hidden="true" /></Link>
+      </section> : null}
     </form>
   );
 }

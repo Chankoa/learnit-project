@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 
+import { CollapsedForgeRail, ContextualForgeHeader, FORGE_DRAWER_QUERY, useContextualPanel, usePanelMediaQuery } from "@/components/app/ContextualForgeRail";
 import { askLearnerForgeAction } from "@/app/learn/forge-actions";
 import { ForgeAIStatus } from "@/components/app/ForgeAIPrimitives";
 import { LearningShell } from "@/components/learning/LearningShell";
@@ -49,14 +50,6 @@ const actions: Array<{
   { action: "question", icon: MessageCircleQuestion, label: "Me questionner" }
 ];
 
-function getFocusable(container: HTMLElement) {
-  return Array.from(
-    container.querySelectorAll<HTMLElement>(
-      'button:not([disabled]), textarea:not([disabled]), input:not([disabled]), summary, [href], [tabindex]:not([tabindex="-1"])'
-    )
-  );
-}
-
 export function LearnerLessonWorkspace({
   children,
   courseId,
@@ -70,6 +63,8 @@ export function LearnerLessonWorkspace({
   sourceSummary,
   workspaceContext
 }: LearnerLessonWorkspaceProps) {
+  const isForgeDrawer = usePanelMediaQuery(FORGE_DRAWER_QUERY);
+  const [isForgeExpanded, setIsForgeExpanded] = useState(false);
   const [isForgeOpen, setIsForgeOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [pendingAction, setPendingAction] = useState<LearnerForgeAction>();
@@ -85,43 +80,7 @@ export function LearnerLessonWorkspace({
     requestAnimationFrame(() => triggerRef.current?.focus());
   }
 
-  useEffect(() => {
-    if (!isForgeOpen || !panelRef.current) return;
-
-    const panel = panelRef.current;
-    panel.focus();
-    const isDrawer = window.matchMedia("(max-width: 1100px)").matches;
-    const previousOverflow = document.body.style.overflow;
-    if (isDrawer) document.body.style.overflow = "hidden";
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeForge();
-        return;
-      }
-
-      if (!isDrawer || event.key !== "Tab") return;
-      const focusable = getFocusable(panel);
-      const first = focusable[0];
-      const last = focusable.at(-1);
-      if (!first || !last) return;
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    }
-
-    document.addEventListener("keydown", onKeyDown, true);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", onKeyDown, true);
-    };
-  }, [isForgeOpen]);
+  useContextualPanel({ open: isForgeOpen, modal: isForgeDrawer, panelRef, onClose: closeForge });
 
   function askForge(action: LearnerForgeAction, freeformQuestion?: string) {
     setError(undefined);
@@ -164,6 +123,8 @@ export function LearnerLessonWorkspace({
   const panel = (
     <aside
       aria-label="Copilote Forge"
+      role={isForgeDrawer ? "dialog" : undefined}
+      aria-modal={isForgeDrawer || undefined}
       className="learner-forge-panel"
       id="learner-forge-panel"
       onKeyDown={(event) => {
@@ -175,15 +136,7 @@ export function LearnerLessonWorkspace({
       ref={panelRef}
       tabIndex={-1}
     >
-      <header className="learner-forge-panel__header">
-        <div>
-          <span><Sparkles size={16} aria-hidden="true" /> Forge</span>
-          <h2>Copilote de cette leçon</h2>
-        </div>
-        <button aria-label="Fermer Forge" className="btn btn-ghost btn-icon" onClick={closeForge} type="button">
-          <X size={18} aria-hidden="true" />
-        </button>
-      </header>
+      <ContextualForgeHeader context="Comprendre et apprendre" onClose={closeForge} expanded={isForgeExpanded} onExpand={!isForgeDrawer ? () => setIsForgeExpanded(value => !value) : undefined} />
 
       <div className="learner-forge-panel__body">
         <section className="learner-forge-context" aria-labelledby="learner-forge-context-title">
@@ -282,10 +235,10 @@ export function LearnerLessonWorkspace({
       variant="lesson"
       workspaceContext={workspaceContext}
     >
-      <div className="learner-lesson-workspace" data-forge-open={isForgeOpen}>
+      <div className="learner-lesson-workspace" data-forge-open={isForgeOpen} data-forge-expanded={isForgeExpanded}>
         {sidebar}
         <article className="lesson-page">{children}</article>
-        {isForgeOpen ? panel : null}
+        {isForgeOpen ? panel : <CollapsedForgeRail controls="learner-forge-panel" onOpen={() => setIsForgeOpen(true)} />}
         {isForgeOpen ? <button aria-label="Fermer Forge" className="learner-forge-overlay" onClick={closeForge} type="button" /> : null}
       </div>
     </LearningShell>

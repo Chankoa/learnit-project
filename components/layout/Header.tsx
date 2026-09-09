@@ -12,6 +12,8 @@ import {
   publicNavigation
 } from "@/lib/navigation";
 
+const headerNavigation = publicNavigation.filter(item => item.href === "/" || item.href === "/formations");
+
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -28,7 +30,7 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-5 lg:flex" aria-label="Navigation principale">
-          {publicNavigation.map((item) => {
+          {headerNavigation.map((item) => {
             const active = isNavigationItemActive(item, pathname);
 
             return (
@@ -46,7 +48,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link className="btn btn-secondary hidden lg:inline-flex" href="/login">Se connecter</Link>
+          <Link className="btn btn-secondary site-header__login" href="/login">Se connecter</Link>
 
           <ThemeToggle />
           <Link className="btn btn-primary hidden sm:inline-flex" href="/register">
@@ -68,7 +70,7 @@ export function Header() {
       {isMenuOpen ? (
         <div className="site-header__mobile lg:hidden" id="site-mobile-nav">
           <nav className="section-shell flex flex-col gap-1 py-4" aria-label="Navigation mobile">
-            {publicNavigation.map((item) => {
+            {headerNavigation.map((item) => {
               const Icon = item.icon;
               const active = isNavigationItemActive(item, pathname);
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
+import { CourseContextNavigation } from "@/components/app/CourseContextNavigation";
 import { TeacherCourseBuilder } from "@/components/app/TeacherCourseBuilder";
 import { UnifiedCourseModeSwitch } from "@/components/app/UnifiedCourseModeSwitch";
 import { CompletionButton } from "@/components/learning/CompletionButton";
@@ -54,7 +55,7 @@ export default async function UnifiedLessonPage({ params, searchParams }: Unifie
     if (!course) notFound();
     return (
       <div className="teacher-focus-page unified-authoring-workspace">
-        <TeacherCourseBuilder
+        <TeacherCourseBuilder contextNavigation={<CourseContextNavigation courseSlug={courseSlug} active="edit" canEdit={context.canEdit} canLearn={context.canLearn} canPublish={context.canPublish} canManageMembers={context.canManageMembers} />}
           canonicalCourseSlug={courseSlug}
           canonicalLearnHref={buildCourseModeHref(nextPath, "learn")}
           course={course}
@@ -83,7 +84,7 @@ export default async function UnifiedLessonPage({ params, searchParams }: Unifie
   const resources = lesson.resources ?? module?.resources ?? [];
   const basePath = `/app/courses/${courseSlug}/lessons`;
   const MdxLesson = getLessonMdxComponent(courseSlug, lessonSlug);
-  const outline = <LessonSidebar basePath={basePath} course={course} courseHref={`/app/courses/${courseSlug}`} currentLessonId={lesson.id} modules={context.learning.modules} percentage={context.learning.percentage} />;
+  const outline = <LessonSidebar basePath={basePath} course={course} courseHref={`/app/courses/${courseSlug}?mode=view`} currentLessonId={lesson.id} modules={context.learning.modules} percentage={context.learning.percentage} />;
 
   return (
     <LearnerLessonWorkspace
@@ -106,17 +107,18 @@ export default async function UnifiedLessonPage({ params, searchParams }: Unifie
             mode="learn"
           />
         ) : undefined,
-        homeHref: "/app/courses",
-        homeLabel: "Mes parcours",
+        homeHref: `/app/courses/${courseSlug}?mode=view`,
+        homeLabel: "Parcours",
         relationLabel: context.relationLabels.join(" · ")
       }}
     >
-      <LessonHeader course={course} courseBasePath={`/app/courses/${courseSlug}`} coursesHref="/app/courses" lesson={lesson} module={module} />
+      <CourseContextNavigation courseSlug={courseSlug} active="learn" canEdit={context.canEdit} canLearn={context.canLearn} canPublish={context.canPublish} canManageMembers={context.canManageMembers} editHref={buildCourseModeHref(nextPath, "edit")} learnHref={buildCourseModeHref(nextPath, "learn")} />
+      <LessonHeader course={course} courseBasePath={`/app/courses/${courseSlug}?mode=view`} coursesHref="/app/courses" lesson={lesson} module={module} />
       {MdxLesson ? <div className="lesson-content lesson-content--mdx"><MdxLesson /></div> : <MarkdownLessonContent content={lesson.content} />}
       <ResourceList resources={resources} />
       <div className="lesson-completion"><div><span>Progression</span><h2>Cette leçon est-elle terminée ?</h2></div><CompletionButton courseId={course.id} courseSlug={course.slug} initiallyCompleted={lesson.status === "completed"} lessonId={lesson.id} /></div>
       <LessonNotes courseSlug={course.slug} initialNote={note} lessonId={lesson.id} />
-      <LessonNavigation basePath={basePath} courseSlug={course.slug} nextLesson={lessonIndex >= 0 ? context.learning.lessons[lessonIndex + 1] : undefined} overviewHref={`/app/courses/${courseSlug}`} previousLesson={lessonIndex > 0 ? context.learning.lessons[lessonIndex - 1] : undefined} />
+      <LessonNavigation basePath={basePath} courseSlug={course.slug} nextLesson={lessonIndex >= 0 ? context.learning.lessons[lessonIndex + 1] : undefined} overviewHref={`/app/courses/${courseSlug}?mode=view`} previousLesson={lessonIndex > 0 ? context.learning.lessons[lessonIndex - 1] : undefined} />
     </LearnerLessonWorkspace>
   );
 }

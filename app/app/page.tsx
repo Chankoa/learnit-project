@@ -38,21 +38,9 @@ export default async function AppAccessPage() {
           title={`Bonjour ${profile.name}`}
           description="Heureux de vous retrouver. Qu’allez-vous faire avancer aujourd’hui ?"
         />
-        <section className="unified-hero" aria-labelledby="unified-hero-title">
-          <div>
-            <span>Apprendre · Créer · Partager</span>
-            <h2 id="unified-hero-title">Une idée en tête ? Construisons la suite.</h2>
-            <p>Transformez votre curiosité en connaissances, avec Forge à vos côtés.</p>
-          </div>
-          <div className="unified-hero__actions">
-            <Link className="btn btn-secondary" href="/app/courses"><BookOpenText size={16} aria-hidden="true" /> Mes parcours</Link>
-            <Link className="btn btn-secondary" href="/app/explore"><Compass size={16} aria-hidden="true" /> Explorer</Link>
-            <Link className="btn btn-primary" href="/app/create"><PenLine size={16} aria-hidden="true" /> Créer</Link>
-          </div>
-          <ForgeJourneyArt />
-        </section>
+        <section className="workspace-create-entry" aria-labelledby="workspace-create-title"><div><h2 id="workspace-create-title">Votre prochain parcours</h2><p>Une idée à explorer ou à transmettre ?</p></div><Link className="btn btn-primary" href="/app/create"><PenLine size={17} aria-hidden="true" />Créer avec Forge</Link></section>
         {toResume ? <section className="unified-section" aria-labelledby="resume-title"><div className="unified-section__heading"><div><span>À reprendre</span><h2 id="resume-title">Votre dernier parcours actif</h2></div></div><div className="unified-course-grid"><UnifiedCourseCard relation={toResume} /></div></section> : null}
-        <section className="unified-section" aria-labelledby="my-courses-title"><div className="unified-section__heading"><div><span>Mes parcours</span><h2 id="my-courses-title">Apprentissages et créations</h2></div><Link href="/app/courses">Tout voir <ArrowRight size={16} aria-hidden="true" /></Link></div>{relations.length ? <div className="unified-course-grid">{relations.slice(0, 3).map((relation) => <UnifiedCourseCard key={relation.course.id} relation={relation} />)}</div> : <p className="unified-empty">Vous n'avez pas encore de parcours personnel. Explorez le catalogue pour commencer.</p>}</section>
+        <section className="unified-section" aria-labelledby="my-courses-title"><div className="unified-section__heading"><div><span>Mes parcours</span><h2 id="my-courses-title">Apprentissages et créations</h2></div><Link href="/app/courses">Tout voir <ArrowRight size={16} aria-hidden="true" /></Link></div>{relations.length ? <div className="unified-course-grid">{relations.filter(relation => relation.course.id !== toResume?.course.id).slice(0, 3).map((relation) => <UnifiedCourseCard key={relation.course.id} relation={relation} />)}</div> : <p className="unified-empty">Vous n'avez pas encore de parcours personnel. Explorez le catalogue pour commencer.</p>}</section>
         <section className="unified-section" aria-labelledby="explore-title"><div className="unified-section__heading"><h2 id="explore-title">À explorer</h2><Link href="/app/explore">Tout explorer <ArrowRight size={16} aria-hidden="true" /></Link></div><div className="unified-course-grid">{catalog.slice(0, 3).map(course => { const relation = relations.find(item => item.course.id === course.id); return relation ? <UnifiedCourseCard key={course.id} relation={relation} /> : <UnifiedCourseCard key={course.id} course={course} href={`/app/courses/${course.slug}`} />; })}</div></section>
       </div>
     </UnifiedAppShell>

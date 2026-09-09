@@ -1,6 +1,7 @@
 import { ArrowRight, BookOpenText, Clock3, Layers3, PenLine, Send, Users } from "lucide-react";
 import Link from "next/link";
 
+import { CourseContextNavigation } from "@/components/app/CourseContextNavigation";
 import { CanonicalPublicationPanel } from "@/components/app/CanonicalPublicationPanel";
 import { UnifiedAppShell } from "@/components/app/UnifiedAppShell";
 import { UnifiedCourseModeSwitch } from "@/components/app/UnifiedCourseModeSwitch";
@@ -65,13 +66,10 @@ export function UnifiedCourseOverview({ context, error, message, publication, pr
             {context.canEdit && !context.canLearn ? (
               <Link className="btn btn-primary" href={editHref}><PenLine size={17} aria-hidden="true" /> Modifier</Link>
             ) : null}
-            {context.canPublish ? (
-              <Link className="btn btn-secondary" href={buildCoursePublicationHref(`/app/courses/${learning.course.slug}`)}>
-                <Send size={17} aria-hidden="true" /> {learning.course.status === "published" ? "Gérer la publication" : "Publier"}
-              </Link>
-            ) : null}
           </div>
         </header>
+
+        <CourseContextNavigation courseSlug={learning.course.slug} active={publication ? "publication" : "overview"} canEdit={context.canEdit} canLearn={context.canLearn} canPublish={context.canPublish} canManageMembers={context.canManageMembers} />
 
         {message ? <div className="teacher-toast" role="status">{message}</div> : null}
         {error ? <div className="teacher-form-error" role="alert">{error}</div> : null}
@@ -84,14 +82,9 @@ export function UnifiedCourseOverview({ context, error, message, publication, pr
           {context.canLearn ? <article><span>Progression</span><strong>{learning.percentage}%</strong></article> : null}
         </section>
 
-        <section className="unified-course-program" aria-labelledby="unified-course-program-title">
+        <section className="unified-course-program course-program-timeline" aria-labelledby="unified-course-program-title">
           <div className="unified-course-program__heading">
             <div><span>Parcours</span><h2 id="unified-course-program-title">Programme</h2></div>
-            {context.canManageMembers ? (
-              <Link className="btn btn-secondary" href={`/app/courses/${learning.course.slug}/participants`}>
-                <Users size={16} aria-hidden="true" /> Participants
-              </Link>
-            ) : null}
           </div>
           {learning.modules.length ? learning.modules.map((module) => (
             <details key={module.id} open={module.lessons.some((lesson) => lesson.id === learning.currentLesson?.id)}>
