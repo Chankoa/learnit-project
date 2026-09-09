@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { publishCanonicalCourseAction, unpublishCanonicalCourseAction } from "@/app/app/teacher/courses/actions";
-import { CourseContextNavigation } from "@/components/app/CourseContextNavigation";
 import { TeacherCourseBuilder } from "@/components/app/TeacherCourseBuilder";
 import { UnifiedCourseOverview } from "@/components/app/UnifiedCourseOverview";
 import { getCurrentProfile, requireAuth } from "@/lib/auth/server";
@@ -44,7 +43,7 @@ export default async function UnifiedCoursePage({ params, searchParams }: Unifie
 
     return (
       <div className="teacher-focus-page unified-authoring-workspace">
-        <TeacherCourseBuilder contextNavigation={<CourseContextNavigation courseSlug={courseSlug} active="edit" canEdit={context.canEdit} canLearn={context.canLearn} canPublish={context.canPublish} canManageMembers={context.canManageMembers} />}
+        <TeacherCourseBuilder
           canonicalCourseSlug={courseSlug}
           canonicalLearnHref={(() => {
             const selectedLesson = context.learning.lessons.find((lesson) => lesson.id === single(query.lesson));

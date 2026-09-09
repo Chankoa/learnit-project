@@ -223,3 +223,21 @@
   .learning-shell--unified .lesson-page { padding: var(--space-4); }
   .forge-public-preview { padding: var(--space-4); }
 }
+
+/* U5.3: the same spatial container for learning and editing. */
+.canonical-course-workspace .teacher-authoring__actions .btn,
+.canonical-course-workspace .teacher-authoring__rail button,
+.canonical-course-workspace .teacher-authoring__panel-header button { min-height: var(--target-touch); min-width: var(--target-touch); }
+.canonical-course-workspace .teacher-authoring__structure > .lesson-sidebar { position: static; width: 100%; height: auto; max-height: none; border: 0; background: var(--surface-panel); color: var(--text-primary); }
+.canonical-course-workspace .lesson-sidebar__summary > a { display: none; }
+.canonical-course-workspace .teacher-authoring__editor > .lesson-page { width: 100%; max-width: 56rem; min-width: 0; margin: 0 auto; padding: var(--space-6); }
+.canonical-course-workspace .lesson-header__context { display: none; }
+.canonical-course-workspace .lesson-header h1 { font-size: var(--font-size-page-title); line-height: var(--leading-snug); }
+.canonical-course-workspace .lesson-objectives { background: var(--surface-soft); border: 0; border-radius: var(--radius-md); padding: var(--space-5); }
+.canonical-course-workspace .learner-forge-panel__body { height: auto; overflow: visible; padding: 0; }
+.canonical-course-workspace .teacher-authoring__structure { overflow-y: auto; }
+.canonical-course-workspace :is(a, button):focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+@media (max-width: 899px) {
+  .canonical-course-workspace .teacher-authoring__actions { flex-wrap: wrap; }
+  .canonical-course-workspace .teacher-authoring__editor > .lesson-page { padding: var(--space-4); }
+}

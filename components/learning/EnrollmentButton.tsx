@@ -23,6 +23,7 @@ export function EnrollmentButton({ courseId, courseSlug }: EnrollmentButtonProps
       try {
         await enrollAction(courseId, courseSlug);
         showToast({ title: "Formation ajoutée", description: "Vous pouvez commencer la première leçon.", variant: "success" });
+        router.push(`/app/courses/${courseSlug}?mode=view`);
         router.refresh();
       } catch {
         showToast({ title: "Inscription impossible", description: "Réessayez dans un instant.", variant: "danger" });

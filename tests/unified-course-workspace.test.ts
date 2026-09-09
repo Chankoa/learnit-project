@@ -10,7 +10,7 @@ const courseRoute = readFileSync(new URL("../app/app/courses/[courseSlug]/page.t
 const lessonRoute = readFileSync(new URL("../app/app/courses/[courseSlug]/lessons/[lessonSlug]/page.tsx", import.meta.url), "utf8");
 const exploreRoute = readFileSync(new URL("../app/app/explore/page.tsx", import.meta.url), "utf8");
 const formationRoute = readFileSync(new URL("../app/formations/[slug]/page.tsx", import.meta.url), "utf8");
-const authoringWorkspace = readFileSync(new URL("../components/app/TeacherAuthoringWorkspace.tsx", import.meta.url), "utf8");
+const authoringWorkspace = readFileSync(new URL("../components/app/CanonicalCourseWorkspace.tsx", import.meta.url), "utf8");
 const courseBuilder = readFileSync(new URL("../components/app/TeacherCourseBuilder.tsx", import.meta.url), "utf8");
 
 test("canonical workspace resolves mode from enrollment and contextual capabilities", () => {

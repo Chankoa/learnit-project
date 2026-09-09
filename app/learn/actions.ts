@@ -23,6 +23,9 @@ function revalidateLearning(courseSlug: string) {
 
 export async function enrollAction(courseId: string, courseSlug: string) {
   await enrollInCourse(courseId);
+  revalidatePath("/app");
+  revalidatePath("/app/courses");
+  revalidatePath("/app/explore");
   revalidateLearning(courseSlug);
 }
 

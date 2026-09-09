@@ -60,7 +60,6 @@ import type { ResourceAccess, ResourceType } from "@/types/resource";
 import type { TeacherCourse } from "@/types/teaching";
 
 type TeacherCourseBuilderProps = {
-  contextNavigation?: React.ReactNode;
   canonicalCourseSlug?: string;
   canonicalLearnHref?: string;
   course: TeacherCourse;
@@ -113,7 +112,6 @@ function toLines(values?: string[]) {
 }
 
 export function TeacherCourseBuilder({
-  contextNavigation,
   canonicalCourseSlug,
   canonicalLearnHref,
   course,
@@ -157,7 +155,6 @@ export function TeacherCourseBuilder({
         courseTitle={course.title}
         editor={
           <section className="teacher-builder__panel" aria-label="Panneau d'édition">
-            {contextNavigation}
             {returnToPublication ? (
               <Link
                 className="teacher-builder__publication-return"
@@ -522,7 +519,7 @@ export function TeacherCourseBuilder({
         }
         forgePanel={
           selectedModule && !selectedLesson ? (
-            <div className="teacher-authoring-forge-context">
+            <div className="teacher-authoring-forge-context" key={`module:${selectedModule.id}`}>
               <dl>
                 <div><dt>Formation</dt><dd>{course.title}</dd></div>
                 <div><dt>Module</dt><dd>{selectedModule.title}</dd></div>
@@ -536,6 +533,7 @@ export function TeacherCourseBuilder({
             </div>
           ) : selectedLesson && selectedModule ? (
             <ForgeLessonAssistant
+              key={`lesson:${selectedLesson.id}`}
               content={selectedLesson.content}
               courseId={course.id}
               courseTitle={course.title}
@@ -646,6 +644,7 @@ export function TeacherCourseBuilder({
                     <Link
                       aria-current={selectedModule?.id === module.id && !selectedLesson ? "page" : undefined}
                       className="teacher-builder-module__select"
+                      aria-label={`Modifier le module ${module.title}`}
                       href={getBuilderHref(course.id, { from: navigationOrigin, module: module.id }, canonicalCourseSlug)}
                     >
                       <span>Module {module.order}</span>

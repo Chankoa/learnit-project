@@ -4,7 +4,6 @@ import Link from "next/link";
 import { CourseContextNavigation } from "@/components/app/CourseContextNavigation";
 import { CanonicalPublicationPanel } from "@/components/app/CanonicalPublicationPanel";
 import { UnifiedAppShell } from "@/components/app/UnifiedAppShell";
-import { UnifiedCourseModeSwitch } from "@/components/app/UnifiedCourseModeSwitch";
 import { EnrollmentButton } from "@/components/learning/EnrollmentButton";
 import { formatCourseDuration } from "@/components/catalog/CourseCard";
 import type { CurrentProfile } from "@/lib/auth/server";
@@ -25,7 +24,6 @@ export function UnifiedCourseOverview({ context, error, message, publication, pr
     ? `/app/courses/${learning.course.slug}/lessons/${learning.resumeLesson.slug}?mode=learn`
     : undefined;
   const editHref = `/app/courses/${learning.course.slug}?mode=edit`;
-  const learnHref = `/app/courses/${learning.course.slug}?mode=learn`;
 
   return (
     <UnifiedAppShell profile={profile}>
@@ -49,27 +47,20 @@ export function UnifiedCourseOverview({ context, error, message, publication, pr
             ) : null}
           </div>
           <div className="unified-course-header__actions">
-            <UnifiedCourseModeSwitch
-              canEdit={context.canEdit}
-              canLearn={context.canLearn}
-              editHref={editHref}
-              learnHref={learnHref}
-              mode={context.mode}
-            />
             {context.canLearn && resumeHref ? (
               <Link className="btn btn-primary" href={resumeHref}>
                 <BookOpenText size={17} aria-hidden="true" />
-                {learning.ctaLabel}
+                {learning.completedCount > 0 || learning.enrollment?.status === "in-progress" || learning.enrollment?.status === "completed" ? "Continuer" : "Commencer"}
               </Link>
             ) : null}
             {context.canEnroll ? <EnrollmentButton courseId={learning.course.id} courseSlug={learning.course.slug} /> : null}
-            {context.canEdit && !context.canLearn ? (
-              <Link className="btn btn-primary" href={editHref}><PenLine size={17} aria-hidden="true" /> Modifier</Link>
+            {context.canEdit ? (
+              <Link className="btn btn-secondary" href={editHref}><PenLine size={17} aria-hidden="true" /> Modifier</Link>
             ) : null}
           </div>
         </header>
 
-        <CourseContextNavigation courseSlug={learning.course.slug} active={publication ? "publication" : "overview"} canEdit={context.canEdit} canLearn={context.canLearn} canPublish={context.canPublish} canManageMembers={context.canManageMembers} />
+        <CourseContextNavigation courseSlug={learning.course.slug} active={publication ? "publication" : "overview"} canPublish={context.canPublish} canManageMembers={context.canManageMembers} />
 
         {message ? <div className="teacher-toast" role="status">{message}</div> : null}
         {error ? <div className="teacher-form-error" role="alert">{error}</div> : null}

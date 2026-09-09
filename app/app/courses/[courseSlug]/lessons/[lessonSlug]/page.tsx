@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
-import { CourseContextNavigation } from "@/components/app/CourseContextNavigation";
 import { TeacherCourseBuilder } from "@/components/app/TeacherCourseBuilder";
 import { UnifiedCourseModeSwitch } from "@/components/app/UnifiedCourseModeSwitch";
 import { CompletionButton } from "@/components/learning/CompletionButton";
@@ -55,7 +54,7 @@ export default async function UnifiedLessonPage({ params, searchParams }: Unifie
     if (!course) notFound();
     return (
       <div className="teacher-focus-page unified-authoring-workspace">
-        <TeacherCourseBuilder contextNavigation={<CourseContextNavigation courseSlug={courseSlug} active="edit" canEdit={context.canEdit} canLearn={context.canLearn} canPublish={context.canPublish} canManageMembers={context.canManageMembers} />}
+        <TeacherCourseBuilder
           canonicalCourseSlug={courseSlug}
           canonicalLearnHref={buildCourseModeHref(nextPath, "learn")}
           course={course}
@@ -112,7 +111,6 @@ export default async function UnifiedLessonPage({ params, searchParams }: Unifie
         relationLabel: context.relationLabels.join(" · ")
       }}
     >
-      <CourseContextNavigation courseSlug={courseSlug} active="learn" canEdit={context.canEdit} canLearn={context.canLearn} canPublish={context.canPublish} canManageMembers={context.canManageMembers} editHref={buildCourseModeHref(nextPath, "edit")} learnHref={buildCourseModeHref(nextPath, "learn")} />
       <LessonHeader course={course} courseBasePath={`/app/courses/${courseSlug}?mode=view`} coursesHref="/app/courses" lesson={lesson} module={module} />
       {MdxLesson ? <div className="lesson-content lesson-content--mdx"><MdxLesson /></div> : <MarkdownLessonContent content={lesson.content} />}
       <ResourceList resources={resources} />

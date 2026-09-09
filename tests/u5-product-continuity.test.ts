@@ -40,10 +40,10 @@ test("all canonical learning returns explicitly select overview rather than defa
 });
 test("contextual course navigation keeps publication and participants capability gated", () => {
   const nav = read("components/app/CourseContextNavigation.tsx");
-  assert.match(nav, /canLearn \?/);
+  assert.doesNotMatch(nav, /label: "Apprendre"|label: "Modifier"/);
   assert.match(nav, /canPublish \?/);
   assert.match(nav, /canManageMembers \?/);
-  assert.match(nav, /canEdit \?/);
+  assert.match(read("components/app/UnifiedCourseOverview.tsx"), /context.canEdit \?/);
   assert.doesNotMatch(nav, /\/app\/(teacher|learner)/);
   assert.match(read("components/app/UnifiedCourseOverview.tsx"), /active={publication \? "publication" : "overview"}/);
   assert.match(read("app/app/courses/[courseSlug]/participants/page.tsx"), /active="participants"/);
@@ -56,13 +56,15 @@ test("public Forge preview remains the only contextual Workspace CTA", () => {
 test("Learn and Edit use the same Forge rail and focus lifecycle", () => {
   for (const file of ["components/learning/LearnerLessonWorkspace.tsx", "components/app/TeacherAuthoringWorkspace.tsx"]) {
     const source = read(file);
-    for (const primitive of ["ContextualForgeHeader", "CollapsedForgeRail", "useContextualPanel", "FORGE_DRAWER_QUERY"]) assert.ok(source.includes(primitive));
+    assert.match(source, /CanonicalCourseWorkspace/);
   }
+  const shared = read("components/app/CanonicalCourseWorkspace.tsx");
+  for (const primitive of ["ContextualForgeHeader", "CollapsedForgeRail", "useContextualPanel", "FORGE_DRAWER_QUERY"]) assert.ok(shared.includes(primitive));
   const styles = read("styles/journey.scss");
   assert.doesNotMatch(styles, /#[0-9a-fA-F]{3,8}\b|rgba?\(/);
 });
 test("canonical Learn and Edit compose the shared course topbar", () => {
-  for (const file of ["components/learning/LearningShell.tsx", "components/app/TeacherAuthoringWorkspace.tsx"]) {
+  for (const file of ["components/app/CanonicalCourseWorkspace.tsx"]) {
     assert.match(read(file), /CanonicalCourseTopbar/);
   }
 });
